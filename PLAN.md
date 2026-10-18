@@ -27,6 +27,7 @@ Zmiana bazy (**SQL**) oznacza, że po wdrożeniu musisz wgrać nowy plik w Supab
 | A12 | Pozostali widzą, którą odpowiedź kliknął odpowiadający (✓/✗ z imieniem) | 18.10.2026 |
 | A9 | Wybór kategorii: „1 kategoria” (bęben) albo „MIX” (lista); bęben jako wielkie koło, dalsze wiersze spłaszczone, mniejsze i blade | 18.10.2026 |
 | A6 | Pytanie ×2: jedno losowe na każde 10 pytań, baner „Pytanie za podwójne punkty!”, punkty i kara ×2; włączane w lobby i w ustawieniach jednego telefonu | 18.10.2026 |
+| B3 | Tryb „Kto pierwszy, ten lepszy”: wszyscy odpowiadają naraz, dobre odpowiedzi według czasu: 10/8/6/4, dalej 2; zła 0 | 18.10.2026 |
 | A8 | Instrukcja gry z przyciskami zostaje na ekranie, dopóki prowadzący nie kliknie „Zaczynamy!” | 18.10.2026 |
 | C1 | Partia 1 bazy pytań: 5 nowych kategorii po 100 pytań (razem 944) | 18.10.2026 |
 | — | Naprawa listy wyników (funkcja czyszcząca nicki) | 18.10.2026 |
@@ -37,7 +38,8 @@ B0, B1 i B2 zrobione. Dalej kolejność do Twojej decyzji (propozycja: od góry)
 
 | ID | Usprawnienie | Wielkość | Status |
 |---|---|---|---|
-| B3 | Trzeci tryb online: „Kto pierwszy, ten lepszy” | L, SQL | — |
+| A14 | Przycisk: „Następne pytanie” widoczny bez przewijania, pasek czasu biegnie dookoła przycisku, przycisk wygląda jak prawdziwy | S | — |
+| C3 | Kategoria o małżeństwie Chajzerów na podstawie 3 odcinków ich podcastu | M | — |
 | A13 | Delikatne animacje: przejścia ekranów, pytań i kliknięcia | S | — |
 | A3 | Kontrola wersji bazy: gra ostrzega, gdy migracja nie jest wgrana | S, SQL | — |
 | C2 | Zgłaszanie błędnego pytania z poziomu gry | M, SQL | — |

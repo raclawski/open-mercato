@@ -60,7 +60,7 @@ function liveGameRecord() {
 let histKey = null, histT = null;
 function prefetchHist() {
   if (!window.PK || !PK.ready() || (H && H.deck && H.ph !== "lobby")) return;
-  const names = connectedPlayers().concat(settings.mode === "online" && adminName() ? [adminName()] : []);
+  const names = connectedPlayers().concat(isAuto(settings.mode) && adminName() ? [adminName()] : []);
   const key = names.map((n) => n.toLowerCase()).sort().join("|");
   if (key === histKey) return;
   histKey = key; clearTimeout(histT);

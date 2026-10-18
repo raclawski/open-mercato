@@ -372,6 +372,39 @@ async def main(dburl):
         await until(oh, '() => document.querySelector("#fRank").textContent.includes("zapisany")')
         check('Ola' in kb and '10 pkt' in kb and 'Kuba' in kb and '−1 pkt' in kb and 'Ewa' in kb, 'online: tabela wyników u gracza, gra zapisana na liście', kb)
 
+        # --- „Kto pierwszy, ten lepszy”: wszyscy odpowiadają naraz, punkty za kolejność dobrych odpowiedzi ---
+        rctx = await ctx()
+        rh = await page(rctx, 'index.html')  # admin „Zosia”
+        rh.on('dialog', lambda d: asyncio.ensure_future(d.accept()))
+        await rh.click('a.mode[href^="live"]'); await rh.click('#btnBeHost'); await rh.wait_for_selector('#s-hsetup:not([hidden])', timeout=15000)
+        await rh.click('#modeSeg [data-v="race"]'); await rh.fill('#countRange', '5'); await rh.uncheck('#optX2')
+        await rh.fill('#adminName', 'Zosia')
+        rcode = (await rh.inner_text('#hsCode')).strip()
+        rp = {'Zosia': rh}
+        for n in ['Jan', 'Iga']:
+            pg = await page(await ctx(), 'live.html?kod=' + rcode)
+            await pg.fill('#pname', n); await pg.click('#btnJoin')
+            await pg.wait_for_selector('#s-player:not([hidden])', timeout=15000); rp[n] = pg
+        await until(rh, '() => document.querySelectorAll("#hsRoster .sc").length === 3')
+        await rh.click('#btnHStart')
+        await until(rp['Jan'], '() => P.host && P.host.ph === "race" && document.querySelectorAll("#pOpts button[data-i]").length === 4', timeout=8000)
+        rc = await rh.evaluate('() => H.deck[H.i].c')
+        await until(rh, '() => document.querySelectorAll("#pOpts button[data-i]").length === 4')
+        await rp['Jan'].click(f'#pOpts button[data-i="{rc}"]'); await rp['Jan'].wait_for_timeout(250)
+        await rh.click(f'#pOpts button[data-i="{rc}"]'); await rh.wait_for_timeout(250)
+        mid = await rp['Iga'].evaluate('() => [P.host.ph, P.host.ra, document.querySelectorAll("#pOpts li.good, #pOpts li.bad").length]')
+        await rp['Iga'].click(f'#pOpts button[data-i="{(rc + 1) % 4}"]')
+        await until(rp['Iga'], '() => P.host && P.host.ph === "reveal"', timeout=5000)
+        st = await rp['Iga'].inner_text('#pStatus')
+        mine = [await rp[n].evaluate('() => document.querySelector("#buzz").textContent') for n in ('Jan', 'Zosia', 'Iga')]
+        check(mid == ['race', 2, 0] and st.startswith('1. Jan +10 · 2. Zosia +8') and mine[0].startswith('+10') and mine[1].startswith('+8') and mine[2].startswith('0 pkt'),
+              'kto pierwszy: wszyscy odpowiadają naraz, 10 i 8 pkt za kolejność, zła 0', f'{mid} | {st} | {mine}')
+        await rh.click('#btnLeave')
+        await until(rp['Jan'], '() => !document.querySelector("#s-final").hidden', timeout=8000)
+        await until(rh, '() => document.querySelector("#fRank").textContent.includes("zapisany")')
+        sc = psql(dburl, '-Atc', "select string_agg(name || '=' || score, ',' order by score desc) from public.pk_game_players p join public.pk_games g on g.id = p.game_id where g.code = '" + rcode + "'").strip()
+        check(sc == 'Jan=10,Zosia=8,Iga=0', 'kto pierwszy: wynik na liście wyników', sc)
+
         check(not errs, 'brak błędów JS', errs[:3])
         await b.close()
 

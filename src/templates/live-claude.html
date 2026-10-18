@@ -366,8 +366,8 @@ body.ans-other #s-player .sheet { filter: grayscale(1); opacity: .82; }
       </div>
       <div class="field">
         <span class="label" id="lbl-mode">Wersja gry</span>
-        <div class="seg c2" role="group" aria-labelledby="lbl-mode" id="modeSeg">
-          <button type="button" data-v="online">Online</button><button type="button" data-v="offline">Offline</button>
+        <div class="seg c3" role="group" aria-labelledby="lbl-mode" id="modeSeg">
+          <button type="button" data-v="online">Online</button><button type="button" data-v="race">Kto pierwszy</button><button type="button" data-v="offline">Offline</button>
         </div>
         <p class="hint" id="modeHint"></p>
       </div>
@@ -508,6 +508,9 @@ const LEVELS = {
   lit: { label: "Literatura polska", bank: BANK_LIT, hint: "Od Kochanowskiego do noblistów i Nagrody Nike." },
 };
 const PLUS = 10;
+/* tryby bez prowadzącego: online (przycisk) i race („Kto pierwszy, ten lepszy”: wszyscy odpowiadają naraz) */
+const isAuto = (m) => m === "online" || m === "race";
+const RACE_PTS = [10, 8, 6, 4], RACE_MIN = 2;
 const LETTERS = ["A", "B", "C", "D"];
 const DEFAULT_NAMES = ["Adam", "Zając", "Asia", "Tomek", "Julia"];
 
@@ -588,7 +591,7 @@ function playerOnPeers(ch) { applyHostView(findHost(ch.peers)); }
 function applyHostView(h) {
   const prev = P.host;
   P.host = h;
-  if (h && h.ph === "armed" && h.arm !== P.lastArm) { P.armSeen = performance.now(); P.lastArm = h.arm; vibrate(60); }
+  if (h && (h.ph === "armed" || h.ph === "race") && h.arm !== P.lastArm) { P.armSeen = performance.now(); P.lastArm = h.arm; vibrate(60); }
   if (h && h.ph === "count" && h.arm !== P.cdArm) { P.cdArm = h.arm; P.cdEnd = performance.now() + (typeof h.cd === "number" ? h.cd : CD_MS); }
   clearInterval(P.cdTick); P.cdTick = null;
   if (h && h.ph === "count") P.cdTick = setInterval(renderPlayer, 200);
@@ -598,7 +601,7 @@ function applyHostView(h) {
 }
 /* Pasek czasu u gracza: prowadzący podaje, ile zostało (w ms), a telefon odlicza sam od chwili odebrania stanu. */
 function syncPlayerTimer(h) {
-  const tm = h && (h.ph === "armed" || h.ph === "locked") && h.tm && h.tm.T > 0 ? h.tm : null, el = $("#pTimer");
+  const tm = h && (h.ph === "armed" || h.ph === "locked" || h.ph === "race") && h.tm && h.tm.T > 0 ? h.tm : null, el = $("#pTimer");
   if (!tm) { clearInterval(P.tTick); P.tTick = null; P.tKey = null; el.hidden = true; return; }
   const key = `${h.g}:${h.qn}:${h.arm}:${h.ph}`, end = performance.now() + Math.min(tm.left, tm.T);
   if (key !== P.tKey || Math.abs(end - P.tEnd) > 700) { P.tKey = key; P.tEnd = end; P.tT = tm.T; }
@@ -616,7 +619,7 @@ function syncPlayerTimer(h) {
 function isBlocked(h) { return !!(h && Array.isArray(h.blk) && h.blk.includes(P.name)); }
 function renderPlayer() {
   const h = P.host, b = $("#buzz"), st = $("#pStatus");
-  const onScreen = role === "player" || (role === "host" && h && h.mode === "online");
+  const onScreen = role === "player" || (role === "host" && h && isAuto(h.mode));
   const lockedNow = onScreen && h && h.ph === "locked" && h.win;
   document.body.classList.toggle("ans-me", !!(lockedNow && h.win === P.name));
   document.body.classList.toggle("ans-other", !!(lockedNow && h.win !== P.name));
@@ -624,12 +627,12 @@ function renderPlayer() {
   $("#pSkip").hidden = !(h && h.mode === "online" && h.ph === "armed" && !isBlocked(h) && P.pressedArm !== skipKey);
   $("#pSkip").textContent = P.skipKey === skipKey ? "Pominięte · czekam na pozostałych" : "Pomiń pytanie";
   $("#pSkip").disabled = P.skipKey === skipKey;
-  $("#pNext").hidden = !(h && h.mode === "online" && h.ph === "reveal");
-  $("#x2P").hidden = !(h && h.x2 && ["q", "q2", "count", "armed", "locked", "reveal"].includes(h.ph));
+  $("#pNext").hidden = !(h && isAuto(h.mode) && h.ph === "reveal");
+  $("#x2P").hidden = !(h && h.x2 && ["q", "q2", "count", "armed", "locked", "race", "reveal"].includes(h.ph));
   $("#pNext").disabled = P.nextKey === nextKey;
   if (h && h.ph === "final" && Array.isArray(h.fin) && role === "player") { drawFinal(h.fin, h.lv || "", h.n ? `${h.qn + 1} z ${h.n} pytań` : "", false); return; }
   if (!$("#s-final").hidden && role === "player") show("s-player");
-  $("#s-player").classList.toggle("online", !!(h && h.mode === "online"));
+  $("#s-player").classList.toggle("online", !!(h && isAuto(h.mode)));
   $("#btnLeave").textContent = role === "host" ? "Zakończ grę" : "Wyjdź";
   $("#pName").textContent = P.name || "Gracz";
   const sc = h && Array.isArray(h.sc) ? h.sc : [];
@@ -637,9 +640,9 @@ function renderPlayer() {
   $("#pScore").textContent = pts(mine ? mine[1] : 0);
   $("#pScores").innerHTML = sc.map((x) => `<span class="sc${x[0] === P.name ? " on" : ""}">${esc(x[0])} <b class="${x[1] < 0 ? "neg" : ""}">${num(x[1])}</b></span>`).join("");
   b.className = "buzz"; b.disabled = false;
-  const showQ = h && h.q && ["q", "q2", "count", "armed", "locked", "reveal"].includes(h.ph);
+  const showQ = h && h.q && ["q", "q2", "count", "armed", "locked", "race", "reveal"].includes(h.ph);
   $("#pQ").hidden = !showQ;
-  const myTurn = h && h.ph === "locked" && h.win === P.name, akey = h ? `${h.g}:${h.arm}` : "", sent = P.ansKey === akey;
+  const myTurn = h && ((h.ph === "locked" && h.win === P.name) || h.ph === "race"), akey = h ? `${h.g}:${h.arm}` : "", sent = P.ansKey === akey;
   if (showQ) {
     $("#pQtext").textContent = h.q.t;
     $("#pOpts").innerHTML = (h.q.o || []).map((o, i) => myTurn
@@ -653,12 +656,12 @@ function renderPlayer() {
     const ex = $("#pExplain"); ex.hidden = !(h.ph === "reveal" && h.ex); ex.textContent = h.ex || "";
   }
   const cat = h && (h.cat || (h.q && h.q.c));
-  $("#pQnum").textContent = h && h.n ? `Pytanie ${h.qn + 1} z ${h.n}${cat ? " · " + cat : ""}${h.mode === "online" ? " · online" : ""}` : "Czekamy na prowadzącego";
+  $("#pQnum").textContent = h && h.n ? `Pytanie ${h.qn + 1} z ${h.n}${cat ? " · " + cat : ""}${h.mode === "online" ? " · online" : h.mode === "race" ? " · kto pierwszy" : ""}` : "Czekamy na prowadzącego";
   if (!h) { b.innerHTML = "Czekaj<small>na prowadzącego</small>"; b.disabled = true; st.textContent = roomState === "off" ? "Brak połączenia z grą." : "Prowadzący jeszcze nie otworzył gry."; return; }
   if (h.ph === "lobby") { b.innerHTML = "Jesteś<small>w poczekalni</small>"; b.disabled = true; st.textContent = "Czekaj na start gry."; return; }
   if (h.ph === "final") { b.innerHTML = "Koniec<small>gry</small>"; b.disabled = true; const top = sc[0]; st.textContent = top ? `Wygrywa ${top[0]} (${pts(top[1])})` : "Koniec gry"; return; }
   const blocked = isBlocked(h);
-  const online = h.mode === "online";
+  const online = isAuto(h.mode);
   if (h.ph === "q" || h.ph === "q2") {
     if (blocked) { b.className = "buzz blocked"; b.innerHTML = "Blokada<small>w tym pytaniu</small>"; st.textContent = h.ph === "q2" ? "Odbicie dla pozostałych." : ""; }
     else if (online) { b.innerHTML = "Czekaj<small>na start pytania</small>"; b.disabled = true; st.textContent = h.ph === "q2" ? "Za chwilę odbicie dla pozostałych!" : "Prowadzący zaraz zacznie."; }
@@ -677,6 +680,20 @@ function renderPlayer() {
     else { b.className = "buzz armed"; b.innerHTML = "Teraz!"; st.textContent = "Wciskaj!"; }
     return;
   }
+  if (h.ph === "race") {
+    b.disabled = true;
+    b.innerHTML = sent ? `Wysłano: ${LETTERS[P.ansPick]}<small>czekaj na wynik</small>` : "Wybierz<small>odpowiedź poniżej</small>";
+    st.textContent = `Odpowiedziało ${h.ra || 0} z ${h.rn || 0}.` + (sent ? "" : " Liczy się kolejność!");
+    return;
+  }
+  if (h.ph === "reveal" && Array.isArray(h.rr)) {
+    b.disabled = true;
+    const me = h.rr.find((r) => r.n === P.name), top = h.rr.filter((r) => r.ok);
+    b.className = me && me.ok ? "buzz win" : "buzz";
+    b.innerHTML = me ? (me.ok ? `+${me.pts}!<small>${me.place}. miejsce</small>` : "0 pkt<small>zła odpowiedź</small>") : "Odpowiedź<small>na ekranie</small>";
+    st.textContent = top.length ? top.slice(0, 5).map((r) => `${r.place}. ${r.n} +${r.pts}`).join(" · ") : "Nikt nie trafił.";
+    return;
+  }
   if (h.ph === "locked") {
     if (h.win === P.name) { b.className = "buzz win"; b.disabled = true; b.innerHTML = sent ? `Wysłano: ${LETTERS[P.ansPick]}<small>czekaj na wynik</small>` : "Odpowiadasz!<small>kliknij odpowiedź poniżej</small>"; st.textContent = sent ? "" : "Wybierz odpowiedź!"; }
     else { b.innerHTML = "Odpowiada<small>" + esc(h.win || "") + "</small>"; b.disabled = true; st.textContent = `Odpowiada ${h.win || ""}`; }
@@ -691,7 +708,7 @@ function renderPlayer() {
 }
 function pressBuzz() {
   const h = P.host;
-  if (!h || !(role === "player" || (role === "host" && h.mode === "online"))) return;
+  if (!h || !(role === "player" || (role === "host" && isAuto(h.mode)))) return;
   if (isBlocked(h)) return;
   const key = `${h.g}:${h.arm}`;
   if (h.ph === "armed") {
@@ -700,7 +717,7 @@ function pressBuzz() {
     sendMine({ buzz: { g: h.g, a: h.arm, rt: Math.round(performance.now() - P.armSeen) } });
     vibrate(30);
     renderPlayer();
-  } else if ((h.ph === "q" || h.ph === "q2") && h.mode !== "online") {
+  } else if ((h.ph === "q" || h.ph === "q2") && !isAuto(h.mode)) {
     const fk = `${h.g}:${h.qn}:${h.arm}`;
     if (P.fsKey === fk) return;
     P.fsKey = fk;
@@ -711,11 +728,11 @@ function pressBuzz() {
 }
 $("#pOpts").addEventListener("click", (e) => {
   const btn = e.target.closest("button[data-i]"), h = P.host;
-  if (!btn || !h || !(role === "player" || role === "host") || h.ph !== "locked" || h.win !== P.name) return;
+  if (!btn || !h || !(role === "player" || role === "host") || !((h.ph === "locked" && h.win === P.name) || h.ph === "race")) return;
   const key = `${h.g}:${h.arm}`;
   if (P.ansKey === key) return;
   P.ansKey = key; P.ansPick = +btn.dataset.i;
-  sendMine({ ans: { g: h.g, a: h.arm, i: P.ansPick } });
+  sendMine({ ans: { g: h.g, a: h.arm, i: P.ansPick, rt: Math.round(performance.now() - P.armSeen) } });
   vibrate(30); renderPlayer();
 });
 $("#buzz").addEventListener("pointerdown", (e) => { e.preventDefault(); pressBuzz(); });
@@ -731,7 +748,7 @@ $("#buzz").addEventListener("keydown", (e) => { if (e.key === " " || e.key === "
 
 /* ============================ PROWADZĄCY ============================ */
 let settings = Object.assign({ level: "pro", count: 30, time: 10, minus: 1, mode: "online" }, load("pkl_settings2", {}));
-if (!["online", "offline"].includes(settings.mode)) settings.mode = "online";
+if (!["online", "race", "offline"].includes(settings.mode)) settings.mode = "online";
 if (![1, 5, 10].includes(settings.minus)) settings.minus = 1;
 if (!LEVELS[settings.level]) settings.level = "pro";
 const saveSettings = () => save("pkl_settings2", settings);
@@ -751,7 +768,7 @@ function bindSeg(id, key, isNum) {
 bindSeg("modeSeg", "mode", false); bindSeg("levelSeg", "level", false); initDrum($("#levelSeg"), (v) => poolSize(v) + " pyt."); initCatMode((v) => { settings.level = v; saveSettings(); renderHostSetup(); });
 initMix($("#mixPick"), () => settings.mix, (sel) => { settings.mix = sel; saveSettings(); renderHostSetup(); }); initCount((n) => { settings.count = n; saveSettings(); }, () => renderHostSetup()); initX2(() => settings.x2, (v) => { settings.x2 = v; saveSettings(); }); bindSeg("timeSeg", "time", true); bindSeg("minusSeg", "minus", true);
 
-function hostScreen() { return H && H.mode === "online" ? "s-player" : "s-host"; }
+function hostScreen() { return H && isAuto(H.mode) ? "s-player" : "s-host"; }
 function connectedPlayers() {
   if (!room) return [];
   const names = [];
@@ -760,8 +777,8 @@ function connectedPlayers() {
 }
 function rosterHTML(names, extra) {
   const online = connectedPlayers();
-  if (H && H.mode === "online" && H.admin) online.push(H.admin);
-  else if (settings.mode === "online" && adminName()) online.push(adminName());
+  if (H && isAuto(H.mode) && H.admin) online.push(H.admin);
+  else if (isAuto(settings.mode) && adminName()) online.push(adminName());
   return names.map((n) => {
     const s = extra ? extra.scores[n] || 0 : null;
     const blk = extra && extra.blk.includes(n);
@@ -770,6 +787,7 @@ function rosterHTML(names, extra) {
 }
 const MODE_HINT = {
   online: "Jesteś adminem pokoju i grasz razem z innymi. Nie widzisz odpowiedzi z góry. Po starcie gra prowadzi się sama: odliczanie 3…2…1, pytanie z przyciskiem, ocena odpowiedzi i przejście do następnego pytania.",
+  race: "Kto pierwszy, ten lepszy. Jesteś adminem pokoju i grasz razem z innymi. Wszyscy widzą pytanie naraz i każdy klika odpowiedź u siebie. Za dobrą odpowiedź liczy się kolejność: 1. miejsce 10 pkt, 2. – 8, 3. – 6, 4. – 4, dalej 2. Zła odpowiedź 0.",
   offline: "Czytasz pytanie na głos i dajesz sygnał. Gracze widzą tylko przycisk. Kto pierwszy wciśnie, klika odpowiedź na swoim telefonie, a wszyscy widzą pytanie i odpowiedzi."
 };
 const CD_MS = 3000;
@@ -781,7 +799,7 @@ function renderHostSetup() {
   setSeg("levelSeg", settings.level); syncCatMode(settings.level); setCount(settings.count); setSeg("timeSeg", settings.time); setSeg("minusSeg", settings.minus);
   $("#levelHint").textContent = LEVELS[settings.level].hint;
   renderMix($("#mixPick"), settings.level, settings.mix);
-  const online = settings.mode === "online", admin = adminName();
+  const online = isAuto(settings.mode), admin = adminName();
   $("#adminBox").hidden = !online;
   if (online && document.activeElement !== $("#adminName")) $("#adminName").value = admin;
   const names = online ? [admin].concat(connectedPlayers().filter((n) => n !== admin)) : connectedPlayers();
@@ -793,7 +811,7 @@ function renderHostSetup() {
 function hostScores() {
   const s = {};
   H.players.forEach((n) => (s[n] = 0));
-  H.log.forEach((a) => { if (!(a.name in s)) s[a.name] = 0; s[a.name] += (a.ok ? PLUS : -H.minus) * qmul(H.deck[a.qi]); });
+  H.log.forEach((a) => { if (!(a.name in s)) s[a.name] = 0; s[a.name] += Number.isInteger(a.pts) ? a.pts : (a.ok ? PLUS : -H.minus) * qmul(H.deck[a.qi]); });
   return s;
 }
 function sortedScores() { const s = hostScores(); return Object.keys(s).map((n) => [n, s[n]]).sort((a, b) => b[1] - a[1]); }
@@ -818,15 +836,17 @@ function hostView() {
     win: H.win, blk: H.blk.slice(0, 16), sc: sortedScores().slice(0, 16),
     rev: H.ph === "reveal" ? Q.c : null, ex: H.ph === "reveal" ? clip(Q.e, 360) : null, last: H.last,
     fin: H.ph === "final" ? finalRows() : null, lv: LEVELS[H.level].label, admin: H.admin || null,
-    tm: (H.ph === "armed" || H.ph === "locked") && H.tEndAt && H.tT ? { T: H.tT, left: Math.max(0, H.tEndAt - Date.now()) } : null,
+    tm: (H.ph === "armed" || H.ph === "locked" || H.ph === "race") && H.tEndAt && H.tT ? { T: H.tT, left: Math.max(0, H.tEndAt - Date.now()) } : null,
     x2: !!(Q && Q.x2),
+    ra: H.ph === "race" ? Object.keys(H.race || {}).length : 0, rn: H.players.length,
+    rr: H.ph === "reveal" && H.mode === "race" && Array.isArray(H.raceRes) ? H.raceRes.slice(0, 16) : null,
     pks: H.log.filter((a) => a.qi === H.i && Number.isInteger(a.pick)).slice(-16).map((a) => ({ n: a.name, i: a.pick, ok: a.ok })),
     none: H.ph === "reveal" && !H.log.some((a) => a.qi === H.i)
   };
 }
 let SELF = { p: {}, at: 0 };
 function selfPeer() {
-  if (!H || H.mode !== "online" || !H.admin) return [];
+  if (!H || !isAuto(H.mode) || !H.admin) return [];
   return [{ peer: "self", isMe: false, sameTab: false, presence: Object.assign({}, SELF.p, { role: "player", name: H.admin }), updatedAt: SELF.at }];
 }
 function sendMine(patch) {
@@ -848,10 +868,13 @@ function hostOnPeers(ch) {
     }
     const an = pr.ans;
     if (an && H.ph === "locked" && name === H.win && an.g === H.g && an.a === H.arm && Number.isInteger(an.i) && an.i >= 0 && an.i < 4) pick = an.i;
+    if (an && H.ph === "race" && an.g === H.g && an.a === H.arm && Number.isInteger(an.i) && an.i >= 0 && an.i < 4 && !(name in H.race)) {
+      H.race[name] = { i: an.i, rt: typeof an.rt === "number" ? an.rt : 99999, at: p.updatedAt }; changed = true;
+    }
     const sk = pr.skip;
     if (sk && sk.g === H.g && sk.a === H.arm && H.ph === "armed") skips.add(name);
     const nx = pr.nx;
-    if (nx && nx.g === H.g && nx.qn === H.i && H.ph === "reveal" && H.mode === "online") next = true;
+    if (nx && nx.g === H.g && nx.qn === H.i && H.ph === "reveal" && isAuto(H.mode)) next = true;
     const bz = pr.buzz;
     if (bz && bz.g === H.g && bz.a === H.arm && (H.ph === "armed" || H.ph === "locked") && !H.blk.includes(name) && !H.order.some((o) => o.n === name)) {
       cands.push({ n: name, at: p.updatedAt, rt: typeof bz.rt === "number" ? bz.rt : 99999 });
@@ -874,6 +897,7 @@ function hostOnPeers(ch) {
     const free = freePlayers();
     if (free.length && free.every((n) => skips.has(n))) { reveal(); return; }
   }
+  if (H.ph === "race" && H.players.length && H.players.every((n) => n in H.race)) { if (changed) saveH(); endRace(); return; }
   if (next) { nextQ(); return; }
   renderHost();
 }
@@ -893,7 +917,7 @@ function lockFastest() {
 let autoKey = null, autoT = null;
 const freePlayers = () => H.players.filter((n) => !H.blk.includes(n));
 function ensureAuto() {
-  if (!H || H.mode !== "online" || !H.deck) return;
+  if (!H || !isAuto(H.mode) || !H.deck) return;
   const key = `${H.ph}:${H.i}:${H.arm}:${H.blk.length}`;
   if (key === autoKey) return;
   autoKey = key; clearTimeout(autoT); autoT = null;
@@ -901,7 +925,22 @@ function ensureAuto() {
   if (H.ph === "q") later(700, () => (freePlayers().length ? signal() : reveal()));
   else if (H.ph === "q2") later(REBOUND_MS, () => (freePlayers().length ? signal() : reveal()));
   else if (H.ph === "armed") later(NOBUZZ_MS, () => { if (H.ph === "armed" && !H.win && !collectT) reveal(); });
-  else if (H.ph === "reveal") later(REVEAL_MS, nextQ);
+  else if (H.ph === "race") later(Math.max(0, (H.tEndAt || 0) - Date.now()), endRace);
+  else if (H.ph === "reveal") later(H.mode === "race" ? REVEAL_MS + 2000 : REVEAL_MS, nextQ);
+}
+/* kto pierwszy: czas na pytanie to ustawiony czas na odpowiedź, ale co najmniej 10 s (trzeba przeczytać pytanie) */
+const raceMs = () => Math.max(10, H.time || 20) * 1000;
+/* koniec pytania: dobre odpowiedzi według czasu reakcji (mierzonego na telefonie) dostają punkty za miejsce */
+function endRace() {
+  if (!H || H.ph !== "race") return;
+  const Q = H.deck[H.i], m = qmul(Q), all = Object.keys(H.race || {}).map((n) => Object.assign({ n }, H.race[n]));
+  const good = all.filter((a) => a.i === Q.c).sort((a, b) => a.rt - b.rt || a.at - b.at);
+  const res = good.map((a, k) => ({ n: a.n, i: a.i, ok: true, place: k + 1, pts: (RACE_PTS[k] || RACE_MIN) * m }))
+    .concat(all.filter((a) => a.i !== Q.c).map((a) => ({ n: a.n, i: a.i, ok: false, place: null, pts: 0 })));
+  res.forEach((r) => H.log.push({ qi: H.i, name: r.n, ok: r.ok, to: false, pick: r.i, pts: r.pts }));
+  H.raceRes = res; H.last = good.length ? { name: good[0].n, ok: true, pick: good[0].i } : null;
+  H.ph = "reveal"; H.tEndAt = 0;
+  saveH(); publishHost(); renderHost();
 }
 function startAnswerTimer() {
   stopTimer();
@@ -926,7 +965,7 @@ function startAnswerTimer() {
 function stopTimer() { if (tId) { clearInterval(tId); tId = null; } $("#timer").hidden = true; }
 
 function hostStart() {
-  const online = settings.mode === "online", admin = online ? adminName() : null;
+  const online = isAuto(settings.mode), admin = online ? adminName() : null;
   if (online && !admin) { $("#adminName").focus(); return; }
   const players = online ? [admin].concat(connectedPlayers().filter((n) => n !== admin)) : connectedPlayers();
   SELF = { p: {}, at: 0 };
@@ -937,7 +976,7 @@ function hostStart() {
 function signal() {
   if (!H || !(H.ph === "q" || H.ph === "q2")) return;
   H.arm++; H.win = null; H.order = []; H.late = false; H.tEndAt = 0;
-  if (H.mode === "online") { H.ph = "count"; H.cdAt = Date.now(); scheduleArm(); }
+  if (isAuto(H.mode)) { H.ph = "count"; H.cdAt = Date.now(); scheduleArm(); }
   else H.ph = "armed";
   saveH(); publishHost(); renderHost();
 }
@@ -947,7 +986,8 @@ function scheduleArm() {
   clearTimeout(cdId);
   cdId = setTimeout(() => {
     cdId = null;
-    if (H && H.ph === "count") { H.ph = "armed"; H.seen = true; H.tT = NOBUZZ_MS; H.tEndAt = Date.now() + NOBUZZ_MS; saveH(); publishHost(); renderHost(); }
+    if (H && H.ph === "count" && H.mode === "race") { const T = raceMs(); H.ph = "race"; H.race = {}; H.seen = true; H.tT = T; H.tEndAt = Date.now() + T; saveH(); publishHost(); renderHost(); }
+    else if (H && H.ph === "count") { H.ph = "armed"; H.seen = true; H.tT = NOBUZZ_MS; H.tEndAt = Date.now() + NOBUZZ_MS; saveH(); publishHost(); renderHost(); }
   }, Math.max(0, CD_MS - (Date.now() - (H.cdAt || 0))));
 }
 function judge(ok, pick) {
@@ -965,7 +1005,7 @@ function reveal() { if (!H) return; stopTimer(); clearTimeout(cdId); cdId = null
 function nextQ() {
   if (!H) return;
   if (H.i >= H.deck.length - 1) { endGame(); return; }
-  H.i++; H.ph = "q"; H.win = null; H.order = []; H.blk = []; H.fs = []; H.last = null; H.seen = false;
+  H.i++; H.ph = "q"; H.win = null; H.order = []; H.blk = []; H.fs = []; H.last = null; H.seen = false; H.race = {}; H.raceRes = null;
   saveH(); publishHost(); renderHost();
 }
 function endGame() { stopTimer(); H.ph = "final"; saveH(); publishHost(); renderFinal(sortedScores(), true); }
@@ -973,7 +1013,7 @@ function endGame() { stopTimer(); H.ph = "final"; saveH(); publishHost(); render
 function renderHost() {
   if (!H || !H.deck || H.ph === "lobby") return;
   if (H.ph === "final") { renderFinal(sortedScores(), true); return; }
-  if (H.mode === "online") {
+  if (isAuto(H.mode)) {
     if (H.ph === "count" && !cdId) scheduleArm();
     ensureAuto();
     P.name = H.admin; applyHostView(hostView());
