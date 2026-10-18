@@ -53,8 +53,18 @@ wr('dist/live-web/index.html', make_web(lv))
 labels = level_labels(rd('src/templates/teleturniej.html'))
 assert labels == level_labels(rd('src/templates/live-claude.html')), 'LEVELS różnią się między szablonami'
 n_questions = sum(len(re.findall(r'^\s*\{ q: "', rd('src/questions/' + f), re.M)) for f in order)
-wr('dist/web/live.html', make_web(lv, flavor='supabase'))
-wr('dist/web/teleturniej.html', make_tv_web(tv_doc))
+def site_brand(s):
+    # Serwis nazywa się TELETURNIEJ; artefakty Claude i wersja PeerJS zostają przy starej nazwie.
+    for a, b in (('<title>Postaw Krzyżyk Live</title>', '<title>TELETURNIEJ · przyciski na telefonach</title>'),
+                 ('<title>Postaw Krzyżyk</title>', '<title>TELETURNIEJ · jeden telefon</title>'),
+                 ('Postaw<br>krzyżyk<span class="sub">Live</span>', 'TELE<wbr>TURNIEJ<span class="sub">Przyciski na telefonach</span>'),
+                 ('Postaw<br>krzyżyk<span class="sub">Teleturniej</span>', 'TELE<wbr>TURNIEJ<span class="sub">Jeden telefon</span>'),
+                 ('`Postaw krzyżyk, teleturniej (', '`TELETURNIEJ (')):
+        if a in s: s = s.replace(a, b)
+    assert 'Postaw Krzyżyk' not in s and 'Postaw<br>krzyżyk' not in s, 'została stara nazwa w serwisie'
+    return s
+wr('dist/web/live.html', site_brand(make_web(lv, flavor='supabase')))
+wr('dist/web/teleturniej.html', site_brand(make_tv_web(tv_doc)))
 wr('dist/web/wyniki.html', rd('src/web/wyniki.html').replace('/*__LEVEL_LABELS__*/{}', json.dumps(labels, ensure_ascii=False)))
 wr('dist/web/index.html', rd('src/web/index.html').replace('/*__QUESTION_COUNT__*/', str(n_questions)).replace('/*__LEVEL_COUNT__*/', str(len([k for k in labels if k != 'mix']))))
 for f in ('pk-online.js', 'site.css'):

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <style>[hidden]{display:none!important}html{color-scheme:light}body{margin:0}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}img{max-width:100%}</style>
-<title>Postaw Krzyżyk</title>
+<title>TELETURNIEJ · jeden telefon</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -243,7 +243,7 @@ a.btn { text-align: center; text-decoration: none; }
     <div class="sheet-body">
       <div class="masthead">
         <div class="bigbox" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.6 4.9 C9 9.4 14.2 14.6 19.4 19.3"/><path d="M19.1 4.6 C14.4 9.3 9.8 14.1 4.8 19.5"/></svg></div>
-        <h1 id="t-start">Postaw<br>krzyżyk<span class="sub">Teleturniej</span></h1>
+        <h1 id="t-start">TELE<wbr>TURNIEJ<span class="sub">Jeden telefon</span></h1>
       </div>
       <ul class="rules">
         <li><b>1</b><span>Na każde pytanie odpowiada <strong>jedna wskazana osoba</strong>.</span></li>
@@ -2992,7 +2992,7 @@ async function submitTv() {
 }
 function shareString() {
   const played = S.log.filter(Boolean).length;
-  return `Postaw krzyżyk, teleturniej (${LEVELS[S.level].label}), ${played} pytań, +${PLUS}/−${S.minus}: ` +
+  return `TELETURNIEJ (${LEVELS[S.level].label}), ${played} pytań, +${PLUS}/−${S.minus}: ` +
     standings().map((x, k) => `${k + 1}. ${x.n} ${num(x.p)}`).join(", ");
 }
 $("#btnCopy").addEventListener("click", () => {
