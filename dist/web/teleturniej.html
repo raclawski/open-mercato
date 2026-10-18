@@ -124,6 +124,8 @@ input[type="text"] { font: inherit; color: var(--ink); background: var(--paper);
 .plate .left { min-width: 0; }
 
 .timer { display: grid; grid-template-columns: 1fr 3.2rem; gap: 10px; align-items: center; }
+.late { display: grid; gap: 10px; }
+.late p { margin: 0; font-weight: 600; color: var(--stamp); }
 .timer-track { height: 6px; background: var(--rule); border-radius: 3px; overflow: hidden; }
 .timer-fill { display: block; height: 100%; background: var(--ink); transform-origin: left center; transform: scaleX(1); }
 .timer.low .timer-fill { background: var(--stamp); }
@@ -332,6 +334,10 @@ a.btn { text-align: center; text-decoration: none; }
         </div>
         <h2 class="qtext" id="qText"></h2>
         <div class="ballot" id="options"></div>
+        <div class="late" id="late" hidden>
+          <p>Czas minął. Jeśli odpowiedź padła, zaznacz ją powyżej.</p>
+          <button type="button" class="btn ghost" id="btnNoAnswer">Brak odpowiedzi</button>
+        </div>
         <div class="feedback" id="feedback" hidden aria-live="polite">
           <h3 id="fbTitle"></h3>
           <p class="answer-line" id="fbAnswer"></p>
@@ -1543,10 +1549,12 @@ function renderQ(resume) {
       <span class="box">${XSVG}</span><span class="txt">${esc(o)}</span><span class="key">${LETTERS[i]}</span>
     </button>`).join("");
   $("#feedback").hidden = true;
+  $("#late").hidden = true;
   $("#nextpick").hidden = true;
   $("#btnNext").hidden = true;
   resetQuit();
   if (S.phase === "reveal") { renderReveal(true); return; }
+  if (S.late) { startTimer(0); return; }
   startTimer(resume ? S.left : S.time * 1000);
 }
 function startTimer(ms) {
@@ -1561,7 +1569,8 @@ function startTimer(ms) {
     $("#timerFill").style.transform = `scaleX(${left / (S.time * 1000)})`;
     $("#timerNum").textContent = Math.ceil(left / 1000);
     t.classList.toggle("low", left <= 5000);
-    if (left <= 0) { stopTimer(); answer(-1); }
+    // koniec czasu nie ocenia odpowiedzi: prowadzący zaznacza ją albo wybiera „Brak odpowiedzi”
+    if (left <= 0) { stopTimer(); timeUp(); }
   };
   tick();
   timerId = setInterval(tick, 100);
@@ -1569,9 +1578,18 @@ function startTimer(ms) {
 function stopTimer() { if (timerId) { clearInterval(timerId); timerId = null; } }
 
 $("#options").addEventListener("click", (e) => { const b = e.target.closest("[data-i]"); if (b) answer(+b.dataset.i); });
+function timeUp() {
+  if (!S || S.phase !== "q") return;
+  S.late = true; S.left = 0;
+  $("#btnNoAnswer").textContent = `Brak odpowiedzi −${S.minus}`;
+  $("#late").hidden = false;
+}
+$("#btnNoAnswer").addEventListener("click", () => answer(-1));
 function answer(i) {
   if (!S || S.phase !== "q") return;
   stopTimer();
+  S.late = false;
+  $("#late").hidden = true;
   const ok = i === cur().c;
   S.log[S.i] = { p: S.cur, pick: i, ok };
   S.phase = "reveal";

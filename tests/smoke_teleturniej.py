@@ -22,6 +22,22 @@ async def main():
             done = await pg.is_visible('#screen-final')
             print(('✓' if done and not errs else '✗'), lv, await pg.inner_text('#fCount'))
             fail += (not done) or bool(errs); errs.clear()
+        # koniec czasu: odpowiedzi zostają do zaznaczenia, „Brak odpowiedzi” daje karę, nic nie dzieje się samo
+        await pg.evaluate('localStorage.clear()'); await pg.clock.install(); await pg.goto(URL); await pg.wait_for_timeout(200)
+        await pg.click('#timeSeg [data-v="10"]'); await pg.click('#minusSeg [data-v="5"]'); await pg.click('#btnStart')
+        await pg.clock.fast_forward(11000); await pg.wait_for_timeout(200)
+        late = await pg.is_visible('#late') and not await pg.is_visible('#feedback')
+        right = await pg.evaluate('() => S.deck[S.i].c')
+        await pg.click(f'#options .row[data-i="{right}"]')
+        ok1 = await pg.evaluate('() => S.log[0] && S.log[0].ok === true') and not await pg.is_visible('#late')
+        if await pg.is_disabled('#btnNext'): await pg.click('#nextChips [data-p="0"]')
+        await pg.click('#btnNext')
+        await pg.clock.fast_forward(11000); await pg.wait_for_timeout(200)
+        await pg.click('#btnNoAnswer')
+        ok2 = await pg.evaluate('() => S.log[1] && S.log[1].ok === false && S.log[1].pick === -1 && scores().reduce((a, b) => a + b, 0) === 10 - 5')
+        good = late and ok1 and ok2 and not errs
+        print(('✓' if good else '✗'), 'koniec czasu: dobra odpowiedź po czasie +10, „Brak odpowiedzi” −5', late, ok1, ok2, errs)
+        fail += not good
         await b.close()
     sys.exit(1 if fail else 0)
 asyncio.run(main())

@@ -1823,13 +1823,16 @@ function startAnswerTimer() {
   stopTimer();
   const t = $("#timer");
   if (!H.time) { t.hidden = true; return; }
-  t.hidden = false; tEnd = performance.now() + H.time * 1000;
+  t.hidden = false;
+  if (H.late) { $("#timerFill").style.transform = "scaleX(0)"; $("#timerNum").textContent = "0"; t.classList.add("low"); return; }
+  tEnd = performance.now() + H.time * 1000;
   const tick = () => {
     const left = Math.max(0, tEnd - performance.now());
     $("#timerFill").style.transform = `scaleX(${left / (H.time * 1000)})`;
     $("#timerNum").textContent = Math.ceil(left / 1000);
     t.classList.toggle("low", left <= 3000);
-    if (left <= 0) { stopTimer(); if (H.ph === "locked") judge(false, true); }
+    // koniec czasu nie ocenia odpowiedzi: prowadzący nadal daje „Dobrze” albo „Źle” i sam decyduje, kiedy dalej
+    if (left <= 0) { clearInterval(tId); tId = null; if (H.ph === "locked" && !H.late) { H.late = true; saveH(); renderHost(); } }
   };
   tick(); tId = setInterval(tick, 100);
 }
@@ -1843,20 +1846,21 @@ function hostStart() {
 }
 function signal() {
   if (!H || !(H.ph === "q" || H.ph === "q2")) return;
-  H.arm++; H.ph = "armed"; H.win = null; H.order = [];
+  H.arm++; H.ph = "armed"; H.win = null; H.order = []; H.late = false;
   saveH(); publishHost(); renderHost();
 }
-function judge(ok, timeout) {
+function judge(ok) {
   if (!H || H.ph !== "locked" || !H.win) return;
   stopTimer();
   const name = H.win;
-  H.log.push({ qi: H.i, name, ok, to: !!timeout });
+  H.log.push({ qi: H.i, name, ok, to: !!H.late });
+  H.late = false;
   H.last = { name, ok };
   if (ok) { H.ph = "reveal"; }
   else { H.blk.push(name); H.win = null; H.ph = "q2"; }
   saveH(); publishHost(); renderHost();
 }
-function reveal() { if (!H) return; stopTimer(); H.ph = "reveal"; if (!H.last || H.last.ok === false) H.last = H.last ? { name: H.last.name, ok: false } : null; saveH(); publishHost(); renderHost(); }
+function reveal() { if (!H) return; stopTimer(); H.late = false; H.ph = "reveal"; if (!H.last || H.last.ok === false) H.last = H.last ? { name: H.last.name, ok: false } : null; saveH(); publishHost(); renderHost(); }
 function nextQ() {
   if (!H) return;
   if (H.i >= H.deck.length - 1) { endGame(); return; }
@@ -1901,7 +1905,7 @@ function renderHost() {
     plateLbl.textContent = "Sygnał dany"; plateName.textContent = "Czekam…";
     acts = `<button type="button" class="btn ghost" data-act="reveal">Nikt nie wcisnął: pokaż odpowiedź</button>`;
   } else if (H.ph === "locked") {
-    plateLbl.textContent = "Odpowiada"; plateName.textContent = H.win;
+    plateLbl.textContent = H.late ? "Czas minął · odpowiadał(a)" : "Odpowiada"; plateName.textContent = H.win;
     acts = `<div class="btn-row"><button type="button" class="btn ok" data-act="good">Dobrze +10</button><button type="button" class="btn bad" data-act="bad">Źle −${H.minus}</button></div>`;
   } else if (reveal) {
     const l = H.last;

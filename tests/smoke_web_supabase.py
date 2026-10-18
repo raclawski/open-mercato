@@ -82,11 +82,12 @@ async def main(dburl):
 
         # --- prowadzący tworzy grę ---
         hc = await ctx()
+        await hc.clock.install()  # czas płynie normalnie, ale test może go przewinąć (koniec czasu na odpowiedź)
         host = await page(hc, 'index.html')
         await host.click('a.mode[href^="live"]')
         await host.wait_for_selector('#s-hsetup:not([hidden])', timeout=15000)
         check('tryb=prowadzacy' in host.url, 'wybór trybu: przyciski na telefonach → ustawienia prowadzącego')
-        await host.click('#levelSeg [data-v="pop"]'); await host.click('#countSeg [data-v="20"]')
+        await host.click('#levelSeg [data-v="pop"]'); await host.click('#countSeg [data-v="20"]'); await host.click('#timeSeg [data-v="5"]')
         code = (await host.inner_text('#hsCode')).strip()
         check(len(code) == 4 and (await host.inner_text('#joinUrl')).endswith('?kod=' + code), 'gra utworzona, kod i link', code)
 
@@ -129,9 +130,14 @@ async def main(dburl):
         await until(players['Tomek'], '() => document.querySelector("#buzz").classList.contains("armed")')
         await players['Tomek'].dispatch_event('#buzz', 'pointerdown')
         await plate(host, 'Tomek')
+        # koniec czasu: nic się samo nie ocenia, prowadzący nadal przyznaje punkty
+        await host.clock.fast_forward(6000)
+        await until(host, '() => document.querySelector("#plateLbl").textContent.startsWith("Czas minął")')
+        late_ok = await host.is_visible('[data-act="good"]') and await host.is_visible('[data-act="bad"]') and (await host.inner_text('#plateName')) == 'Tomek'
+        check(late_ok, 'po końcu czasu prowadzący nadal ma „Dobrze” i „Źle”', await host.inner_text('#plateLbl'))
         await host.click('[data-act="good"]')
         await until(players['Asia'], '() => document.querySelector("#pScores").textContent.includes("Tomek 10")')
-        check(True, 'pytanie 1: Tomek odpowiada, +10 widać u Asi')
+        check(True, 'pytanie 1: Tomek odpowiada po czasie, prowadzący daje +10, widać u Asi')
 
         # --- pytanie 2: falstart Asi, Tomek źle, odbicie bez Asi, odkrycie ---
         await host.click('[data-act="next"]')
