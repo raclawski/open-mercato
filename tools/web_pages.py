@@ -1,0 +1,63 @@
+"""Strony serwisu do hostingu (Vercel): teleturniej z zapisem wyników i strony z src/web.
+
+Funkcje rep() sprawdzają, że wzorzec występuje dokładnie raz, więc zmiana w szablonie
+od razu przerwie build w miejscu, które trzeba poprawić.
+"""
+import re
+
+SUPABASE_TAGS = ('<script src="vendor/supabase.js"></script>\n'
+                 '<script src="config.js"></script>\n'
+                 '<script src="pk-online.js"></script>\n')
+
+def rep(s, a, b):
+    assert s.count(a) == 1, ('count', s.count(a), a[:60]); return s.replace(a, b)
+
+def make_tv_web(doc):
+    """Teleturniej (pełna strona z build.py) + zapis zakończonej gry do listy wyników."""
+    s = rep(doc, '<script>\n', SUPABASE_TAGS + '<script>\n')
+    s = rep(s, '  S = { level: settings.level, players,', '  S = { uid: window.PK ? PK.uuid() : null, level: settings.level, players,')
+    s = rep(s, '<p class="copy-note" id="copyNote" aria-live="polite"></p>',
+            '<p class="copy-note" id="copyNote" aria-live="polite"></p>\n'
+            '      <p class="copy-note" id="rankNote" aria-live="polite"></p>\n'
+            '      <a class="btn ghost" href="wyniki.html">Lista wyników</a>')
+    s = rep(s, '<p class="foot" id="foot"></p>',
+            '<p class="sitenav"><a href="index.html">Strona główna</a><a href="wyniki.html">Lista wyników</a></p>\n  <p class="foot" id="foot"></p>')
+    s = rep(s, '.foot {', '''.sitenav { display: flex; justify-content: center; gap: 18px; margin: 0; font-family: var(--f-mono); font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; }
+.sitenav a { color: var(--muted); }
+a.btn { text-align: center; text-decoration: none; }
+.foot {''')
+    s = rep(s, '  show("final");\n}\n', r'''  show("final");
+  submitTv();
+}
+function tvGameRecord() {
+  const t = scores(), st = stats(), seen = new Set();
+  const players = S.players.slice(0, 16).map((n, i) => {
+    let name = String(n).trim().slice(0, 20) || "Gracz";
+    for (let k = 2; seen.has(name.toLowerCase()); k++) name = String(n).trim().slice(0, 17) + " " + k;
+    seen.add(name.toLowerCase());
+    return { name, score: t[i], correct: st[i].ok, wrong: st[i].bad };
+  });
+  return { id: S.uid, mode: "teleturniej", level: S.level, code: null, questions_total: S.deck.length,
+           questions_played: Math.max(1, S.log.filter(Boolean).length), penalty: S.minus, players };
+}
+async function submitTv() {
+  const note = $("#rankNote");
+  if (!S || !S.uid || !window.PK) { note.textContent = ""; return; }
+  if (!S.log.some(Boolean)) { note.textContent = "Gra bez odpowiedzi, nie trafia na listę wyników."; return; }
+  if (S.saved) { note.textContent = "Wynik jest na liście wyników."; return; }
+  note.textContent = "Zapisuję wynik na liście wyników…";
+  const uid = S.uid, r = await PK.submitGame(tvGameRecord());
+  if (!S || S.uid !== uid) return;
+  if (r.ok) { S.saved = true; note.textContent = "Wynik zapisany na liście wyników."; }
+  else note.textContent = r.why === "noconfig" ? "Lista wyników nie jest skonfigurowana." : r.why === "rejected" ? "Lista wyników odrzuciła tę grę." : "Nie udało się zapisać wyniku. Spróbuję ponownie, gdy wróci internet.";
+}
+''')
+    return s
+
+def level_labels(template):
+    """Słownik klucz → etykieta z obiektu LEVELS w szablonie (jedno źródło prawdy dla listy wyników)."""
+    block = template[template.index('const LEVELS = {'):]
+    block = block[:block.index('\n};')]
+    pairs = re.findall(r'^\s*(\w+):\s*\{\s*label:\s*"([^"]+)"', block, re.M)
+    assert pairs, 'nie znaleziono wpisów LEVELS'
+    return dict(pairs)

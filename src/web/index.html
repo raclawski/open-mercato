@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Postaw Krzyżyk</title>
+<meta name="description" content="Teleturniej na telefon: polityka, prawo i popkultura. Gra z przyciskami na telefonach graczy i lista wyników.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<main class="app">
+  <section class="sheet" aria-labelledby="t-top">
+    <div class="sheet-head">
+      <p class="eyebrow hot">Teleturniej</p>
+      <p class="eyebrow">/*__QUESTION_COUNT__*/ pytań · /*__LEVEL_COUNT__*/ kategorii</p>
+    </div>
+    <div class="sheet-body">
+      <div class="masthead">
+        <div class="bigbox" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.6 4.9 C9 9.4 14.2 14.6 19.4 19.3"/><path d="M19.1 4.6 C14.4 9.3 9.8 14.1 4.8 19.5"/></svg></div>
+        <h1 id="t-top">Postaw<br>krzyżyk</h1>
+      </div>
+      <p class="lede">Polityka, prawo i popkultura. Prowadzący czyta pytanie, a gracze walczą o punkty na swoich telefonach.</p>
+      <div class="stack">
+        <a class="btn go" href="live.html">Gra Live<small>przyciski na telefonach graczy, kod gry</small></a>
+        <a class="btn ghost" href="teleturniej.html">Teleturniej<small>jeden telefon, odpowiada wskazana osoba</small></a>
+        <a class="btn ghost" href="wyniki.html">Lista wyników<small>ranking graczy i ostatnie gry</small></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="sheet" aria-labelledby="t-top5" id="topBox" hidden>
+    <div class="sheet-head">
+      <p class="eyebrow">Ostatnie 30 dni</p>
+      <a class="eyebrow" href="wyniki.html">Cały ranking →</a>
+    </div>
+    <div class="sheet-body">
+      <h2 class="board-title" id="t-top5" style="margin:0">Czołówka</h2>
+      <ol class="board" id="top"></ol>
+    </div>
+  </section>
+
+  <p class="foot">Bez logowania. Wyniki zapisują się pod imieniem wpisanym w grze.</p>
+</main>
+
+<script src="vendor/supabase.js"></script>
+<script src="config.js"></script>
+<script src="pk-online.js"></script>
+<script>
+(async () => {
+  if (!window.PK || !PK.ready()) return;
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const num = (n) => (n < 0 ? "−" + Math.abs(n) : String(n));
+  const games = (n) => n === 1 ? "gra" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? "gry" : "gier";
+  try {
+    const rows = (await PK.leaderboard({ days: 30, limit: 5 })).slice(0, 5);
+    if (!rows.length) return;
+    const max = Math.max(1, ...rows.map((r) => +r.points));
+    document.querySelector("#top").innerHTML = rows.map((r, k) => `<li class="${k === 0 && +r.points > 0 ? "lead" : ""}"><span class="pos">${k + 1}.</span>
+      <span class="nm"><a href="wyniki.html?gracz=${encodeURIComponent(r.name)}">${esc(r.name)}</a><span class="stat">${r.games} ${games(+r.games)} · ${r.wins} wygr.</span></span>
+      <span class="p${+r.points < 0 ? " neg" : ""}">${num(+r.points)} <small>pkt</small></span><span class="bar"><i style="width:${(Math.max(0, +r.points) / max) * 100}%"></i></span></li>`).join("");
+    document.querySelector("#topBox").hidden = false;
+  } catch (e) { }
+})();
+</script>
+</body>
+</html>

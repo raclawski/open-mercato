@@ -9,6 +9,7 @@ Teleturniej na telefon z pytaniami o polityce, prawie i popkulturze. Zaczęło s
 | **Teleturniej** (jeden telefon prowadzącego) | Artefakt Claude: https://claude.ai/artifact/Je7ndn81PYiKodds6YGnW9 | Właściciel i osoby, którym go udostępniono (albo każdy, jeśli włączysz publiczny link) | `dist/teleturniej.html`, wersja do hostingu: `dist/teleturniej-standalone.html` |
 | **Live w Claude** (przyciski na telefonach) | Artefakt Claude z capability `room`: https://claude.ai/artifact/UGowZNmDKDReG99ZDPR2WE | Tylko zalogowani w Claude, którym udostępniono stronę. Z publicznego linku pokazuje „Brak połączenia z grą” | `dist/live-claude.html` |
 | **Live bez logowania** | Dowolny hosting statyczny (Netlify, GitHub Pages) | Każdy z linkiem i kodem gry | `dist/live-web/index.html` |
+| **Serwis online** (Live przez serwer, teleturniej, lista wyników) | Vercel + Supabase (instrukcja: `WDROZENIE.md`) | Każdy z linkiem; wyniki pod nickiem, bez logowania | `dist/web/` |
 
 ## Zasady gry
 
@@ -56,6 +57,7 @@ Razem **397 pytań**. Każda gra losuje pytania, najpierw te, których jeszcze n
 8. Diagnostyka połączenia w wersji Live. Okazało się, że capability `room` nie działa dla osób z publicznego linku.
 9. Wersja Live bez logowania na PeerJS, jako plik do hostingu.
 10. Kategorie „Jaki to urząd?”, „Używki”, „Prawo spółek (KSH)” i „Taylor Swift”.
+11. Serwis na Vercel + Supabase: gra Live przez Supabase Realtime (zamiast połączeń telefon–telefon), odporna na odświeżenie strony i chwilowy brak sieci; lista wyników z rankingiem (okres, kategoria, tryb, sortowanie), ostatnimi grami i historią gracza; strona startowa z czołówką.
 
 ## Co sprawdzono
 
@@ -63,6 +65,7 @@ Razem **397 pytań**. Każda gra losuje pytania, najpierw te, których jeszcze n
 - **Rozgrywka teleturnieju**: na każdym z 8 poziomów rozegrano grę od początku do końca w przeglądarce, bez błędów JS (`tests/smoke_teleturniej.py`).
 - **Live w Claude**: prowadzący i 3 graczy na atrapie `room`. Sprawdzono falstart, sygnał, kolejność, odbicie i punkty (`tests/smoke_live_claude.py`).
 - **Live bez logowania**: prowadzący i 2 graczy w osobnych przeglądarkach na lokalnym serwerze PeerJS (`tests/smoke_live_web.py`).
+- **Serwis online** (`tests/smoke_web_supabase.py`, `tests/ranking_test.sql`): prawdziwy supabase-js na emulatorze Realtime i prawdziwym Postgresie. Sprawdzono: kod gry, dołączanie, zły i zajęty kod, falstart, kolejność, odbicie, odświeżenie strony prowadzącego, zerwanie połączenia, zapis wyniku z ponowieniem, teleturniej, filtry rankingu, historię gracza, odrzucanie fałszywych wyników. Nie sprawdzono jeszcze na prawdziwym projekcie Supabase i Vercel.
 - **Czego nie sprawdzono**: gry na prawdziwych telefonach. Wersja bez logowania korzysta w praktyce z publicznego serwera PeerJS (0.peerjs.com), którego nie dało się przetestować z sandboksa. Niektóre sieci (firmowe Wi-Fi, część sieci komórkowych) mogą blokować bezpośrednie połączenia między telefonami.
 
 ## Fakty w pytaniach

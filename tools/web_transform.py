@@ -1,8 +1,13 @@
-"""Zamienia wersję Live dla Claude w samodzielną stronę na PeerJS (bez logowania)."""
-import os
-_STEPS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'web_transform_steps.py')
+"""Zamienia wersję Live dla Claude w samodzielną stronę bez logowania.
 
-def make_web(src):
-    g = {'src': src, '__name__': 'web_transform_steps'}
+  make_web(src)                    PeerJS (bezpośrednie połączenia telefonów, publiczny broker)
+  make_web(src, flavor="supabase") Supabase Realtime + zapis wyników do listy wyników
+"""
+import os
+_DIR = os.path.dirname(os.path.abspath(__file__))
+_STEPS = os.path.join(_DIR, 'web_transform_steps.py')
+
+def make_web(src, flavor='peer'):
+    g = {'src': src, '__name__': 'web_transform_steps', 'FLAVOR': flavor, 'STEPS_DIR': _DIR}
     exec(compile(open(_STEPS, encoding='utf-8').read(), _STEPS, 'exec'), g)
     return g['doc']

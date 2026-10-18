@@ -1,6 +1,6 @@
 # CLAUDE.md: wskazówki do pracy nad projektem
 
-Projekt: teleturniej „Postaw Krzyżyk” po polsku, w trzech wersjach z jednego źródła. Pełny opis gry, historia i znane ograniczenia: `PODSUMOWANIE.md`. Komunikacja z użytkownikiem po polsku.
+Projekt: teleturniej „Postaw Krzyżyk” po polsku, w kilku wersjach z jednego źródła. Główny cel to serwis na Vercel + Supabase (`dist/web`): gra Live przez serwer i lista wyników. Pełny opis gry, historia i znane ograniczenia: `PODSUMOWANIE.md`. Komunikacja z użytkownikiem po polsku.
 
 ## Struktura
 
@@ -10,8 +10,14 @@ src/questions/ORDER.txt   kolejność wklejania plików do szablonów
 src/templates/teleturniej.html   gra na jednym telefonie (bez zależności)
 src/templates/live-claude.html   gra z przyciskami przez capability `room` artefaktów Claude
 tools/build.py            składa dist/ z src/
-tools/web_transform*.py   zamienia live-claude w wersję bez logowania (PeerJS)
-tests/                    walidacja pytań i testy rozgrywki w Playwright
+tools/web_transform*.py   zamienia live-claude w wersję bez logowania (PeerJS albo Supabase)
+tools/supabase_transform_steps.py  kroki tylko dla wersji Supabase (transport, zapis wyniku)
+tools/web_pages.py        teleturniej z zapisem wyniku, etykiety kategorii dla listy wyników
+tools/write-config.mjs    Vercel: config.js ze zmiennych SUPABASE_URL i SUPABASE_ANON_KEY
+src/web/                  serwis: index.html, wyniki.html, pk-online.js (Supabase), site.css, config.js
+supabase/migrations/      baza wyników (tabele, RLS, funkcje RPC)
+tests/                    walidacja pytań, testy rozgrywki w Playwright, testy SQL
+vercel.json               hosting: katalog dist/web, cleanUrls
 dist/                     wynik buildu, nie edytuj ręcznie
 ```
 
@@ -25,10 +31,12 @@ node tests/validate_questions.js    # struktura wszystkich pytań
 python3 tests/smoke_teleturniej.py  # rozgrywa 20 pytań na każdym poziomie
 python3 tests/smoke_live_claude.py  # prowadzący + 3 graczy na atrapie room (tests/mock_room.js)
 npm install && python3 tests/smoke_live_web.py   # wersja PeerJS na lokalnym serwerze peer
-npm test                            # wszystko po kolei
+npm test                            # wszystko po kolei (bez Supabase)
+PK_TEST_PGURL=postgresql://… npm run test:sql   # funkcje rankingu na prawdziwym Postgresie
+PK_TEST_PGURL=postgresql://… npm run test:web   # serwis dist/web: Live, teleturniej, lista wyników
 ```
 
-Testy wymagają Pythona z pakietem `playwright` (`pip install playwright && playwright install chromium`) i Node.
+Testy wymagają Pythona z pakietem `playwright` (`pip install playwright && playwright install chromium`) i Node. `PK_TEST_PGURL` to Postgres z prawami superużytkownika: `test:web` zakłada na nim tymczasową bazę i ją usuwa, `test:sql` wgrywa migrację do wskazanej bazy (użyj testowej). `test:web` korzysta z prawdziwego supabase-js, a Realtime i RPC emuluje `tests/fake_supabase.py` (protokół Phoenix na przechwyconym WebSockecie, RPC przez psql jako rola anon).
 
 ## Format pytania
 
@@ -49,7 +57,7 @@ Testy wymagają Pythona z pakietem `playwright` (`pip install playwright && play
    - dopisz przycisk w `#levelSeg`: `<button type="button" data-v="klucz" class="hotbtn">Etykieta</button>`. Siatka ma 2 kolumny. Przy nieparzystej liczbie przycisków ostatni dostaje klasę `wide` (pełna szerokość).
 3. `node tests/validate_questions.js && python3 tools/build.py && python3 tests/smoke_teleturniej.py`.
 
-`build.py` przerywa, jeśli w szablonie brakuje wpisu `LEVELS` dla któregoś `BANK_*`.
+`build.py` przerywa, jeśli w szablonie brakuje wpisu `LEVELS` dla któregoś `BANK_*`. Lista wyników bierze etykiety kategorii z `LEVELS`, więc nic więcej nie trzeba dopisywać. Klucz kategorii musi pasować do `^[a-z]{2,12}$` (sprawdza to baza).
 
 ## Zasady treści
 
@@ -60,6 +68,8 @@ Testy wymagają Pythona z pakietem `playwright` (`pip install playwright && play
 
 ## Publikacja
 
+- **Serwis (główny)**: Vercel z `dist/web`, dane w Supabase. Instrukcja krok po kroku: `WDROZENIE.md`. `dist/web` jest w repozytorium, Vercel tylko generuje `config.js`, więc po zmianach zawsze uruchom `python3 tools/build.py` i zrób commit wyniku.
+
 - Artefakty Claude:
   - teleturniej: https://claude.ai/artifact/Je7ndn81PYiKodds6YGnW9 (publikuj `dist/teleturniej.html`),
   - Live: https://claude.ai/artifact/UGowZNmDKDReG99ZDPR2WE (publikuj `dist/live-claude.html` z `capabilities: {room: {}}`; ponowna publikacja bez `capabilities` zachowuje zapisane).
@@ -68,7 +78,9 @@ Testy wymagają Pythona z pakietem `playwright` (`pip install playwright && play
 
 ## Ważne szczegóły implementacji
 
-- `localStorage`: `pk_tv2` (ustawienia teleturnieju), `pk_seen` (wylosowane już pytania, wspólne dla wersji), `pkl_*` (Live: rola, imię, stan prowadzącego), `pkw_*` (kod gry w wersji PeerJS). Dostęp zawsze w `try/catch`.
+- `localStorage`: `pk_tv2` (ustawienia teleturnieju), `pk_seen` (wylosowane już pytania, wspólne dla wersji), `pkl_*` (Live: rola, imię, stan prowadzącego), `pkw_*` (kod gry, identyfikator prowadzącego), `pk_outbox` (gry czekające na zapis), `pk_board` (filtry listy wyników). Dostęp zawsze w `try/catch`.
 - Live w Claude: stan gry siedzi w `presence` prowadzącego (`role: "host"`, faza, numer pytania, `arm`, zwycięzca, zablokowani, wyniki; poprawna odpowiedź dopiero po odkryciu). Gracze ustawiają `presence` `{role: "player", name, buzz, fs}`. O kolejności decyduje `updatedAt` po stronie prowadzącego. Bez `db`, bez topiców.
 - Wersja PeerJS emuluje to samo API `room` (presence, peers, onPeers, onConnection). Prowadzący to peer `postaw-krzyzyk-live-v1-<KOD>`, gracze łączą się z nim gwiazdą.
+- Wersja Supabase (`src/web/pk-online.js`) emuluje to samo API na kanale Realtime `pk-live-v1-<KOD>`. Presence mówi tylko, kto jest online (klucze `h-…` prowadzący, `p-…` gracze). Stan płynie broadcastem: `host` (pełny stan prowadzącego, po zmianie i co 10 s), `pres` (presence gracza), `hello` (prośba o stan). Kolejność wciśnięć: czas odebrania `pres` u prowadzącego. Identyfikator prowadzącego `pkw_hid` jest stały na urządzeniu, więc po odświeżeniu wraca do tego samego kodu. Kod zajęty przez innego prowadzącego jest losowany od nowa.
+- Lista wyników: każda gra ma `uid`. Po końcu gry prowadzący (Live) albo telefon (teleturniej) wysyła ją przez `PK.submitGame`: najpierw kolejka `pk_outbox` w `localStorage`, potem RPC `pk_submit_game`. Nieudany zapis ponawia się przy następnym wejściu na dowolną stronę serwisu. Zapis jest idempotentny po `uid`. Ranking łączy gry po nicku bez względu na wielkość liter.
 - Motyw: tokeny CSS w `:root` z wariantem ciemnym (`prefers-color-scheme` i `[data-theme]`). Fonty Archivo, IBM Plex Sans i IBM Plex Mono z Google Fonts.

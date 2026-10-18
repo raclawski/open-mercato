@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Lista wyników · Postaw Krzyżyk</title>
+<meta name="description" content="Ranking graczy teleturnieju Postaw Krzyżyk: punkty, wygrane i ostatnie gry.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<main class="app">
+  <section class="sheet" aria-labelledby="t-top">
+    <div class="sheet-head">
+      <p class="eyebrow hot">Lista wyników</p>
+      <a class="eyebrow" href="index.html">Strona główna</a>
+    </div>
+    <div class="sheet-body">
+      <div class="masthead">
+        <div class="bigbox" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.6 4.9 C9 9.4 14.2 14.6 19.4 19.3"/><path d="M19.1 4.6 C14.4 9.3 9.8 14.1 4.8 19.5"/></svg></div>
+        <h1 id="t-top">Ranking<span class="sub">Postaw krzyżyk</span></h1>
+      </div>
+      <div class="field">
+        <span class="label" id="lbl-days">Okres</span>
+        <div class="seg" style="--n:3" role="group" aria-labelledby="lbl-days" id="daysSeg">
+          <button type="button" data-v="7">7 dni</button><button type="button" data-v="30">30 dni</button><button type="button" data-v="0">Zawsze</button>
+        </div>
+      </div>
+      <div class="two">
+        <div class="field">
+          <label class="label" for="levelSel">Kategoria</label>
+          <select id="levelSel"></select>
+        </div>
+        <div class="field">
+          <label class="label" for="modeSel">Tryb gry</label>
+          <select id="modeSel">
+            <option value="">Wszystkie</option>
+            <option value="live">Live (przyciski)</option>
+            <option value="teleturniej">Teleturniej (jeden telefon)</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <span class="label" id="lbl-sort">Kolejność</span>
+        <div class="seg" style="--n:3" role="group" aria-labelledby="lbl-sort" id="sortSeg">
+          <button type="button" data-v="points">Suma punktów</button><button type="button" data-v="wins">Wygrane</button><button type="button" data-v="avg">Średnia</button>
+        </div>
+      </div>
+      <p class="notice" id="err" hidden></p>
+      <div>
+        <h2 class="board-title" id="boardTitle">Klasyfikacja</h2>
+        <ol class="board" id="board" aria-live="polite"></ol>
+        <p class="empty" id="boardEmpty" hidden>Brak gier w tym okresie. Zagrajcie!</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sheet" aria-labelledby="t-games">
+    <div class="sheet-head">
+      <p class="eyebrow" id="gamesHead">Ostatnie gry</p>
+      <button type="button" class="link-btn" id="btnAll" hidden>← Wszyscy gracze</button>
+    </div>
+    <div class="sheet-body">
+      <h2 class="board-title" id="t-games" style="margin:0">Ostatnie gry</h2>
+      <ul class="games" id="games"></ul>
+      <p class="empty" id="gamesEmpty" hidden>Jeszcze nikt nie zagrał.</p>
+    </div>
+  </section>
+
+  <p class="sitenav"><a href="index.html">Strona główna</a><a href="live.html">Gra Live</a><a href="teleturniej.html">Teleturniej</a></p>
+  <p class="foot">Ranking liczy gry po nicku, bez logowania. Ten sam nick to ten sam gracz (wielkość liter nie ma znaczenia).</p>
+</main>
+
+<script src="vendor/supabase.js"></script>
+<script src="config.js"></script>
+<script src="pk-online.js"></script>
+<script>
+const LEVEL_LABELS = {"std": "Umiarkowany", "mega": "Mega", "pro": "Ekspert PL", "pop": "Popkultura PL", "urz": "Jaki to urząd?", "uzw": "Używki", "ksh": "Prawo spółek", "ts": "Taylor Swift"};
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const num = (n) => (n < 0 ? "−" + Math.abs(n) : String(n));
+function load(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
+function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } }
+const MODES = { live: "Live", teleturniej: "Teleturniej" };
+const fmtDate = (s) => { try { return new Date(s).toLocaleString("pl-PL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }); } catch (e) { return ""; } };
+const games = (n) => n === 1 ? "gra" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? "gry" : "gier";
+
+const params = new URLSearchParams(location.search);
+const F = Object.assign({ days: 30, level: "", mode: "", sort: "points" }, load("pk_board", {}));
+let who = params.get("gracz") || null;
+let reqId = 0;
+
+$("#levelSel").innerHTML = `<option value="">Wszystkie</option>` + Object.entries(LEVEL_LABELS).map(([k, v]) => `<option value="${esc(k)}">${esc(v)}</option>`).join("");
+function setSeg(id, val) { document.querySelectorAll(`#${id} button`).forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === String(val)))); }
+function syncControls() {
+  setSeg("daysSeg", F.days); setSeg("sortSeg", F.sort);
+  $("#levelSel").value = F.level; $("#modeSel").value = F.mode;
+}
+$("#daysSeg").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) { F.days = +b.dataset.v; changed(); } });
+$("#sortSeg").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) { F.sort = b.dataset.v; save("pk_board", F); syncControls(); renderBoard(); } });
+$("#levelSel").addEventListener("change", (e) => { F.level = e.target.value; changed(); });
+$("#modeSel").addEventListener("change", (e) => { F.mode = e.target.value; changed(); });
+$("#board").addEventListener("click", (e) => { const b = e.target.closest("[data-who]"); if (b) { who = b.dataset.who; pushWho(); loadGames(); } });
+$("#games").addEventListener("click", (e) => { const b = e.target.closest("[data-who]"); if (b) { who = b.dataset.who; pushWho(); loadGames(); } });
+$("#btnAll").addEventListener("click", () => { who = null; pushWho(); loadGames(); });
+window.addEventListener("popstate", () => { who = new URLSearchParams(location.search).get("gracz") || null; loadGames(); });
+function pushWho() {
+  const u = new URL(location.href);
+  if (who) u.searchParams.set("gracz", who); else u.searchParams.delete("gracz");
+  try { history.pushState(null, "", u); } catch (e) { }
+  $("#games").closest(".sheet").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+function changed() { save("pk_board", F); syncControls(); loadBoard(); }
+
+function showErr(e) {
+  const el = $("#err");
+  if (!e) { el.hidden = true; return; }
+  el.hidden = false;
+  const why = (e && e.message) || String(e);
+  el.textContent = why === "noconfig" ? "Lista wyników nie ma jeszcze ustawionego serwera (brak konfiguracji Supabase w config.js)."
+    : why === "nolib" ? "Nie udało się wczytać modułu połączeń. Odśwież stronę."
+    : "Nie udało się pobrać wyników. Sprawdź internet i odśwież stronę.";
+}
+
+let rows = [];
+async function loadBoard() {
+  const id = ++reqId;
+  $("#board").setAttribute("aria-busy", "true");
+  try {
+    const r = await PK.leaderboard({ level: F.level, mode: F.mode, days: F.days || null, limit: 200 });
+    if (id !== reqId) return;
+    rows = r; showErr(null); renderBoard();
+  } catch (e) { if (id === reqId) { rows = []; renderBoard(); showErr(e); } }
+  finally { if (id === reqId) $("#board").removeAttribute("aria-busy"); }
+}
+function metric(r) { return F.sort === "wins" ? +r.wins : F.sort === "avg" ? +r.avg_points : +r.points; }
+function renderBoard() {
+  const list = rows.slice().sort((a, b) => metric(b) - metric(a) || +b.points - +a.points || +a.games - +b.games);
+  const title = ["Klasyfikacja", F.level ? LEVEL_LABELS[F.level] || F.level : null, F.mode ? MODES[F.mode] : null].filter(Boolean).join(" · ");
+  $("#boardTitle").textContent = title;
+  $("#boardEmpty").hidden = list.length > 0 || !$("#err").hidden;
+  const max = Math.max(1, ...list.map(metric));
+  let pos = 0, prev = null;
+  $("#board").innerHTML = list.map((r, k) => {
+    const m = metric(r);
+    if (m !== prev) { pos = k + 1; prev = m; }
+    const answered = +r.correct + +r.wrong, acc = answered ? Math.round((100 * r.correct) / answered) : 0;
+    const main = F.sort === "wins" ? `${r.wins} <small>wygr.</small>` : F.sort === "avg" ? `${num(+r.avg_points)} <small>śr. pkt</small>` : `${num(+r.points)} <small>pkt</small>`;
+    return `<li class="${pos === 1 && m > 0 ? "lead" : ""}"><span class="pos">${pos}.</span>
+      <span class="nm"><button type="button" data-who="${esc(r.name)}">${esc(r.name)}</button>
+        <span class="stat">${r.games} ${games(+r.games)} · ${r.wins} wygr. · ${acc}% trafień · rekord ${num(+r.best)}</span></span>
+      <span class="p${m < 0 ? " neg" : ""}">${main}</span>
+      <span class="bar"><i style="width:${(Math.max(0, m) / max) * 100}%"></i></span></li>`;
+  }).join("");
+}
+
+let greq = 0;
+async function loadGames() {
+  const id = ++greq;
+  $("#btnAll").hidden = !who;
+  $("#gamesHead").textContent = who ? "Historia gracza" : "Ostatnie gry";
+  $("#t-games").textContent = who ? who : "Ostatnie gry";
+  try {
+    const list = await PK.recentGames({ limit: who ? 50 : 15, name: who });
+    if (id !== greq) return;
+    $("#gamesEmpty").hidden = list.length > 0;
+    $("#gamesEmpty").textContent = who ? "Brak gier tego gracza." : "Jeszcze nikt nie zagrał.";
+    const key = who ? who.trim().toLowerCase() : null;
+    $("#games").innerHTML = list.map((g) => {
+      const ps = g.players || [];
+      return `<li class="game"><div class="meta"><span class="pill">${esc(LEVEL_LABELS[g.level] || g.level)}</span><span class="pill ink">${esc(MODES[g.mode] || g.mode)}</span>
+        <span>${esc(fmtDate(g.created_at))}</span><span>${g.questions_played} pyt. · kara −${g.penalty}</span></div>
+        <div class="scores">${ps.map((p) => `<button type="button" class="sc${p.place === 1 && ps.length > 1 && p.score > 0 ? " on" : ""}" data-who="${esc(p.name)}" style="cursor:pointer"${key && p.name.toLowerCase() === key ? ' aria-current="true"' : ""}>${p.place}. ${esc(p.name)} <b class="${p.score < 0 ? "neg" : ""}">${num(p.score)}</b></button>`).join("")}</div></li>`;
+    }).join("");
+  } catch (e) { if (id === greq) { $("#games").innerHTML = ""; $("#gamesEmpty").hidden = true; showErr(e); } }
+}
+
+syncControls();
+if (!window.PK) showErr("nolib");
+else if (!PK.ready()) showErr(PK.whyOff());
+else { loadBoard(); loadGames(); }
+</script>
+</body>
+</html>

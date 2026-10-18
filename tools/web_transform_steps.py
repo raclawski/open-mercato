@@ -2,6 +2,9 @@
 # Wykonywane przez tools/web_transform.py: na wejściu zmienna `src` (HTML dist/live-claude.html),
 # na wyjściu zmienna `doc` (kompletny dokument HTML). Każda zamiana sprawdza, że wzorzec występuje
 # dokładnie raz, więc po zmianach w src/templates/live-claude.html build od razu pokaże, co się rozjechało.
+# FLAVOR = "peer" (domyślnie, PeerJS) albo "supabase" (dodatkowe kroki z supabase_transform_steps.py).
+import os
+FLAVOR = globals().get('FLAVOR', 'peer')
 
 def cut(s, start, end_marker, repl, include_end=False):
     i = s.index(start); j = s.index(end_marker, i)
@@ -183,11 +186,16 @@ src = rep(src, '<p class="foot" id="foot">Przyciski działają dla osób zalogow
           '<p class="foot" id="foot">Bez logowania. Telefony łączą się ze sobą bezpośrednio przez internet.</p>')
 assert 'initRoom' not in src.split('<script>',1)[1].replace('function setDiag','')
 
+if FLAVOR == 'supabase':
+    _sp = os.path.join(STEPS_DIR, 'supabase_transform_steps.py')
+    exec(compile(open(_sp, encoding='utf-8').read(), _sp, 'exec'))
+
 # wrap into standalone document
 head_end = src.index('</style>') + len('</style>')
 head, body = src[:head_end], src[head_end:]
 i = body.index('<script>')
-body = body[:i] + '<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>\n' + body[i:]
+LIB_TAGS = '<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>\n' if FLAVOR == 'peer' else SUPABASE_TAGS
+body = body[:i] + LIB_TAGS + body[i:]
 doc = ('<!doctype html>\n<html lang="pl">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n'
        '<style>[hidden]{display:none!important}html{color-scheme:light}body{margin:0}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}img{max-width:100%}</style>\n'
        + head.replace('<meta name="claude:viewport-fit-sides" content="cover">\n', '') + '\n</head>\n<body>\n' + body + '\n</body>\n</html>\n')
