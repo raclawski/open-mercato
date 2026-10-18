@@ -80,7 +80,13 @@ src = rep(src, '''  setConn("idle");
   if (!window.PK || !PK.ready()) {''', '''  const tryb = new URLSearchParams(location.search).get("tryb");
   setConn("idle");
   if (q || tryb === "gracz") renderJoin();
-  else if (tryb === "prowadzacy") { show("s-role"); $("#btnBeHost").click(); }
+  else if (tryb === "prowadzacy") {
+    // instrukcja zostaje na ekranie, dopóki prowadzący sam nie kliknie „Zaczynamy!”; trwająca gra wraca od razu
+    show("s-role");
+    const running = H && H.deck && H.ph && H.ph !== "lobby" && H.ph !== "final";
+    if (running) $("#btnBeHost").click();
+    else { $("#btnBePlayer").hidden = true; const bh = $("#btnBeHost"); bh.className = "btn go"; bh.textContent = "Zaczynamy!"; bh.dataset.label = "Zaczynamy!"; }
+  }
   else { location.replace("index.html"); return; }
   if (!window.PK || !PK.ready()) {''')
 src = rep(src, '$("#btnBack1").addEventListener("click", () => show("s-role"));', '$("#btnBack1").addEventListener("click", () => location.assign("index.html"));')

@@ -85,6 +85,11 @@ async def main(dburl):
         await hc.clock.install()  # czas płynie normalnie, ale test może go przewinąć (koniec czasu na odpowiedź)
         host = await page(hc, 'index.html')
         await host.click('a.mode[href^="live"]')
+        await host.wait_for_selector('#s-role:not([hidden]) .rules')
+        await host.wait_for_timeout(1500)
+        stays = await host.evaluate('() => !document.querySelector("#s-role").hidden && document.querySelector("#s-hsetup").hidden && document.querySelector("#btnBePlayer").hidden')
+        check(stays and (await host.inner_text('#btnBeHost')).strip() == 'Zaczynamy!', 'instrukcja zostaje, dopóki prowadzący nie kliknie „Zaczynamy!”')
+        await host.click('#btnBeHost')
         await host.wait_for_selector('#s-hsetup:not([hidden])', timeout=15000)
         check('tryb=prowadzacy' in host.url, 'wybór trybu: przyciski na telefonach → ustawienia prowadzącego')
         await host.click('#levelSeg [data-v="pop"]'); await host.fill('#countRange', '20'); await host.click('#timeSeg [data-v="5"]')
@@ -118,10 +123,12 @@ async def main(dburl):
         h2 = await page(await ctx(), 'index.html')
         await h2.evaluate('c => localStorage.setItem("pkw_hcode", JSON.stringify(c))', code)
         await h2.click('a.mode[href^="live"]')
+        await h2.click('#btnBeHost')
         await h2.wait_for_selector('#s-hsetup:not([hidden])', timeout=15000)
         codes = [(await h2.inner_text('#hsCode')).strip()]
         for _ in range(2):
             await h2.reload()
+            await h2.click('#btnBeHost')
             await h2.wait_for_selector('#s-hsetup:not([hidden])', timeout=15000)
             codes.append((await h2.inner_text('#hsCode')).strip())
         check(code not in codes and len(set(codes)) == 3 and all(len(c) == 4 for c in codes), 'lobby: nowy kod po każdym odświeżeniu', codes)
@@ -275,7 +282,7 @@ async def main(dburl):
         octx = await ctx(); await octx.clock.install()
         oh = await page(octx, 'index.html')  # admin „Ola”
         oh.on('dialog', lambda d: asyncio.ensure_future(d.accept()))
-        await oh.click('a.mode[href^="live"]'); await oh.wait_for_selector('#s-hsetup:not([hidden])', timeout=15000)
+        await oh.click('a.mode[href^="live"]'); await oh.click('#btnBeHost'); await oh.wait_for_selector('#s-hsetup:not([hidden])', timeout=15000)
         await oh.click('#modeSeg [data-v="online"]'); await oh.fill('#countRange', '20')
         await oh.fill('#adminName', 'Ola')
         ocode = (await oh.inner_text('#hsCode')).strip()

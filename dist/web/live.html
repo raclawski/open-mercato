@@ -3412,7 +3412,7 @@ $("#btnBeHost").addEventListener("click", async () => {
     if (!code || k > 0) code = newCode();
     try { r = await makeHostRoom(code); } catch (e) { why = e; if (e === "nolib" || e === "noconfig") break; }
   }
-  b.disabled = false; b.textContent = "Prowadzę grę";
+  b.disabled = false; b.textContent = b.dataset.label || "Prowadzę grę";
   if (!r) { const n = $("#roomNote"); n.hidden = false; n.className = "notice"; n.textContent = why === "nolib" || why === "noconfig" ? libErrText(why) : "Nie udało się utworzyć gry. Sprawdź internet i spróbuj ponownie."; return; }
   if (room && room.close && room !== r) room.close();
   save("pkw_hcode", code); role = "host"; attachRoom(r); showCode(code);
@@ -3433,7 +3433,13 @@ function boot() {
   const tryb = new URLSearchParams(location.search).get("tryb");
   setConn("idle");
   if (q || tryb === "gracz") renderJoin();
-  else if (tryb === "prowadzacy") { show("s-role"); $("#btnBeHost").click(); }
+  else if (tryb === "prowadzacy") {
+    // instrukcja zostaje na ekranie, dopóki prowadzący sam nie kliknie „Zaczynamy!”; trwająca gra wraca od razu
+    show("s-role");
+    const running = H && H.deck && H.ph && H.ph !== "lobby" && H.ph !== "final";
+    if (running) $("#btnBeHost").click();
+    else { $("#btnBePlayer").hidden = true; const bh = $("#btnBeHost"); bh.className = "btn go"; bh.textContent = "Zaczynamy!"; bh.dataset.label = "Zaczynamy!"; }
+  }
   else { location.replace("index.html"); return; }
   if (!window.PK || !PK.ready()) { setConn("off"); const n = $("#roomNote"); n.hidden = false; n.className = "notice"; n.textContent = libErrText(window.PK ? PK.whyOff() : "nolib"); }
 }

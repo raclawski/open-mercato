@@ -3448,7 +3448,7 @@ $("#btnBeHost").addEventListener("click", async () => {
     if (!code || k > 0) code = newCode();
     try { r = await makeHostRoom(code); } catch (e) { why = e; if (e === "nolib") break; }
   }
-  b.disabled = false; b.textContent = "Prowadzę grę";
+  b.disabled = false; b.textContent = b.dataset.label || "Prowadzę grę";
   if (!r) { const n = $("#roomNote"); n.hidden = false; n.className = "notice"; n.textContent = why === "nolib" ? "Nie udało się wczytać modułu połączeń. Sprawdź internet i odśwież stronę." : "Nie udało się utworzyć gry. Sprawdź internet i spróbuj ponownie."; return; }
   if (room && room.close && room !== r) room.close();
   save("pkw_hcode", code); role = "host"; attachRoom(r); showCode(code);
