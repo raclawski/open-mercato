@@ -28,7 +28,7 @@ async def main():
             pg = await ctx.new_page(); pg.on('pageerror', lambda e: errs.append(str(e)))
             await pg.goto(url); await pg.click('#btnBePlayer'); await pg.fill('#pname', n); await pg.click('#btnJoin'); await pg.wait_for_timeout(150)
             pl.append(pg)
-        await host.wait_for_timeout(300); await host.click('#modeSeg [data-v="offline"]'); await host.click('#btnHStart'); await host.wait_for_timeout(200)
+        await host.wait_for_timeout(300); await host.click('#modeSeg [data-v="offline"]'); await host.uncheck('#optX2'); await host.click('#btnHStart'); await host.wait_for_timeout(200)
         await pl[2].dispatch_event('#buzz', 'pointerdown'); await host.wait_for_timeout(200)   # falstart
         await host.click('[data-act="signal"]'); await host.wait_for_timeout(200)
         await pl[1].dispatch_event('#buzz', 'pointerdown'); await host.wait_for_timeout(300)

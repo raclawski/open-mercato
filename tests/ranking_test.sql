@@ -1,4 +1,4 @@
--- Testy funkcji rankingu na czystej bazie Postgres (z rolami anon i authenticated jak w Supabase).
+-- Testy funkcji rankingu na czystej bazie Postgres (z rolami anon i authenticated jak w Supabase), po wszystkich migracjach.
 --   psql "$PGURL" -v ON_ERROR_STOP=1 -f supabase/migrations/20261018120000_ranking.sql -f supabase/migrations/20261019090000_ranking_accept_all.sql -f tests/ranking_test.sql
 -- Każdy błąd przerywa skrypt. Na końcu wszystko jest wycofywane (rollback).
 
@@ -58,11 +58,12 @@ do $$
 declare g record; n int;
 begin
   select score, correct, wrong into g from public.pk_game_players where game_id = '33333333-0000-4000-8000-000000000001';
-  if g.score <> 0 or g.correct <> 1 or g.wrong <> 2 then raise exception 'FAIL: przeliczony wynik %', row_to_json(g); end if;
+  -- wynik od gry przycięty do możliwego zakresu (migracja 20261021090000_scoring): 999 → najwyżej 20 × 1 dobra
+  if g.score <> 20 or g.correct <> 1 or g.wrong <> 2 then raise exception 'FAIL: przycięty wynik %', row_to_json(g); end if;
   select mode, level, penalty, questions_total, questions_played, players_count into g from public.pk_games where id = '33333333-0000-4000-8000-000000000002';
   if g.mode <> 'live' or g.level <> 'mix' or g.penalty <> 1 or g.questions_total <> 100 or g.questions_played <> 100 or g.players_count <> 2 then raise exception 'FAIL: porządkowanie gry %', row_to_json(g); end if;
   select score, correct, wrong into g from public.pk_game_players where game_id = '33333333-0000-4000-8000-000000000002' and name_key = 'ola';
-  if g.correct <> 3 or g.wrong <> 1 or g.score <> 29 then raise exception 'FAIL: łączenie imion %', row_to_json(g); end if;
+  if g.correct <> 3 or g.wrong <> 1 or g.score <> 10 then raise exception 'FAIL: łączenie imion %', row_to_json(g); end if;
   select score, correct, wrong into g from public.pk_game_players where game_id = '33333333-0000-4000-8000-000000000002' and name_key = 'bez';
   if g.correct <> 0 or g.wrong <> 0 or g.score <> 0 then raise exception 'FAIL: złe typy %', row_to_json(g); end if;
   select count(*) into n from public.pk_games where id = '33333333-0000-4000-8000-000000000003';
@@ -114,6 +115,21 @@ begin
   if r.players->0->>'place' <> '1' or r.players->1->>'place' <> '1' or r.players->2->>'place' <> '3' then
     raise exception 'FAIL: miejsca przy remisie %', r.players;
   end if;
+end $$;
+
+-- pytanie ×2 i „kto pierwszy”: wynik od gry, gdy mieści się w zakresie; gra bez wyniku liczy się jak dawniej
+select public.pk_submit_game('{"id":"44444444-0000-4000-8000-000000000001","mode":"live","level":"pro","questions_total":10,"questions_played":10,"penalty":5,
+    "players":[{"name":"Dubel","score":35,"correct":2,"wrong":1},{"name":"Minus","score":-30,"correct":0,"wrong":2},{"name":"Stary","correct":3,"wrong":1}]}');
+reset role;
+do $$
+declare g record;
+begin
+  select score into g from public.pk_game_players where game_id = '44444444-0000-4000-8000-000000000001' and name_key = 'dubel';
+  if g.score <> 35 then raise exception 'FAIL: wynik ×2 %', g.score; end if;
+  select score into g from public.pk_game_players where game_id = '44444444-0000-4000-8000-000000000001' and name_key = 'minus';
+  if g.score <> -20 then raise exception 'FAIL: dolna granica %', g.score; end if;
+  select score into g from public.pk_game_players where game_id = '44444444-0000-4000-8000-000000000001' and name_key = 'stary';
+  if g.score <> 25 then raise exception 'FAIL: wynik bez pola score %', g.score; end if;
 end $$;
 
 rollback;

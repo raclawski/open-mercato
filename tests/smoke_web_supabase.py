@@ -135,6 +135,7 @@ async def main(dburl):
         await h2.close()
 
         # --- pytanie 1: sygnał, Tomek pierwszy, dobrze ---
+        await host.uncheck('#optX2')
         await host.click('#btnHStart')
         await host.wait_for_selector('#s-host:not([hidden])')
         await until(players['Asia'], '() => /Pytanie 1 z/.test(document.querySelector("#pQnum").textContent)')
@@ -306,6 +307,7 @@ async def main(dburl):
         check(True, 'rejestr nicków: podpowiedzi przy imieniu gracza')
         await until(oh, '() => document.querySelectorAll("#hsRoster .sc").length === 3')
         check('3 graczy' in await oh.inner_text('#btnHStart'), 'online: admin Ola liczy się jako gracz', await oh.inner_text('#btnHStart'))
+        await oh.uncheck('#optX2')
         await oh.click('#btnHStart')
         await oh.wait_for_selector('#s-player:not([hidden])')
         check(await oh.is_hidden('#s-host'), 'online: admin widzi ekran gracza, nie panel prowadzącego')

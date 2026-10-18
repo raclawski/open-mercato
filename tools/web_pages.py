@@ -59,7 +59,7 @@ $("#players").addEventListener("input", prefetchHist); prefetchHist();''')
     s = rep(s, '$("#topicEyebrow").textContent = settings.level === "pop" ? "Teleturniej · Popkultura" : "Teleturniej · Polityka";', '')
     s = rep(s, 'count: 30, time: 15, minus: 1 }, load("pk_tv2", {}));', 'count: 30, time: 15, minus: 1 }, load("pk_tv2", {}), load("pk_common", {}));')
     s = rep(s, 'const saveSettings = () => save("pk_tv2", settings);',
-            'const saveSettings = () => { save("pk_tv2", settings); save("pk_common", { level: settings.level, count: settings.count, minus: settings.minus, mix: settings.mix }); };')
+            'const saveSettings = () => { save("pk_tv2", settings); save("pk_common", { level: settings.level, count: settings.count, minus: settings.minus, mix: settings.mix, x2: settings.x2 }); };')
     s = rep(s, '<p class="foot" id="foot"></p>',
             '<p class="sitenav"><a href="index.html">Strona główna</a><a href="wyniki.html">Lista wyników</a></p>\n  <p class="foot" id="foot"></p>')
     s = rep(s, '.foot {', '''.sitenav { display: flex; justify-content: center; gap: 18px; margin: 0; font-family: var(--f-mono); font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; }

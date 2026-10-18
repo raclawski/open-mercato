@@ -7,6 +7,7 @@ Zmiana bazy (**SQL**) oznacza, że po wdrożeniu musisz wgrać nowy plik w Supab
 
 ## Do zrobienia przez Ciebie
 
+- [ ] Wgraj `supabase/migrations/20261021090000_scoring.sql` (A6/B3: baza przyjmuje wynik z gry, inaczej punkty za ×2 nie trafią na listę wyników).
 - [ ] Wgraj `supabase/migrations/20261020090000_question_history.sql` w Supabase (SQL Editor, plik z widoku **Raw**). Bez niego gra działa, ale pamięta pytania tylko na telefonie, nie dla nicku.
 
 ## Wdrożone
@@ -25,6 +26,7 @@ Zmiana bazy (**SQL**) oznacza, że po wdrożeniu musisz wgrać nowy plik w Supab
 | A11 | Ekran lekko zielony, gdy odpowiadasz; lekko szary, gdy odpowiada ktoś inny | 18.10.2026 |
 | A12 | Pozostali widzą, którą odpowiedź kliknął odpowiadający (✓/✗ z imieniem) | 18.10.2026 |
 | A9 | Wybór kategorii: „1 kategoria” (bęben) albo „MIX” (lista); bęben jako wielkie koło, dalsze wiersze spłaszczone, mniejsze i blade | 18.10.2026 |
+| A6 | Pytanie ×2: jedno losowe na każde 10 pytań, baner „Pytanie za podwójne punkty!”, punkty i kara ×2; włączane w lobby i w ustawieniach jednego telefonu | 18.10.2026 |
 | A8 | Instrukcja gry z przyciskami zostaje na ekranie, dopóki prowadzący nie kliknie „Zaczynamy!” | 18.10.2026 |
 | C1 | Partia 1 bazy pytań: 5 nowych kategorii po 100 pytań (razem 944) | 18.10.2026 |
 | — | Naprawa listy wyników (funkcja czyszcząca nicki) | 18.10.2026 |
@@ -35,8 +37,8 @@ B0, B1 i B2 zrobione. Dalej kolejność do Twojej decyzji (propozycja: od góry)
 
 | ID | Usprawnienie | Wielkość | Status |
 |---|---|---|---|
-| A6 | Pytanie za podwójne punkty (×2), z komunikatem dla graczy, włączane w lobby | M, SQL | — |
 | B3 | Trzeci tryb online: „Kto pierwszy, ten lepszy” | L, SQL | — |
+| A13 | Delikatne animacje: przejścia ekranów, pytań i kliknięcia | S | — |
 | A3 | Kontrola wersji bazy: gra ostrzega, gdy migracja nie jest wgrana | S, SQL | — |
 | C2 | Zgłaszanie błędnego pytania z poziomu gry | M, SQL | — |
 | D1 | Komunikaty i dopracowanie interfejsu | M | — |

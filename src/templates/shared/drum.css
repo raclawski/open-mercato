@@ -25,3 +25,8 @@
 /* „1 kategoria” albo „MIX” nad bębnem */
 .seg.catmode { grid-template-columns: 1fr 1fr; margin-bottom: 10px; }
 .seg.catmode button { padding: 14px 6px; font-family: var(--f-display); font-stretch: 85%; font-weight: 800; font-size: 1.1rem; letter-spacing: .02em; }
+/* pytanie ×2 (mix.js: withX2) i jego przełącznik w ustawieniach */
+.x2banner { margin: 0; padding: 10px 12px; border: 2px solid var(--stamp); border-radius: 3px; background: var(--stamp-soft); color: var(--stamp); font-family: var(--f-display); font-stretch: 85%; font-weight: 800; font-size: 1.15rem; text-align: center; letter-spacing: .02em; }
+.opt { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; font-size: .9rem; color: var(--muted); cursor: pointer; }
+.opt input { width: 1.2rem; height: 1.2rem; margin: 2px 0 0; accent-color: var(--stamp); }
+.opt b { color: var(--ink); }

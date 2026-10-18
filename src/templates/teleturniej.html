@@ -291,6 +291,8 @@ details.review summary { cursor: pointer; font-weight: 600; }
         </div>
       </div>
 
+      <label class="opt"><input type="checkbox" id="optX2"><span><b>Pytanie ×2</b> · jedno losowe na każde 10 pytań, za podwójne punkty (kara też ×2)</span></label>
+
       <button type="button" class="btn" id="btnStart">Zaczynamy</button>
     </div>
   </section>
@@ -316,6 +318,7 @@ details.review summary { cursor: pointer; font-weight: 600; }
           <div class="timer-track"><span class="timer-fill" id="timerFill"></span></div>
           <div class="timer-num" id="timerNum">20</div>
         </div>
+        <p class="x2banner" id="x2Q" hidden>Pytanie za podwójne punkty!</p>
         <h2 class="qtext" id="qText"></h2>
         <div class="ballot" id="options"></div>
         <div class="late" id="late" hidden>
@@ -456,7 +459,7 @@ function bindSeg(id, key, num) {
 }
 bindSeg("levelSeg", "level", false); initDrum($("#levelSeg"), (v) => poolSize(v) + " pyt."); initCatMode((v) => { settings.level = v; saveSettings(); renderStart(); });
 initMix($("#mixPick"), () => settings.mix, (sel) => { settings.mix = sel; saveSettings(); renderStart(); });
-initCount((n) => { settings.count = n; saveSettings(); }, renderStart);
+initCount((n) => { settings.count = n; saveSettings(); }, renderStart); initX2(() => settings.x2, (v) => { settings.x2 = v; saveSettings(); });
 bindSeg("timeSeg", "time", true);
 bindSeg("minusSeg", "minus", true);
 $("#players").addEventListener("input", (e) => { settings.players = parsePlayers(e.target.value); saveSettings(); renderStarter(); });
@@ -471,11 +474,11 @@ let S = null, timerId = null, tEnd = 0;
 function newGame() {
   const players = settings.players.slice();
   const starter = settings.starter === -1 ? Math.floor(Math.random() * players.length) : Math.min(settings.starter, players.length - 1);
-  S = { level: settings.level, players, minus: settings.minus, time: settings.time, deck: buildDeck(settings.level, clampCount(settings.count), settings.mix), i: 0, cur: starter, next: null, phase: "q", log: [], left: settings.time * 1000 };
+  S = { level: settings.level, players, minus: settings.minus, time: settings.time, deck: withX2(buildDeck(settings.level, clampCount(settings.count), settings.mix), settings.x2), i: 0, cur: starter, next: null, phase: "q", log: [], left: settings.time * 1000 };
 }
 function scores() {
   const t = S.players.map(() => 0);
-  S.log.forEach((a) => { if (a) t[a.p] += a.ok ? PLUS : -S.minus; });
+  S.log.forEach((a, i) => { if (a) t[a.p] += (a.ok ? PLUS : -S.minus) * qmul(S.deck[i]); });
   return t;
 }
 function stats() {
@@ -497,8 +500,9 @@ function renderQ(resume) {
   $("#hudCat").textContent = Q.cat;
   $("#progFill").style.width = (S.i / S.deck.length) * 100 + "%";
   $("#plateName").textContent = S.players[S.cur];
-  $("#stakePlus").textContent = "+" + PLUS;
-  $("#stakeMinus").textContent = "−" + S.minus;
+  $("#stakePlus").textContent = "+" + PLUS * qmul(Q);
+  $("#stakeMinus").textContent = "−" + S.minus * qmul(Q);
+  $("#x2Q").hidden = !Q.x2;
   renderScores();
   $("#qText").textContent = Q.q;
   $("#options").innerHTML = Q.o.map((o, i) => `
@@ -567,7 +571,8 @@ function renderReveal(instant) {
   $("#timer").classList.remove("low");
   const fb = $("#feedback");
   fb.className = "feedback " + (a.ok ? "good" : "bad");
-  $("#fbTitle").textContent = a.ok ? `${name}: dobrze! +${PLUS}` : a.pick < 0 ? `${name}: czas minął, −${S.minus}` : `${name}: pudło, −${S.minus}`;
+  const m = qmul(Q);
+  $("#fbTitle").textContent = a.ok ? `${name}: dobrze! +${PLUS * m}` : a.pick < 0 ? `${name}: czas minął, −${S.minus * m}` : `${name}: pudło, −${S.minus * m}`;
   $("#fbAnswer").hidden = a.ok;
   $("#fbAnswer").textContent = a.ok ? "" : `Poprawna odpowiedź: ${Q.o[Q.c]}`;
   $("#fbExplain").textContent = Q.e;

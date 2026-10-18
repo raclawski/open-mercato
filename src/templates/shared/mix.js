@@ -107,3 +107,11 @@ function initCount(onInput, onDone) {
     r.value = clampCount(+r.value + +b.dataset.d); $("#countOut").textContent = r.value; onInput(+r.value); onDone();
   }));
 }
+/* Pytanie ×2: jedno losowe na każde 10 pytań (gra na 7 pytań ma jedno). Punkty i kara razy dwa. */
+function withX2(deck, on) {
+  if (on === false) return deck;
+  for (let k = 0; k * 10 < deck.length; k++) { const lo = k * 10, hi = Math.min(deck.length, lo + 10); deck[lo + Math.floor(Math.random() * (hi - lo))].x2 = 1; }
+  return deck;
+}
+const qmul = (q) => (q && q.x2 ? 2 : 1);
+function initX2(get, set) { const c = $("#optX2"); c.checked = get() !== false; c.addEventListener("change", () => set(c.checked)); }

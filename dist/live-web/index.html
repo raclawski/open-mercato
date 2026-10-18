@@ -303,6 +303,11 @@ body.ans-other #s-player .sheet { filter: grayscale(1); opacity: .82; }
 /* „1 kategoria” albo „MIX” nad bębnem */
 .seg.catmode { grid-template-columns: 1fr 1fr; margin-bottom: 10px; }
 .seg.catmode button { padding: 14px 6px; font-family: var(--f-display); font-stretch: 85%; font-weight: 800; font-size: 1.1rem; letter-spacing: .02em; }
+/* pytanie ×2 (mix.js: withX2) i jego przełącznik w ustawieniach */
+.x2banner { margin: 0; padding: 10px 12px; border: 2px solid var(--stamp); border-radius: 3px; background: var(--stamp-soft); color: var(--stamp); font-family: var(--f-display); font-stretch: 85%; font-weight: 800; font-size: 1.15rem; text-align: center; letter-spacing: .02em; }
+.opt { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; font-size: .9rem; color: var(--muted); cursor: pointer; }
+.opt input { width: 1.2rem; height: 1.2rem; margin: 2px 0 0; accent-color: var(--stamp); }
+.opt b { color: var(--ink); }
 </style>
 </head>
 <body>
@@ -373,6 +378,7 @@ body.ans-other #s-player .sheet { filter: grayscale(1); opacity: .82; }
         <button type="button" class="link-btn" id="btnLeave">Wyjdź</button>
       </div>
       <div class="sheet-body">
+        <p class="x2banner" id="x2P" hidden>Pytanie za podwójne punkty!</p>
         <div class="timer" id="pTimer" hidden aria-hidden="true">
           <div class="timer-track"><span class="timer-fill" id="pTimerFill"></span></div>
           <div class="timer-num" id="pTimerNum">10</div>
@@ -474,6 +480,7 @@ body.ans-other #s-player .sheet { filter: grayscale(1); opacity: .82; }
           </div>
         </div>
       </div>
+      <label class="opt"><input type="checkbox" id="optX2"><span><b>Pytanie ×2</b> · jedno losowe na każde 10 pytań, za podwójne punkty (kara też ×2)</span></label>
       <button type="button" class="btn go" id="btnHStart">Start gry</button>
       <button type="button" class="link-btn" id="btnBack2">← Zmień rolę</button>
     </div>
@@ -492,13 +499,14 @@ body.ans-other #s-player .sheet { filter: grayscale(1); opacity: .82; }
     <article class="sheet" style="margin-top:14px">
       <div class="plate">
         <div class="left"><span class="lbl" id="plateLbl">Status</span><span class="nm" id="plateName">Czytaj pytanie</span></div>
-        <div class="stake"><span>+10</span><br><span class="m" id="stakeMinus">−10</span></div>
+        <div class="stake"><span id="stakePlus">+10</span><br><span class="m" id="stakeMinus">−10</span></div>
       </div>
       <div class="sheet-body">
         <div class="timer" id="timer" hidden aria-hidden="true">
           <div class="timer-track"><span class="timer-fill" id="timerFill"></span></div>
           <div class="timer-num" id="timerNum">10</div>
         </div>
+        <p class="x2banner" id="x2H" hidden>Pytanie za podwójne punkty!</p>
         <h2 class="qtext" id="hQtext"></h2>
         <div class="ballot" id="hOpts"></div>
         <label class="toggle"><input type="checkbox" id="showKey" checked> Pokazuj mi poprawną odpowiedź (gracze jej nie widzą)</label>
@@ -2913,6 +2921,7 @@ function renderPlayer() {
   $("#pSkip").textContent = P.skipKey === skipKey ? "Pominięte · czekam na pozostałych" : "Pomiń pytanie";
   $("#pSkip").disabled = P.skipKey === skipKey;
   $("#pNext").hidden = !(h && h.mode === "online" && h.ph === "reveal");
+  $("#x2P").hidden = !(h && h.x2 && ["q", "q2", "count", "armed", "locked", "reveal"].includes(h.ph));
   $("#pNext").disabled = P.nextKey === nextKey;
   if (h && h.ph === "final" && Array.isArray(h.fin) && role === "player") { drawFinal(h.fin, h.lv || "", h.n ? `${h.qn + 1} z ${h.n} pytań` : "", false); return; }
   if (!$("#s-final").hidden && role === "player") show("s-player");
@@ -2972,7 +2981,7 @@ function renderPlayer() {
   if (h.ph === "reveal") {
     b.disabled = true;
     const l = h.last;
-    if (l && l.ok) { b.className = l.name === P.name ? "buzz win" : "buzz"; b.innerHTML = l.name === P.name ? "+10!" : "Dobrze<small>" + esc(l.name) + "</small>"; st.textContent = `${l.name} odpowiada dobrze.`; }
+    if (l && l.ok) { b.className = l.name === P.name ? "buzz win" : "buzz"; b.innerHTML = l.name === P.name ? `+${PLUS * (h.x2 ? 2 : 1)}!` : "Dobrze<small>" + esc(l.name) + "</small>"; st.textContent = `${l.name} odpowiada dobrze.`; }
     else { b.innerHTML = "Odpowiedź<small>na ekranie</small>"; st.textContent = h.none ? "Nikt nie wziął pytania." : "Nikt nie trafił."; }
   }
 }
@@ -3213,6 +3222,14 @@ function initCount(onInput, onDone) {
     r.value = clampCount(+r.value + +b.dataset.d); $("#countOut").textContent = r.value; onInput(+r.value); onDone();
   }));
 }
+/* Pytanie ×2: jedno losowe na każde 10 pytań (gra na 7 pytań ma jedno). Punkty i kara razy dwa. */
+function withX2(deck, on) {
+  if (on === false) return deck;
+  for (let k = 0; k * 10 < deck.length; k++) { const lo = k * 10, hi = Math.min(deck.length, lo + 10); deck[lo + Math.floor(Math.random() * (hi - lo))].x2 = 1; }
+  return deck;
+}
+const qmul = (q) => (q && q.x2 ? 2 : 1);
+function initX2(get, set) { const c = $("#optX2"); c.checked = get() !== false; c.addEventListener("change", () => set(c.checked)); }
 function bindSeg(id, key, isNum) {
   $("#" + id).addEventListener("click", (e) => {
     const b = e.target.closest("button"); if (!b) return;
@@ -3220,7 +3237,7 @@ function bindSeg(id, key, isNum) {
   });
 }
 bindSeg("modeSeg", "mode", false); bindSeg("levelSeg", "level", false); initDrum($("#levelSeg"), (v) => poolSize(v) + " pyt."); initCatMode((v) => { settings.level = v; saveSettings(); renderHostSetup(); });
-initMix($("#mixPick"), () => settings.mix, (sel) => { settings.mix = sel; saveSettings(); renderHostSetup(); }); initCount((n) => { settings.count = n; saveSettings(); }, () => renderHostSetup()); bindSeg("timeSeg", "time", true); bindSeg("minusSeg", "minus", true);
+initMix($("#mixPick"), () => settings.mix, (sel) => { settings.mix = sel; saveSettings(); renderHostSetup(); }); initCount((n) => { settings.count = n; saveSettings(); }, () => renderHostSetup()); initX2(() => settings.x2, (v) => { settings.x2 = v; saveSettings(); }); bindSeg("timeSeg", "time", true); bindSeg("minusSeg", "minus", true);
 
 function hostScreen() { return H && H.mode === "online" ? "s-player" : "s-host"; }
 function connectedPlayers() {
@@ -3264,7 +3281,7 @@ function renderHostSetup() {
 function hostScores() {
   const s = {};
   H.players.forEach((n) => (s[n] = 0));
-  H.log.forEach((a) => { if (!(a.name in s)) s[a.name] = 0; s[a.name] += a.ok ? PLUS : -H.minus; });
+  H.log.forEach((a) => { if (!(a.name in s)) s[a.name] = 0; s[a.name] += (a.ok ? PLUS : -H.minus) * qmul(H.deck[a.qi]); });
   return s;
 }
 function sortedScores() { const s = hostScores(); return Object.keys(s).map((n) => [n, s[n]]).sort((a, b) => b[1] - a[1]); }
@@ -3290,6 +3307,7 @@ function hostView() {
     rev: H.ph === "reveal" ? Q.c : null, ex: H.ph === "reveal" ? clip(Q.e, 360) : null, last: H.last,
     fin: H.ph === "final" ? finalRows() : null, lv: LEVELS[H.level].label, admin: H.admin || null,
     tm: (H.ph === "armed" || H.ph === "locked") && H.tEndAt && H.tT ? { T: H.tT, left: Math.max(0, H.tEndAt - Date.now()) } : null,
+    x2: !!(Q && Q.x2),
     pks: H.log.filter((a) => a.qi === H.i && Number.isInteger(a.pick)).slice(-16).map((a) => ({ n: a.name, i: a.pick, ok: a.ok })),
     none: H.ph === "reveal" && !H.log.some((a) => a.qi === H.i)
   };
@@ -3400,7 +3418,7 @@ function hostStart() {
   if (online && !admin) { $("#adminName").focus(); return; }
   const players = online ? [admin].concat(connectedPlayers().filter((n) => n !== admin)) : connectedPlayers();
   SELF = { p: {}, at: 0 };
-  H = { g: "g" + Date.now().toString(36), level: settings.level, minus: settings.minus, time: settings.time, deck: buildDeck(settings.level, clampCount(settings.count), settings.mix),
+  H = { g: "g" + Date.now().toString(36), level: settings.level, minus: settings.minus, time: settings.time, deck: withX2(buildDeck(settings.level, clampCount(settings.count), settings.mix), settings.x2),
         i: 0, ph: "q", arm: 0, win: null, order: [], blk: [], fs: [], last: null, log: [], players, mode: settings.mode, seen: false, admin };
   saveH(); publishHost(); renderHost(); show(hostScreen());
 }
@@ -3454,7 +3472,7 @@ function renderHost() {
   $("#hQnum").textContent = `Pytanie ${H.i + 1} z ${H.deck.length}`;
   $("#hCat").textContent = Q.cat;
   $("#hProg").style.width = (H.i / H.deck.length) * 100 + "%";
-  $("#stakeMinus").textContent = "−" + H.minus;
+  $("#stakePlus").textContent = "+" + PLUS * qmul(Q); $("#stakeMinus").textContent = "−" + H.minus * qmul(Q); $("#x2H").hidden = !Q.x2;
   const sc = hostScores();
   $("#hRoster").innerHTML = rosterHTML(Object.keys(sc), { scores: sc, blk: H.blk, win: H.win });
   $("#hQtext").textContent = Q.q;
@@ -3495,7 +3513,7 @@ function renderHost() {
     const l = H.last;
     plateLbl.textContent = l && l.ok ? "Punkt dla" : "Odpowiedź"; plateName.textContent = l && l.ok ? l.name : "Nikt nie trafił";
     fb.hidden = false; fb.className = "feedback " + (l && l.ok ? "good" : "bad");
-    $("#hFbTitle").textContent = l && l.ok ? `${l.name}: dobrze! +${PLUS}` : `Poprawna: ${Q.o[Q.c]}`;
+    $("#hFbTitle").textContent = l && l.ok ? `${l.name}: dobrze! +${PLUS * qmul(Q)}` : `Poprawna: ${Q.o[Q.c]}`;
     if (l && l.ok && Number.isInteger(l.pick)) $("#hFbTitle").textContent += ` (${LETTERS[l.pick]})`;
     $("#hFbExplain").textContent = Q.e;
     acts = `<button type="button" class="btn" data-act="next">${H.i >= H.deck.length - 1 ? "Zobacz wyniki" : "Następne pytanie"}</button>`;

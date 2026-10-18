@@ -73,9 +73,26 @@ async def main():
         good = res['avg'] >= 15 and res['min'] < 20 and res['full'] == 20 and res['ids'] == 20 and res['same'] <= 2 and not errs
         print(('✓' if good else '✗'), 'dobór według wag: niewidziane częściej, ograne nie zablokowane, działy rozłożone', res, errs)
         fail += not good
+        # pytanie ×2: jedno na każde 10 pytań, baner, punkty i kara razy dwa
+        await pg.evaluate('localStorage.clear()'); await pg.goto(URL); await pg.wait_for_timeout(200)
+        await pg.click('#levelSeg [data-v="std"]'); await pg.fill('#countRange', '25'); await pg.click('#minusSeg [data-v="5"]'); await pg.click('#btnStart')
+        x2 = await pg.evaluate('() => [0, 1, 2].map((k) => S.deck.slice(k * 10, k * 10 + 10).filter((q) => q.x2).length)')
+        first = await pg.evaluate('() => S.deck.findIndex((q) => q.x2)')
+        while await pg.evaluate('() => S.i') < first:
+            await pg.click('#options .row >> nth=0')
+            if await pg.is_disabled('#btnNext'): await pg.click('#nextChips [data-p="0"]')
+            await pg.click('#btnNext')
+        ban = [await pg.is_visible('#x2Q'), (await pg.inner_text('#stakePlus')).strip(), (await pg.inner_text('#stakeMinus')).strip()]
+        before = await pg.evaluate('() => scores()[S.cur]')
+        right = await pg.evaluate('() => S.deck[S.i].c')
+        await pg.click(f'#options .row[data-i="{right}"]')
+        gain = await pg.evaluate('(b) => scores()[S.log[S.i].p] - b', before)
+        good = x2 == [1, 1, 1] and ban == [True, '+20', '−10'] and gain == 20 and not errs
+        print(('✓' if good else '✗'), 'pytanie ×2: jedno na 10, baner, +20/−10', x2, ban, gain, errs)
+        fail += not good
         # koniec czasu: odpowiedzi zostają do zaznaczenia, „Brak odpowiedzi” daje karę, nic nie dzieje się samo
         await pg.evaluate('localStorage.clear()'); await pg.clock.install(); await pg.goto(URL); await pg.wait_for_timeout(200)
-        await pg.click('#timeSeg [data-v="10"]'); await pg.click('#minusSeg [data-v="5"]'); await pg.click('#btnStart')
+        await pg.click('#timeSeg [data-v="10"]'); await pg.click('#minusSeg [data-v="5"]'); await pg.uncheck('#optX2'); await pg.click('#btnStart')
         await pg.clock.fast_forward(11000); await pg.wait_for_timeout(200)
         late = await pg.is_visible('#late') and not await pg.is_visible('#feedback')
         right = await pg.evaluate('() => S.deck[S.i].c')
