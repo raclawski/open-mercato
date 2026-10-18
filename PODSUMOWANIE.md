@@ -9,7 +9,7 @@ Teleturniej na telefon z pytaniami o polityce, prawie i popkulturze. Zaczęło s
 | **Teleturniej** (jeden telefon prowadzącego) | Artefakt Claude: https://claude.ai/artifact/Je7ndn81PYiKodds6YGnW9 | Właściciel i osoby, którym go udostępniono (albo każdy, jeśli włączysz publiczny link) | `dist/teleturniej.html`, wersja do hostingu: `dist/teleturniej-standalone.html` |
 | **Live w Claude** (przyciski na telefonach) | Artefakt Claude z capability `room`: https://claude.ai/artifact/UGowZNmDKDReG99ZDPR2WE | Tylko zalogowani w Claude, którym udostępniono stronę. Z publicznego linku pokazuje „Brak połączenia z grą” | `dist/live-claude.html` |
 | **Live bez logowania** | Dowolny hosting statyczny (Netlify, GitHub Pages) | Każdy z linkiem i kodem gry | `dist/live-web/index.html` |
-| **Serwis online** (Live przez serwer, teleturniej, lista wyników) | Vercel + Supabase (instrukcja: `WDROZENIE.md`) | Każdy z linkiem; wyniki pod nickiem, bez logowania | `dist/web/` |
+| **Serwis online** (Live przez serwer, teleturniej, lista wyników) | https://krzyzyk.vercel.app (Vercel + Supabase, instrukcja: `WDROZENIE.md`) | Każdy z linkiem; wyniki pod nickiem, bez logowania | `dist/web/` |
 
 ## Zasady gry
 

@@ -69,7 +69,7 @@ Testy wymagają Pythona z pakietem `playwright` (`pip install playwright && play
 
 ## Publikacja
 
-- **Serwis (główny)**: Vercel z `dist/web`, dane w Supabase. Instrukcja krok po kroku: `WDROZENIE.md`. `dist/web` jest w repozytorium, Vercel tylko generuje `config.js`, więc po zmianach zawsze uruchom `python3 tools/build.py` i zrób commit wyniku.
+- **Serwis (główny)**: https://krzyzyk.vercel.app, Vercel z `dist/web` (gałąź produkcyjna `main`), dane w Supabase. Instrukcja krok po kroku: `WDROZENIE.md`. `dist/web` jest w repozytorium, Vercel tylko generuje `config.js`, więc po zmianach zawsze uruchom `python3 tools/build.py` i zrób commit wyniku.
 
 - Artefakty Claude:
   - teleturniej: https://claude.ai/artifact/Je7ndn81PYiKodds6YGnW9 (publikuj `dist/teleturniej.html`),

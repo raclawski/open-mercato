@@ -1,5 +1,7 @@
 # Wdrożenie: Supabase + Vercel
 
+Gra działa pod adresem **https://krzyzyk.vercel.app**. Link dla graczy ma postać `https://krzyzyk.vercel.app/live?kod=XXXX` i tworzy się sam z adresu strony, więc po zmianie domeny nic w kodzie nie trzeba poprawiać.
+
 Serwis z `dist/web/` składa się z czterech stron: start, gra Live, teleturniej i lista wyników. Supabase daje dwie rzeczy: połączenie telefonów w grze Live (Realtime) i bazę z wynikami. Vercel tylko serwuje pliki statyczne.
 
 Koszt: oba serwisy mają darmowe plany, które wystarczą na gry ze znajomymi.
@@ -23,7 +25,7 @@ Koszt: oba serwisy mają darmowe plany, które wystarczą na gry ze znajomymi.
 3. W **Environment Variables** dodaj:
    - `SUPABASE_URL`: Project URL z kroku 1.4,
    - `SUPABASE_ANON_KEY`: klucz anon z kroku 1.4.
-4. **Deploy**. Po minucie dostaniesz adres, np. `https://postaw-krzyzyk.vercel.app`.
+4. **Deploy**. Po minucie gra działa pod adresem projektu. Nasz adres: **https://krzyzyk.vercel.app** (projekt w Vercel, gałąź produkcyjna `main`).
 
 Zamiast zmiennych w Vercel możesz wpisać oba klucze do `src/web/config.js`, uruchomić `python3 tools/build.py` i zrobić commit. Klucz anon jest publiczny z założenia.
 
