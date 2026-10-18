@@ -409,6 +409,7 @@ body.ans-other #s-player .sheet { filter: grayscale(1); opacity: .82; }
         </div>
         <div class="drum-wrap">
           <div class="drum" role="group" aria-labelledby="lbl-level" id="levelSeg">
+            <button type="button" data-v="chajzer" class="hotbtn special">Chajzerowie</button>
             <button type="button" data-v="std">Umiarkowany</button>
             <button type="button" data-v="mega">Mega</button>
             <button type="button" data-v="pro" class="hotbtn">Ekspert PL</button>
@@ -519,6 +520,7 @@ body.ans-other #s-player .sheet { filter: grayscale(1); opacity: .82; }
 
 const LEVELS = {
   mix: { label: "Mieszane", bank: null, hint: "Pytania z kilku kategorii w jednej grze, na zmianę. Zaznacz poniżej, które wchodzą do gry." },
+  chajzer: { label: "Chajzerowie", bank: BANK_CHAJZER, special: true, hint: "Kategoria specjalna: Filip i Bianka Chajzerowie. Jak się poznali, ślub, który prawie się nie odbył, i pytania z ich podcastu." },
   std: { label: "Umiarkowany", bank: BANK_STD, hint: "Pytania dla każdego, kto śledzi wiadomości. Polska i świat." },
   mega: { label: "Mega", bank: BANK_MEGA, hint: "Artykuły Konstytucji, traktaty, teorie politologów. Polska i świat." },
   pro: { label: "Ekspert PL", bank: BANK_PRO, hint: "Tylko polska polityka: wyniki wyborów, kulisy rządów III RP, PRL i II RP, ordynacja i regulamin Sejmu." },
@@ -796,7 +798,7 @@ function bindSeg(id, key, isNum) {
     settings[key] = isNum ? +b.dataset.v : b.dataset.v; saveSettings(); renderHostSetup();
   });
 }
-bindSeg("modeSeg", "mode", false); bindSeg("levelSeg", "level", false); initDrum($("#levelSeg"), (v) => poolSize(v) + " pyt."); initCatMode((v) => { settings.level = v; saveSettings(); renderHostSetup(); });
+bindSeg("modeSeg", "mode", false); bindSeg("levelSeg", "level", false); initDrum($("#levelSeg"), (v) => (LEVELS[v].special ? "♥ " : "") + poolSize(v) + " pyt."); initCatMode((v) => { settings.level = v; saveSettings(); renderHostSetup(); });
 initMix($("#mixPick"), () => settings.mix, (sel) => { settings.mix = sel; saveSettings(); renderHostSetup(); }); initCount((n) => { settings.count = n; saveSettings(); }, () => renderHostSetup()); initX2(() => settings.x2, (v) => { settings.x2 = v; saveSettings(); }); bindSeg("timeSeg", "time", true); bindSeg("minusSeg", "minus", true);
 
 function hostScreen() { return H && isAuto(H.mode) ? "s-player" : "s-host"; }

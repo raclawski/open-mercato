@@ -178,3 +178,11 @@ select { font: inherit; font-weight: 600; color: #111; background: #fff; border:
 @media (prefers-reduced-motion: no-preference) {
   .row, .popts li, .popts button, .chip, .seg button, .cstep { transition: transform .1s ease-out, box-shadow .1s ease-out, filter .15s, opacity .2s; }
 }
+/* kategoria specjalna w bębnie (LEVELS[k].special, wiersz .special): różowa naklejka z sercem */
+.drum button.special { background: linear-gradient(90deg, #FFC7DD, #FFE3EE 70%, transparent); border-radius: 12px; }
+.drum button.special .dl { color: #B0124F; }
+.drum button.special .dm { color: #B0124F; font-weight: 800; }
+.drum button.special .dbox { border-color: #B0124F; }
+.drum button.special[aria-pressed="true"] .dbox { background: #E8337A; }
+.mixpick .chip[data-k="chajzer"] { background: #FFE3EE; border-color: #B0124F; }
+.mixpick .chip[data-k="chajzer"][aria-pressed="true"] { background: #E8337A; color: #fff; }

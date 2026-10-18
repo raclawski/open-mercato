@@ -6,7 +6,8 @@
    Id pytania to `kategoria:skrót treści` (qid), więc nie zmienia się po dopisaniu pytań. */
 const MIX = "mix";
 const realLevels = () => Object.keys(LEVELS).filter((k) => LEVELS[k].bank);
-const mixKeys = (sel) => { const ok = (Array.isArray(sel) ? sel : []).filter((k) => LEVELS[k] && LEVELS[k].bank); return ok.length ? ok : realLevels(); };
+/* pusta lista = wszystkie kategorie poza specjalnymi (np. „Chajzerowie”), które do mieszanki trzeba dodać ręcznie */
+const mixKeys = (sel) => { const ok = (Array.isArray(sel) ? sel : []).filter((k) => LEVELS[k] && LEVELS[k].bank); return ok.length ? ok : realLevels().filter((k) => !LEVELS[k].special); };
 const levelSize = (k) => LEVELS[k].bank.reduce((s, c) => s + c.q.length, 0);
 function poolSize(level, sel) { return level === MIX ? mixKeys(sel).reduce((s, k) => s + levelSize(k), 0) : levelSize(level); }
 /* Skrót treści pytania (FNV-1a, 32 bity): tylko litery i cyfry, bez wielkości liter. Ten sam liczy tests/validate_questions.js. */

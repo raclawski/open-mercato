@@ -31,6 +31,7 @@ Zmiana bazy (**SQL**) oznacza, że po wdrożeniu musisz wgrać nowy plik w Supab
 | A14 | Okrągły, wypukły przycisk, który się wciska; czas biegnie pierścieniem dookoła; „Następne pytanie” przypięte na dole ekranu | 18.10.2026 |
 | A13 | Delikatne animacje: wejście ekranów, nowe pytanie (odpowiedzi kolejno), komunikaty, kliknięcia; wyłączone przy „ogranicz ruch” | 18.10.2026 |
 | D1 | Wygląd „pop” w całej grze (wybrany z 4 propozycji): żółte tło, karty z czarnym obrysem, odpowiedzi w kolorach A/B/C/D; ekran startowy „Jak dziś gramy?” i tryb „Gram sam” | 18.10.2026 |
+| C3 | Kategoria specjalna „Chajzerowie” (40 pytań z 3 odcinków podcastu i z sieci), różowy wiersz z sercem na górze bębna, poza domyślną mieszanką | 18.10.2026 |
 | A8 | Instrukcja gry z przyciskami zostaje na ekranie, dopóki prowadzący nie kliknie „Zaczynamy!” | 18.10.2026 |
 | C1 | Partia 1 bazy pytań: 5 nowych kategorii po 100 pytań (razem 944) | 18.10.2026 |
 | — | Naprawa listy wyników (funkcja czyszcząca nicki) | 18.10.2026 |
@@ -41,7 +42,6 @@ Kolejność do Twojej decyzji (propozycja: od góry).
 
 | ID | Usprawnienie | Wielkość | Status |
 |---|---|---|---|
-| C3 | Kategoria o małżeństwie Chajzerów na podstawie 3 odcinków ich podcastu | M | wstrzymane |
 | A3 | Kontrola wersji bazy: gra ostrzega, gdy migracja nie jest wgrana | S, SQL | — |
 | C2 | Zgłaszanie błędnego pytania z poziomu gry | M, SQL | — |
 | C1 | Baza 5000 pytań, kolejne partie po 500 | L, cyklicznie | wstrzymane |

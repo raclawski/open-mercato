@@ -12,3 +12,4 @@ historia-polski.js
 geografia.js
 sport.js
 literatura.js
+chajzerowie.js
