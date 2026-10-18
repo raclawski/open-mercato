@@ -1,0 +1,1922 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>[hidden]{display:none!important}html{color-scheme:light}body{margin:0}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}img{max-width:100%}</style>
+<title>Postaw Krzyżyk Live</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one narrow column on a desk; every screen is a sheet of ballot paper.
+   The player on turn sits on a dark name plate; answers are ballot rows marked in ballpoint blue; the winner gets the red commission stamp. */
+:root {
+  --desk: #E4E7ED;
+  --paper: #FCFCFA;
+  --ink: #141922;
+  --muted: #576072;
+  --rule: #CFD4DD;
+  --rule-strong: #959DAD;
+  --hover: #F1F3F7;
+  --pen: #1E3DB5;
+  --stamp: #BE1430;
+  --stamp-soft: #F9E2E6;
+  --ok: #1B7146;
+  --ok-soft: #DDF0E5;
+  --shadow: rgba(20, 25, 34, .28);
+  --plate: #141922;
+  --plate-fg: #FCFCFA;
+
+  --f-display: "Archivo", "Arial Narrow", "Helvetica Neue", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --desk: #0E1117; --paper: #171B24; --ink: #E9EBF0; --muted: #9BA3B5; --rule: #2C3342;
+    --rule-strong: #4C5568; --hover: #1E2330; --pen: #86A2FF; --stamp: #FF6275; --stamp-soft: #3A1820;
+    --ok: #52C98F; --ok-soft: #14301F; --shadow: rgba(0, 0, 0, .6); --plate: #E9EBF0; --plate-fg: #10131A; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --desk: #0E1117; --paper: #171B24; --ink: #E9EBF0; --muted: #9BA3B5; --rule: #2C3342;
+  --rule-strong: #4C5568; --hover: #1E2330; --pen: #86A2FF; --stamp: #FF6275; --stamp-soft: #3A1820;
+  --ok: #52C98F; --ok-soft: #14301F; --shadow: rgba(0, 0, 0, .6); --plate: #E9EBF0; --plate-fg: #10131A; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body { background: var(--desk); color: var(--ink); font-family: var(--f-body); font-size: 16px; line-height: 1.5; -webkit-tap-highlight-color: transparent; }
+.app {
+  max-width: 36rem; margin: 0 auto; padding-block: 20px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 14px;
+}
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--pen); outline-offset: 2px; }
+.eyebrow { font-family: var(--f-mono); font-size: .72rem; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0; }
+.eyebrow.hot { color: var(--stamp); }
+h1, h2, h3, h4 { font-family: var(--f-display); text-wrap: balance; margin: 0; }
+.neg { color: var(--stamp); }
+
+.sheet { background: var(--paper); border: 1px solid var(--rule); border-radius: 3px; box-shadow: 0 1px 0 var(--rule), 0 18px 36px -24px var(--shadow); overflow: hidden; }
+.sheet-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 18px; border-bottom: 1px dashed var(--rule-strong); }
+.sheet-body { padding: 20px 18px 22px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+
+/* start */
+.masthead { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; }
+.masthead h1 { font-size: clamp(2.5rem, 11vw, 3.6rem); font-weight: 850; font-stretch: 72%; line-height: .92; letter-spacing: -.01em; }
+.masthead .sub { font-family: var(--f-mono); font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; color: var(--stamp); margin-top: 6px; display: block; }
+.bigbox { width: clamp(3.6rem, 16vw, 4.6rem); aspect-ratio: 1; max-width: 100%; border: 3px solid var(--ink); display: grid; place-items: center; }
+.bigbox svg { width: 82%; height: 82%; }
+.bigbox path { stroke: var(--pen); stroke-width: 2.6; stroke-linecap: round; fill: none; }
+.lede { margin: 0; color: var(--muted); }
+.lede strong { color: var(--ink); font-weight: 600; }
+.rules { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; font-size: .92rem; color: var(--muted); }
+.rules li { display: grid; grid-template-columns: 3.4rem 1fr; gap: 10px; align-items: baseline; }
+.rules b { font-family: var(--f-mono); color: var(--ink); font-weight: 600; text-align: right; }
+.rules b.neg { color: var(--stamp); }
+
+.field { display: grid; gap: 8px; }
+.field label, .field .label { font-weight: 600; font-size: .95rem; }
+.hint { font-size: .85rem; color: var(--muted); margin: 0; }
+input[type="text"] { font: inherit; color: var(--ink); background: var(--paper); border: 1px solid var(--rule-strong); border-radius: 3px; padding: 11px 12px; width: 100%; }
+.seg { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--rule-strong); border-radius: 3px; overflow: hidden; }
+.seg.c3 { grid-template-columns: repeat(3, 1fr); }
+.seg.g2 { grid-template-columns: 1fr 1fr; }
+.seg.g2 button:nth-child(odd) { border-left: 0; }
+.seg.g2 button:nth-child(n+3) { border-top: 1px solid var(--rule); }
+.seg.g2 button.wide { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--rule); }
+.seg button { border: 0; border-left: 1px solid var(--rule); background: var(--paper); padding: 10px 4px; cursor: pointer; font-family: var(--f-mono); font-size: .82rem; font-weight: 500; line-height: 1.25; }
+.seg button:first-child { border-left: 0; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.seg button.hotbtn[aria-pressed="true"] { background: var(--stamp); color: var(--paper); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 420px) { .two { grid-template-columns: 1fr; } }
+
+/* chips */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1.5px solid var(--rule-strong); background: var(--paper); color: var(--ink); border-radius: 99px; padding: 8px 16px; min-height: 44px; cursor: pointer; font-weight: 600; }
+.chip:hover { background: var(--hover); }
+.chip[aria-pressed="true"] { background: var(--pen); border-color: var(--pen); color: var(--paper); }
+.chip[aria-pressed="true"]::before { content: "→ "; }
+.chip .self { font-weight: 400; font-size: .8rem; opacity: .8; }
+
+/* play */
+.hud { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.hud-q { font-family: var(--f-display); font-stretch: 85%; font-weight: 700; font-size: 1.05rem; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.pill { font-family: var(--f-mono); font-size: .68rem; font-weight: 600; letter-spacing: .06em; color: var(--stamp); border: 1.5px solid var(--stamp); padding: 1px 7px; border-radius: 99px; text-transform: uppercase; }
+.progress { height: 5px; background: var(--rule); border-radius: 3px; overflow: hidden; }
+.progress i { display: block; height: 100%; background: var(--ink); }
+.scores { display: flex; flex-wrap: wrap; gap: 6px; }
+.sc { font-family: var(--f-mono); font-size: .8rem; padding: 4px 10px; border: 1px solid var(--rule); border-radius: 99px; background: var(--paper); white-space: nowrap; }
+.sc b { font-weight: 600; font-variant-numeric: tabular-nums; }
+.sc.on { background: var(--plate); color: var(--plate-fg); border-color: var(--plate); }
+.sc.on b.neg { color: var(--stamp); }
+
+.plate { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; background: var(--plate); color: var(--plate-fg); }
+.plate .lbl { font-family: var(--f-mono); font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; opacity: .7; display: block; }
+.plate .nm { font-family: var(--f-display); font-stretch: 72%; font-weight: 850; font-size: clamp(1.7rem, 8.5vw, 2.4rem); line-height: 1; display: block; overflow-wrap: anywhere; }
+.plate .stake { font-family: var(--f-mono); font-size: .8rem; text-align: right; line-height: 1.5; white-space: nowrap; }
+.plate .stake .m { color: var(--stamp); }
+.plate .left { min-width: 0; }
+
+.timer { display: grid; grid-template-columns: 1fr 3.2rem; gap: 10px; align-items: center; }
+.timer-track { height: 6px; background: var(--rule); border-radius: 3px; overflow: hidden; }
+.timer-fill { display: block; height: 100%; background: var(--ink); transform-origin: left center; transform: scaleX(1); }
+.timer.low .timer-fill { background: var(--stamp); }
+.timer-num { font-family: var(--f-mono); font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+.timer.low .timer-num { color: var(--stamp); }
+.qtext { font-size: clamp(1.3rem, 5.4vw, 1.65rem); font-weight: 700; font-stretch: 88%; line-height: 1.2; }
+
+.ballot { display: grid; gap: 8px; }
+.row { display: grid; grid-template-columns: 2rem 1fr auto; gap: 12px; align-items: center; width: 100%; min-height: 3.3rem; padding: 10px 12px; text-align: left; background: var(--paper); border: 1px solid var(--rule); border-radius: 3px; cursor: pointer; transition: background-color .15s, border-color .15s, opacity .2s; }
+.row:hover:not(:disabled) { background: var(--hover); border-color: var(--rule-strong); }
+.row:disabled { cursor: default; }
+.row .txt { min-width: 0; font-weight: 500; line-height: 1.35; }
+.box { width: 1.75rem; height: 1.75rem; border: 2px solid var(--ink); background: var(--paper); display: grid; place-items: center; }
+.box svg { width: 100%; height: 100%; overflow: visible; }
+.box path { stroke: var(--pen); stroke-width: 3; stroke-linecap: round; fill: none; stroke-dasharray: 22; stroke-dashoffset: 22; }
+.row.marked .box path { stroke-dashoffset: 0; transition: stroke-dashoffset .22s ease-out; }
+.row.marked .box path + path { transition-delay: .14s; }
+.key { font-family: var(--f-mono); font-size: .75rem; color: var(--muted); }
+.row.is-correct { background: var(--ok-soft); border-color: var(--ok); }
+.row.is-wrong { background: var(--stamp-soft); border-color: var(--stamp); }
+.row.is-dim { opacity: .5; }
+.vtag { font-family: var(--f-mono); font-size: .68rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+.is-correct .vtag { color: var(--ok); }
+.is-wrong .vtag { color: var(--stamp); }
+
+.feedback { display: grid; gap: 8px; padding-top: 16px; border-top: 1px dashed var(--rule-strong); }
+.feedback h3 { font-size: 1.3rem; font-stretch: 85%; font-weight: 800; }
+.feedback.good h3 { color: var(--ok); }
+.feedback.bad h3 { color: var(--stamp); }
+.feedback p { margin: 0; }
+.feedback .answer-line { font-weight: 600; }
+.nextpick { display: grid; gap: 10px; padding-top: 14px; border-top: 1px dashed var(--rule-strong); }
+.nextpick h4 { font-stretch: 85%; font-weight: 800; font-size: 1.1rem; }
+
+.btn { display: block; width: 100%; border: 0; border-radius: 3px; background: var(--ink); color: var(--paper); padding: 15px 18px; font-family: var(--f-display); font-stretch: 90%; font-weight: 750; font-size: 1.1rem; letter-spacing: .01em; cursor: pointer; }
+.btn:hover:not(:disabled) { background: var(--pen); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--rule-strong); }
+.btn.ghost:hover { background: var(--hover); }
+.btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.link-btn { border: 0; background: none; padding: 4px 0; cursor: pointer; font-family: var(--f-mono); font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.link-btn.armed { color: var(--stamp); }
+
+/* final */
+.result { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; align-items: center; }
+.stamp { width: 9.5rem; aspect-ratio: 1; max-width: 100%; border-radius: 50%; border: 3px solid var(--stamp); color: var(--stamp); display: grid; place-items: center; text-align: center; transform: rotate(-9deg); box-shadow: inset 0 0 0 5px var(--paper), inset 0 0 0 7px var(--stamp); animation: thump .45s cubic-bezier(.2, .9, .3, 1.3) both; }
+.stamp .s-label { font-family: var(--f-mono); font-size: .58rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; display: block; }
+.stamp .s-num { font-family: var(--f-display); font-stretch: 70%; font-weight: 900; font-size: 2.6rem; line-height: 1; display: block; font-variant-numeric: tabular-nums; }
+@keyframes thump { from { transform: rotate(-9deg) scale(1.25); } to { transform: rotate(-9deg) scale(1); } }
+.rank { min-width: 0; }
+.rank h2 { font-size: clamp(1.6rem, 7vw, 2.4rem); font-weight: 850; font-stretch: 75%; line-height: 1; overflow-wrap: anywhere; }
+.rank p { margin: 6px 0 0; color: var(--muted); }
+.board-title { font-stretch: 85%; font-weight: 800; font-size: 1.15rem; margin: 0 0 10px; }
+.board { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.board li { display: grid; grid-template-columns: 1.6rem minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; }
+.board .pos { font-family: var(--f-mono); color: var(--muted); font-size: .85rem; }
+.board .nm { font-weight: 600; overflow-wrap: anywhere; }
+.board .stat { display: block; font-weight: 400; font-size: .8rem; color: var(--muted); font-family: var(--f-mono); }
+.board .p { font-family: var(--f-mono); font-weight: 600; font-variant-numeric: tabular-nums; }
+.board .bar { grid-column: 2 / 4; height: 5px; background: var(--rule); border-radius: 3px; overflow: hidden; }
+.board .bar i { display: block; height: 100%; background: var(--pen); }
+.board .lead .bar i { background: var(--stamp); }
+.board .star { color: var(--stamp); }
+.mini { list-style: none; margin: 0; padding: 0; display: grid; }
+.mini li { display: grid; grid-template-columns: 1.4rem 1fr; gap: 8px; padding: 9px 0; border-top: 1px solid var(--rule); font-size: .93rem; }
+.mini li:first-child { border-top: 0; }
+.mark-ok { color: var(--ok); font-weight: 700; }
+.mark-no { color: var(--stamp); font-weight: 700; }
+.mini .ans { display: block; color: var(--muted); font-size: .84rem; }
+details.review { border-top: 1px dashed var(--rule-strong); padding-top: 12px; }
+details.review summary { cursor: pointer; font-weight: 600; }
+.copy-note { font-size: .8rem; color: var(--muted); text-align: center; margin: 0; min-height: 1.2em; }
+.share-text { width: 100%; font: inherit; font-size: .85rem; padding: 8px; border: 1px solid var(--rule); border-radius: 3px; background: var(--paper); color: var(--ink); resize: none; }
+.foot { text-align: center; font-size: .75rem; color: var(--muted); margin: 4px 0 0; }
+
+@media (max-width: 440px) { .stamp { width: 7.6rem; } .stamp .s-num { font-size: 2.1rem; } .result { gap: 14px; } }
+@media (max-width: 360px) { .result { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; } .btn-row { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .stamp { animation: none; } .row.marked .box path, .row { transition: none; } }
+
+
+/* ---------- live: przyciski ---------- */
+.conn { font-family: var(--f-mono); font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 6px; margin: 0; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--rule-strong); flex: none; }
+.conn.on .dot { background: var(--ok); }
+.conn.off .dot { background: var(--stamp); }
+.rolepick { display: grid; gap: 10px; }
+.btn.go { background: var(--stamp); color: var(--paper); font-size: 1.45rem; padding: 20px; }
+.btn.go:hover:not(:disabled) { background: var(--stamp); filter: brightness(1.08); }
+.btn.ok { background: var(--ok); color: var(--paper); }
+.btn.bad { background: var(--stamp); color: var(--paper); }
+.btn.ok:hover:not(:disabled), .btn.bad:hover:not(:disabled) { filter: brightness(1.08); }
+.btn.ok:hover:not(:disabled) { background: var(--ok); }
+.btn.bad:hover:not(:disabled) { background: var(--stamp); }
+.notice { margin: 0; padding: 12px 14px; border: 1px solid var(--stamp); background: var(--stamp-soft); border-radius: 3px; font-size: .9rem; }
+.notice.soft { border-color: var(--rule); background: var(--hover); }
+.buzz {
+  width: min(72vw, 300px); aspect-ratio: 1; max-width: 100%; border-radius: 50%; border: 0; margin: 4px auto;
+  display: grid; place-items: center; text-align: center; padding: 18px;
+  font-family: var(--f-display); font-stretch: 75%; font-weight: 900; font-size: clamp(1.5rem, 8.5vw, 2.5rem); line-height: 1.05;
+  text-transform: uppercase; cursor: pointer; background: var(--rule); color: var(--muted);
+  box-shadow: inset 0 -10px 0 var(--shadow); touch-action: manipulation; user-select: none; -webkit-user-select: none;
+}
+.buzz small { display: block; font-family: var(--f-mono); font-size: .72rem; font-weight: 500; letter-spacing: .06em; margin-top: 8px; text-transform: none; }
+.buzz.armed { background: var(--stamp); color: var(--paper); animation: pulse .8s ease-in-out infinite; }
+.buzz.pressed { background: var(--pen); color: var(--paper); }
+.buzz.win { background: var(--ok); color: var(--paper); }
+.buzz.blocked { background: var(--stamp-soft); color: var(--stamp); }
+.buzz:active { transform: scale(.97); }
+@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+.big-status { text-align: center; font-family: var(--f-display); font-stretch: 80%; font-weight: 800; font-size: 1.3rem; margin: 0; }
+.order { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; font-family: var(--f-mono); font-size: .8rem; }
+.order li { padding: 3px 9px; border: 1px solid var(--rule); border-radius: 99px; }
+.order li:first-child { border-color: var(--ok); color: var(--ok); font-weight: 600; }
+.roster { display: flex; flex-wrap: wrap; gap: 6px; }
+.roster .sc.off { opacity: .5; }
+.roster .sc.blk { border-color: var(--stamp); color: var(--stamp); }
+.host-actions { display: grid; gap: 10px; }
+.row.host-correct { border-color: var(--ok); border-style: dashed; }
+.row.host-correct .key { color: var(--ok); font-weight: 600; }
+.pq { font-size: clamp(1.1rem, 5vw, 1.4rem); font-weight: 700; font-stretch: 88%; line-height: 1.25; margin: 0; }
+.popts { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.popts li { display: grid; grid-template-columns: 1.4rem 1fr; gap: 8px; padding: 8px 10px; border: 1px solid var(--rule); border-radius: 3px; font-size: .95rem; }
+.popts li b { font-family: var(--f-mono); color: var(--muted); }
+.popts li.good { background: var(--ok-soft); border-color: var(--ok); }
+.codebox { display: grid; gap: 8px; padding: 14px; border: 1.5px dashed var(--rule-strong); border-radius: 3px; text-align: center; }
+.gamecode.big { font-family: var(--f-mono); font-weight: 600; font-size: 2.8rem; letter-spacing: .3em; margin: 0; line-height: 1.1; color: var(--stamp); }
+.joinurl { word-break: break-all; font-size: .82rem; margin: 0; font-family: var(--f-mono); }
+.toggle { display: flex; align-items: center; gap: 8px; font-size: .88rem; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .buzz.armed { animation: none; } }
+</style>
+</head>
+<body>
+
+
+<main class="app">
+
+  <!-- WYBÓR ROLI -->
+  <section id="s-role" class="sheet" aria-labelledby="t-role">
+    <div class="sheet-head">
+      <p class="eyebrow hot">Teleturniej · na przyciski</p>
+      <p class="conn idle" id="connRole"><span class="dot"></span><span>Gotowe</span></p>
+    </div>
+    <div class="sheet-body">
+      <div class="masthead">
+        <div class="bigbox" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.6 4.9 C9 9.4 14.2 14.6 19.4 19.3"/><path d="M19.1 4.6 C14.4 9.3 9.8 14.1 4.8 19.5"/></svg></div>
+        <h1 id="t-role">Postaw<br>krzyżyk<span class="sub">Live</span></h1>
+      </div>
+      <ul class="rules">
+        <li><b>1</b><span>Prowadzący czyta pytanie i daje <strong>sygnał</strong>.</span></li>
+        <li><b>2</b><span>Kto pierwszy wciśnie przycisk na swoim telefonie, ten odpowiada. Wciśnięcie przed sygnałem to falstart i blokada w tym pytaniu.</span></li>
+        <li><b>+10</b><span>Za dobrą odpowiedź.</span></li>
+        <li><b class="neg" id="ruleMinus">−1</b><span>Za złą. Prowadzący może wtedy dać sygnał pozostałym.</span></li>
+      </ul>
+      <p class="notice soft" id="roomNote" hidden></p>
+      <div class="rolepick">
+        <button type="button" class="btn go" id="btnBePlayer">Jestem graczem</button>
+        <button type="button" class="btn ghost" id="btnBeHost">Prowadzę grę</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- GRACZ: DOŁĄCZ -->
+  <section id="s-pjoin" class="sheet" hidden aria-labelledby="t-pjoin">
+    <div class="sheet-head">
+      <p class="eyebrow">Gracz</p>
+      <p class="conn" id="connPJ"><span class="dot"></span><span>Łączenie…</span></p>
+    </div>
+    <div class="sheet-body">
+      <h2 id="t-pjoin" style="font-size:1.6rem;font-stretch:80%;font-weight:850">Dołącz do gry</h2>
+      <div class="field">
+        <label for="pcode">Kod gry (od prowadzącego)</label>
+        <input type="text" id="pcode" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="np. KRZY" style="text-transform:uppercase;font-family:var(--f-mono);letter-spacing:.25em;font-size:1.3rem">
+      </div>
+      <div class="field">
+        <label for="pname">Imię widoczne dla wszystkich</label>
+        <input type="text" id="pname" maxlength="20" autocomplete="off" placeholder="np. Asia">
+      </div>
+      <div class="chips" id="pnameChips" aria-label="Szybki wybór"></div>
+      <p class="notice" id="joinErr" hidden></p>
+      <button type="button" class="btn" id="btnJoin">Dołącz do gry</button>
+      <button type="button" class="link-btn" id="btnBack1">← Zmień rolę</button>
+    </div>
+  </section>
+
+  <!-- GRACZ: PRZYCISK -->
+  <section id="s-player" hidden>
+    <div style="display:grid;gap:10px">
+      <div class="hud">
+        <div class="hud-q"><span id="pName">Asia</span><span class="pill" id="pScore">0 pkt</span></div>
+        <p class="conn" id="connP"><span class="dot"></span><span>Łączenie…</span></p>
+      </div>
+      <div class="scores" id="pScores"></div>
+    </div>
+    <article class="sheet" style="margin-top:14px">
+      <div class="sheet-head">
+        <p class="eyebrow" id="pQnum">Czekamy na prowadzącego</p>
+        <button type="button" class="link-btn" id="btnLeave">Wyjdź</button>
+      </div>
+      <div class="sheet-body">
+        <button type="button" class="buzz" id="buzz">Czekaj<small>na prowadzącego</small></button>
+        <p class="big-status" id="pStatus" aria-live="assertive"></p>
+        <div id="pQ" hidden style="display:grid;gap:10px">
+          <p class="pq" id="pQtext"></p>
+          <ul class="popts" id="pOpts"></ul>
+          <p class="hint" id="pExplain" hidden></p>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <!-- PROWADZĄCY: USTAWIENIA -->
+  <section id="s-hsetup" class="sheet" hidden aria-labelledby="t-hsetup">
+    <div class="sheet-head">
+      <p class="eyebrow hot">Prowadzący</p>
+      <p class="conn" id="connHS"><span class="dot"></span><span>Łączenie…</span></p>
+    </div>
+    <div class="sheet-body">
+      <h2 id="t-hsetup" style="font-size:1.6rem;font-stretch:80%;font-weight:850">Poczekalnia</h2>
+      <div class="codebox">
+        <p class="eyebrow">Kod gry</p>
+        <p class="gamecode big" id="hsCode">----</p>
+        <p class="hint">Gracze otwierają tę stronę na swoich telefonach, wybierają „Jestem graczem” i wpisują kod. Albo od razu otwierają ten link:</p>
+        <p class="mono joinurl" id="joinUrl"></p>
+        <button type="button" class="btn ghost" id="btnCopyLink">Kopiuj link dla graczy</button>
+        <p class="copy-note" id="copyLinkNote" aria-live="polite"></p>
+      </div>
+      <div class="field">
+        <span class="label">Gracze przy przyciskach</span>
+        <div class="roster" id="hsRoster"></div>
+        <p class="hint" id="hsRosterHint">Gracze otwierają ten sam link na swoich telefonach i wybierają „Jestem graczem”.</p>
+      </div>
+      <div class="field">
+        <span class="label" id="lbl-level">Poziom pytań</span>
+        <div class="seg g2" role="group" aria-labelledby="lbl-level" id="levelSeg">
+          <button type="button" data-v="std">Umiarkowany</button>
+          <button type="button" data-v="mega">Mega</button>
+          <button type="button" data-v="pro" class="hotbtn">Ekspert PL</button>
+          <button type="button" data-v="pop" class="hotbtn">Popkultura PL</button>
+          <button type="button" data-v="urz" class="hotbtn">Jaki to urząd?</button>
+          <button type="button" data-v="uzw" class="hotbtn">Używki</button>
+          <button type="button" data-v="ksh" class="hotbtn">Prawo spółek</button>
+          <button type="button" data-v="ts" class="hotbtn">Taylor Swift</button>
+        </div>
+        <p class="hint" id="levelHint"></p>
+      </div>
+      <div class="field">
+        <span class="label" id="lbl-count">Liczba pytań</span>
+        <div class="seg" role="group" aria-labelledby="lbl-count" id="countSeg">
+          <button type="button" data-v="20">20</button><button type="button" data-v="30">30</button>
+          <button type="button" data-v="40">40</button><button type="button" data-v="50">50</button>
+        </div>
+      </div>
+      <div class="two">
+        <div class="field">
+          <span class="label" id="lbl-time">Czas na odpowiedź</span>
+          <div class="seg" role="group" aria-labelledby="lbl-time" id="timeSeg">
+            <button type="button" data-v="5">5 s</button><button type="button" data-v="10">10 s</button>
+            <button type="button" data-v="15">15 s</button><button type="button" data-v="0">bez</button>
+          </div>
+        </div>
+        <div class="field">
+          <span class="label" id="lbl-minus">Kara za błąd</span>
+          <div class="seg c3" role="group" aria-labelledby="lbl-minus" id="minusSeg">
+            <button type="button" data-v="1">−1</button><button type="button" data-v="5">−5</button><button type="button" data-v="10">−10</button>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="btn go" id="btnHStart">Start gry</button>
+      <button type="button" class="link-btn" id="btnBack2">← Zmień rolę</button>
+    </div>
+  </section>
+
+  <!-- PROWADZĄCY: GRA -->
+  <section id="s-host" hidden>
+    <div style="display:grid;gap:10px">
+      <div class="hud">
+        <div class="hud-q"><span id="hQnum">Pytanie 1 z 30</span><span class="pill" id="hCat">Kategoria</span><span class="pill">Kod <span class="gamecode">----</span></span></div>
+        <p class="conn" id="connH"><span class="dot"></span><span>Łączenie…</span></p>
+      </div>
+      <div class="progress" aria-hidden="true"><i id="hProg" style="width:0"></i></div>
+      <div class="roster" id="hRoster"></div>
+    </div>
+    <article class="sheet" style="margin-top:14px">
+      <div class="plate">
+        <div class="left"><span class="lbl" id="plateLbl">Status</span><span class="nm" id="plateName">Czytaj pytanie</span></div>
+        <div class="stake"><span>+10</span><br><span class="m" id="stakeMinus">−10</span></div>
+      </div>
+      <div class="sheet-body">
+        <div class="timer" id="timer" hidden aria-hidden="true">
+          <div class="timer-track"><span class="timer-fill" id="timerFill"></span></div>
+          <div class="timer-num" id="timerNum">10</div>
+        </div>
+        <h2 class="qtext" id="hQtext"></h2>
+        <div class="ballot" id="hOpts"></div>
+        <label class="toggle"><input type="checkbox" id="showKey" checked> Pokazuj mi poprawną odpowiedź (gracze jej nie widzą)</label>
+        <div id="hOrderBox" hidden><p class="eyebrow" style="margin-bottom:6px">Kolejność wciśnięć</p><ul class="order" id="hOrder"></ul></div>
+        <div class="feedback" id="hFb" hidden aria-live="polite">
+          <h3 id="hFbTitle"></h3>
+          <p id="hFbExplain"></p>
+        </div>
+        <div class="host-actions" id="hActions"></div>
+        <button type="button" class="link-btn" id="btnHEnd">Zakończ grę</button>
+      </div>
+    </article>
+  </section>
+
+  <!-- WYNIKI (wspólne) -->
+  <section id="s-final" class="sheet" hidden aria-labelledby="t-final">
+    <div class="sheet-head">
+      <p class="eyebrow hot" id="fHead">Protokół teleturnieju</p>
+      <p class="eyebrow" id="fCount"></p>
+    </div>
+    <div class="sheet-body">
+      <div class="result">
+        <div class="stamp" id="stamp" role="img" aria-label="Wynik zwycięzcy">
+          <div><span class="s-label">Zwycięzca</span><span class="s-num" id="fScore">0</span><span class="s-label">pkt</span></div>
+        </div>
+        <div class="rank"><p class="eyebrow" id="fWinLbl">Wygrywa</p><h2 id="t-final">—</h2></div>
+      </div>
+      <div><h3 class="board-title">Klasyfikacja</h3><ol class="board" id="fBoard"></ol></div>
+      <div class="host-actions" id="fActions"></div>
+    </div>
+  </section>
+
+  <p class="foot" id="foot">Bez logowania. Telefony łączą się ze sobą bezpośrednio przez internet.</p>
+</main>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+const BANK_STD = [
+  {
+    name: "Ustrój RP", blurb: "Konstytucja, Sejm i wybory",
+    q: [
+      { q: "Ilu posłów zasiada w Sejmie RP?", o: ["100", "360", "460", "560"], c: 2, fix: 1,
+        e: "Sejm liczy 460 posłów, a Senat 100 senatorów. Obie izby razem tworzą Zgromadzenie Narodowe." },
+      { q: "Na ile lat wybierany jest Prezydent RP?", o: ["4 lata", "5 lat", "6 lat", "7 lat"], c: 1, fix: 1,
+        e: "Kadencja prezydenta trwa 5 lat. Tę samą osobę można wybrać ponownie tylko raz." },
+      { q: "W którym roku uchwalono obecną Konstytucję RP?", o: ["1989", "1992", "1997", "2004"], c: 2, fix: 1,
+        e: "Zgromadzenie Narodowe uchwaliło ją 2 kwietnia 1997 r. Po referendum weszła w życie 17 października 1997 r. W 1992 r. przyjęto tzw. Małą Konstytucję." },
+      { q: "Jaki próg w skali kraju musi przekroczyć komitet partii, by uczestniczyć w podziale mandatów do Sejmu?", o: ["3%", "5%", "8%", "10%"], c: 1, fix: 1,
+        e: "Partie potrzebują 5%, koalicje 8%. Komitety mniejszości narodowych są z progu zwolnione." },
+      { q: "Jaką metodą przelicza się głosy na mandaty w wyborach do Sejmu?", o: ["Sainte-Laguë", "D'Hondta", "Hare'a-Niemeyera", "Większościową w okręgach jednomandatowych"], c: 1,
+        e: "Metoda D'Hondta lekko premiuje większe ugrupowania. Okręgi jednomandatowe działają w Polsce m.in. w wyborach do Senatu." },
+      { q: "Ile lat musi ukończyć najpóźniej w dniu wyborów kandydat na Prezydenta RP?", o: ["30", "35", "40", "45"], c: 1, fix: 1,
+        e: "Prezydentem może zostać osoba, która kończy 35 lat. Do Sejmu można kandydować od 21 lat, do Senatu od 30." },
+      { q: "Ile podpisów obywateli trzeba zebrać pod obywatelskim projektem ustawy?", o: ["10 000", "50 000", "100 000", "500 000"], c: 2, fix: 1,
+        e: "Obywatelska inicjatywa ustawodawcza wymaga 100 tys. podpisów osób, które mają prawo głosu w wyborach do Sejmu." },
+      { q: "Jaką większością Sejm może odrzucić weto prezydenta?", o: ["Zwykłą", "Bezwzględną", "3/5 głosów", "2/3 głosów"], c: 2, fix: 1,
+        e: "Potrzeba 3/5 głosów w obecności co najmniej połowy ustawowej liczby posłów." },
+      { q: "Ilu sędziów liczy Trybunał Konstytucyjny?", o: ["9", "12", "15", "21"], c: 2, fix: 1,
+        e: "TK składa się z 15 sędziów wybieranych przez Sejm na 9-letnią kadencję." },
+      { q: "Ile województw liczyła Polska przed reformą administracyjną z 1999 roku?", o: ["16", "17", "38", "49"], c: 3, fix: 1,
+        e: "W latach 1975–1998 było 49 województw. Od 1 stycznia 1999 r. jest ich 16." },
+      { q: "Jaką większością Sejm może sam skrócić swoją kadencję?", o: ["Bezwzględną", "3/5 głosów", "2/3 ustawowej liczby posłów", "Jednomyślnie"], c: 2, fix: 1,
+        e: "Potrzeba co najmniej 2/3 ustawowej liczby posłów, czyli 307 głosów. Razem z Sejmem kończy się wtedy kadencja Senatu." },
+      { q: "Kto powołuje Prezesa Rady Ministrów?", o: ["Prezydent RP", "Marszałek Sejmu", "Senat", "Trybunał Stanu"], c: 0,
+        e: "Prezydent desygnuje premiera i powołuje go wraz z rządem. Następnie Sejm musi udzielić rządowi wotum zaufania." },
+      { q: "Na ile lat powoływany jest Rzecznik Praw Obywatelskich?", o: ["4 lata", "5 lat", "6 lat", "9 lat"], c: 1, fix: 1,
+        e: "RPO powołuje Sejm za zgodą Senatu na 5 lat. Pierwszą rzeczniczką była Ewa Łętowska (od 1988 r.)." },
+      { q: "Jak nazywa się zasada, że sprawy publiczne rozstrzyga się na możliwie najniższym szczeblu władzy?", o: ["Zasada pomocniczości", "Zasada legalizmu", "Zasada suwerenności narodu", "Zasada kadencyjności"], c: 0,
+        e: "Zasada pomocniczości (subsydiarności) jest zapisana w preambule Konstytucji RP i w traktatach Unii Europejskiej." },
+      { q: "Kto wybiera Rzecznika Praw Dziecka?", o: ["Prezydent RP", "Sejm za zgodą Senatu", "Rada Ministrów", "Minister edukacji"], c: 1,
+        e: "Rzecznika Praw Dziecka, podobnie jak RPO, powołuje Sejm za zgodą Senatu. Kadencja trwa 5 lat." }
+    ]
+  },
+  {
+    name: "Historia polityczna", blurb: "Daty, przełomy i ludzie",
+    q: [
+      { q: "Konstytucja 3 Maja była pierwszą w Europie. Konstytucja którego państwa ją wyprzedziła?", o: ["Stanów Zjednoczonych", "Francji", "Wielkiej Brytanii", "Szwajcarii"], c: 0,
+        e: "Konstytucja USA pochodzi z 1787 r. Francuska powstała kilka miesięcy po polskiej, we wrześniu 1791 r." },
+      { q: "W którym roku kobiety w Polsce uzyskały prawa wyborcze?", o: ["1918", "1921", "1945", "1956"], c: 0, fix: 1,
+        e: "Prawa wyborcze kobietom przyznał dekret z 28 listopada 1918 r. W 1919 r. do Sejmu Ustawodawczego weszło osiem posłanek." },
+      { q: "Które państwo jako pierwsze na świecie przyznało kobietom prawo głosu w wyborach parlamentarnych (1893)?", o: ["Nowa Zelandia", "Finlandia", "Wielka Brytania", "Stany Zjednoczone"], c: 0,
+        e: "Nowa Zelandia zrobiła to w 1893 r. W Europie pierwsza była Finlandia w 1906 r." },
+      { q: "W którym roku powstał NSZZ „Solidarność”?", o: ["1976", "1980", "1981", "1989"], c: 1, fix: 1,
+        e: "Związek powstał we wrześniu 1980 r., po strajkach i Porozumieniach Sierpniowych." },
+      { q: "Którego dnia wprowadzono w Polsce stan wojenny?", o: ["31 sierpnia 1980", "13 grudnia 1981", "22 lipca 1983", "4 czerwca 1989"], c: 1, fix: 1,
+        e: "Stan wojenny ogłosił gen. Wojciech Jaruzelski w nocy z 12 na 13 grudnia 1981 r. Zniesiono go 22 lipca 1983 r." },
+      { q: "Kiedy odbyły się częściowo wolne wybory do Sejmu i Senatu?", o: ["4 czerwca 1989", "9 grudnia 1990", "27 października 1991", "19 września 1993"], c: 0, fix: 1,
+        e: "„Solidarność” zdobyła wtedy wszystkie 161 mandatów, o które mogła walczyć w Sejmie, i 99 ze 100 w Senacie. W pełni wolne wybory do Sejmu odbyły się w 1991 r." },
+      { q: "Kto był pierwszym niekomunistycznym premierem po 1989 roku?", o: ["Tadeusz Mazowiecki", "Jan Krzysztof Bielecki", "Jan Olszewski", "Hanna Suchocka"], c: 0,
+        e: "Tadeusz Mazowiecki stanął na czele rządu w sierpniu 1989 r. Był pierwszym niekomunistycznym premierem w bloku wschodnim od końca lat 40." },
+      { q: "Kto był pierwszym prezydentem III RP wybranym w wyborach powszechnych?", o: ["Lech Wałęsa", "Wojciech Jaruzelski", "Aleksander Kwaśniewski", "Tadeusz Mazowiecki"], c: 0,
+        e: "Lech Wałęsa wygrał II turę 9 grudnia 1990 r. Wojciech Jaruzelski został wcześniej wybrany przez Zgromadzenie Narodowe." },
+      { q: "Kto był ostatnim prezydentem RP na uchodźstwie?", o: ["Ryszard Kaczorowski", "Edward Raczyński", "Kazimierz Sabbat", "August Zaleski"], c: 0,
+        e: "Ryszard Kaczorowski przekazał insygnia władzy Lechowi Wałęsie w grudniu 1990 r. i tak zakończyła się misja władz na uchodźstwie." },
+      { q: "Kto był pierwszą kobietą na stanowisku premiera Polski?", o: ["Hanna Suchocka", "Ewa Kopacz", "Beata Szydło", "Hanna Gronkiewicz-Waltz"], c: 0,
+        e: "Hanna Suchocka kierowała rządem w latach 1992–1993. Później premierkami zostały Ewa Kopacz i Beata Szydło." },
+      { q: "W którym roku Polska wstąpiła do NATO?", o: ["1997", "1999", "2002", "2004"], c: 1, fix: 1,
+        e: "12 marca 1999 r. do NATO weszły Polska, Czechy i Węgry." },
+      { q: "Kiedy Polska weszła do Unii Europejskiej?", o: ["1 stycznia 2001", "1 maja 2004", "1 stycznia 2007", "21 grudnia 2007"], c: 1, fix: 1,
+        e: "Polska weszła do UE 1 maja 2004 r. razem z dziewięcioma innymi państwami. Do strefy Schengen dołączyła 21 grudnia 2007 r." },
+      { q: "W którym roku upadł mur berliński?", o: ["1987", "1989", "1990", "1991"], c: 1, fix: 1,
+        e: "Mur padł 9 listopada 1989 r. Zjednoczenie Niemiec nastąpiło 3 października 1990 r." },
+      { q: "W którym roku powstała Organizacja Narodów Zjednoczonych?", o: ["1919", "1945", "1948", "1955"], c: 1, fix: 1,
+        e: "Karta Narodów Zjednoczonych weszła w życie 24 października 1945 r. Polska jest jednym z państw założycielskich. W 1919 r. powstała Liga Narodów." },
+      { q: "Który traktat formalnie powołał do życia Unię Europejską?", o: ["Traktaty rzymskie", "Traktat z Maastricht", "Traktat lizboński", "Traktat nicejski"], c: 1,
+        e: "Traktat z Maastricht podpisano w 1992 r., a wszedł w życie w 1993 r. Traktaty rzymskie z 1957 r. utworzyły EWG." }
+    ]
+  },
+  {
+    name: "Świat i instytucje", blurb: "ONZ, UE, NATO i ustroje państw",
+    q: [
+      { q: "Ilu stałych członków ma Rada Bezpieczeństwa ONZ?", o: ["5", "7", "10", "15"], c: 0, fix: 1,
+        e: "Prawo weta mają USA, Chiny, Rosja, Wielka Brytania i Francja. Do tego dochodzi 10 członków niestałych." },
+      { q: "Gdzie mieści się Międzynarodowy Trybunał Sprawiedliwości?", o: ["W Hadze", "W Genewie", "W Strasburgu", "W Luksemburgu"], c: 0,
+        e: "MTS urzęduje w Pałacu Pokoju w Hadze. W tym samym mieście działa Międzynarodowy Trybunał Karny." },
+      { q: "Gdzie odbywa się większość sesji plenarnych Parlamentu Europejskiego?", o: ["W Brukseli", "W Strasburgu", "W Luksemburgu", "We Frankfurcie"], c: 1,
+        e: "Comiesięczne sesje plenarne odbywają się w Strasburgu. W Brukseli pracują komisje, a w Luksemburgu sekretariat." },
+      { q: "Które państwo dołączyło do NATO w marcu 2024 roku?", o: ["Szwecja", "Finlandia", "Austria", "Irlandia"], c: 0,
+        e: "Szwecja weszła do NATO 7 marca 2024 r., niecały rok po Finlandii (kwiecień 2023)." },
+      { q: "Ilu senatorów zasiada w Senacie USA?", o: ["50", "100", "435", "538"], c: 1, fix: 1,
+        e: "Każdy stan wybiera dwóch senatorów, więc jest ich tylu, ilu w polskim Senacie. Izba Reprezentantów liczy 435 członków." },
+      { q: "Ilu głosów elektorskich potrzeba, by wygrać wybory prezydenckie w USA?", o: ["218", "270", "290", "300"], c: 1, fix: 1,
+        e: "Kolegium Elektorów liczy 538 osób, więc do zwycięstwa trzeba co najmniej 270 głosów. Liczba 218 to większość w Izbie Reprezentantów." },
+      { q: "Jak nazywa się niższa izba niemieckiego parlamentu, wybierana w wyborach powszechnych?", o: ["Bundesrat", "Bundestag", "Reichstag", "Landtag"], c: 1,
+        e: "Bundestag obraduje w budynku Reichstagu w Berlinie. Bundesrat reprezentuje kraje związkowe, a landtagi to parlamenty tych krajów." },
+      { q: "W którym państwie prezydent zmienia się co roku, a rząd tworzy 7-osobowa Rada Federalna?", o: ["Szwajcaria", "Austria", "Belgia", "Luksemburg"], c: 0,
+        e: "Członkowie szwajcarskiej Rady Federalnej po kolei pełnią roczną funkcję prezydenta Konfederacji." },
+      { q: "Kneset to parlament którego państwa?", o: ["Izraela", "Iranu", "Turcji", "Jordanii"], c: 0,
+        e: "Kneset jest jednoizbowy i liczy 120 posłów." },
+      { q: "Który Polak był przewodniczącym Parlamentu Europejskiego?", o: ["Jerzy Buzek", "Donald Tusk", "Bronisław Geremek", "Danuta Hübner"], c: 0,
+        e: "Jerzy Buzek kierował PE w latach 2009–2012 jako pierwszy przedstawiciel dawnego bloku wschodniego. Geremek kandydował w 2004 r., ale przegrał." },
+      { q: "Jaką funkcję w UE pełnił Donald Tusk w latach 2014–2019?", o: ["Przewodniczącego Rady Europejskiej", "Przewodniczącego Komisji Europejskiej", "Przewodniczącego Parlamentu Europejskiego", "Wysokiego przedstawiciela ds. zagranicznych"], c: 0,
+        e: "Tusk był przewodniczącym Rady Europejskiej przez dwie kadencje, od grudnia 2014 do listopada 2019 r." },
+      { q: "Które z tych państw NIE jest monarchią?", o: ["Norwegia", "Hiszpania", "Holandia", "Portugalia"], c: 3,
+        e: "Portugalia jest republiką od rewolucji w 1910 r. Pozostałe trzy to monarchie konstytucyjne." },
+      { q: "Które państwo nie należy do G7?", o: ["Kanada", "Włochy", "Japonia", "Chiny"], c: 3,
+        e: "G7 tworzą USA, Japonia, Niemcy, Wielka Brytania, Francja, Włochy i Kanada. W szczytach uczestniczy też Unia Europejska." },
+      { q: "W którym roku Brytyjczycy zagłosowali w referendum za wyjściem z UE?", o: ["2014", "2016", "2019", "2020"], c: 1, fix: 1,
+        e: "Referendum odbyło się 23 czerwca 2016 r., za wyjściem głosowało ok. 52%. Formalnie Wielka Brytania opuściła UE 31 stycznia 2020 r." },
+      { q: "Kto jest formalnie głową państwa w Kanadzie?", o: ["Premier Kanady", "Prezydent Kanady", "Monarcha brytyjski", "Przewodniczący Senatu"], c: 2,
+        e: "Kanada jest monarchią konstytucyjną. Monarchę reprezentuje na miejscu gubernator generalny, a rządzi premier." }
+    ]
+  },
+  {
+    name: "Społeczeństwo", blurb: "Idee, liczby i zjawiska",
+    q: [
+      { q: "Który myśliciel jest najczęściej kojarzony z ideą trójpodziału władzy?", o: ["Monteskiusz", "Jean-Jacques Rousseau", "Thomas Hobbes", "Niccolò Machiavelli"], c: 0,
+        e: "Monteskiusz opisał podział na władzę ustawodawczą, wykonawczą i sądowniczą w dziele „O duchu praw” (1748)." },
+      { q: "Kto napisał „Umowę społeczną” (1762)?", o: ["Jean-Jacques Rousseau", "Monteskiusz", "John Locke", "Karol Marks"], c: 0,
+        e: "Rousseau dowodził, że władza pochodzi od woli powszechnej ludu. Ta idea mocno wpłynęła na rewolucję francuską." },
+      { q: "Co mierzy współczynnik Giniego?", o: ["Nierówność dochodów", "Poziom inflacji", "Stopę bezrobocia", "Przyrost naturalny"], c: 0,
+        e: "Wartość 0 oznacza pełną równość, a 1 (lub 100) sytuację, w której cały dochód trafia do jednej osoby." },
+      { q: "Jaki współczynnik dzietności zapewnia w krajach rozwiniętych zastępowalność pokoleń?", o: ["1,3", "1,8", "2,1", "3,0"], c: 2, fix: 1,
+        e: "Potrzeba ok. 2,1 dziecka na kobietę. W Polsce od lat rodzi się wyraźnie mniej dzieci, w ostatnich latach współczynnik spadł poniżej 1,3." },
+      { q: "Ilu mieszkańców ma obecnie Polska?", o: ["ok. 32 mln", "ok. 37 mln", "ok. 42 mln", "ok. 46 mln"], c: 1, fix: 1,
+        e: "Według wstępnych danych GUS w połowie 2026 r. było to ok. 37,2 mln osób, o 159 tys. mniej niż rok wcześniej." },
+      { q: "Co ile lat przeprowadza się w Polsce Narodowy Spis Powszechny?", o: ["Co 5 lat", "Co 8 lat", "Co 10 lat", "Co 15 lat"], c: 2, fix: 1,
+        e: "Ostatnie spisy odbyły się w 2011 i 2021 r. W 2021 r. podstawową metodą był samospis internetowy." },
+      { q: "Co oznacza skrót NIMBY?", o: ["Sprzeciw wobec inwestycji w pobliżu własnego domu", "Ruch na rzecz mieszkań socjalnych", "Bojkot wyborów lokalnych", "Zasadę neutralności światopoglądowej państwa"], c: 0,
+        e: "Not In My Back Yard, czyli „nie na moim podwórku”. Ktoś akceptuje np. spalarnię odpadów, ale nie obok siebie." },
+      { q: "Czym jest „szklany sufit”?", o: ["Niewidoczną barierą w awansie zawodowym, np. kobiet", "Limitem wydatków w budżecie państwa", "Jawnością działań rządu", "Najwyższym progiem podatkowym"], c: 0,
+        e: "Termin opisuje nieformalne przeszkody, które utrudniają dojście do najwyższych stanowisk mimo kwalifikacji." },
+      { q: "W jakich latach urodzili się mniej więcej „baby boomersi”?", o: ["1925–1945", "1946–1964", "1965–1980", "1981–1996"], c: 1, fix: 1,
+        e: "To dzieci powojennego wyżu demograficznego. Po nich przyszło pokolenie X (1965–1980), a potem millenialsi." },
+      { q: "Który element NIE wchodzi w skład wskaźnika rozwoju społecznego (HDI)?", o: ["Oczekiwana długość życia", "Poziom wykształcenia", "Dochód na mieszkańca", "Wydatki na wojsko"], c: 3,
+        e: "HDI, publikowany przez UNDP, łączy zdrowie, edukację i poziom życia." },
+      { q: "Wybory do Sejmu w październiku 2023 r. miały rekordową frekwencję w III RP. Jaką mniej więcej?", o: ["ok. 51%", "ok. 62%", "ok. 74%", "ok. 85%"], c: 2, fix: 1,
+        e: "Według PKW frekwencja wyniosła 74,38%. To więcej niż w 1989 r., gdy w I turze głosowało ok. 62% uprawnionych." },
+      { q: "W którym kraju narodziła się instytucja rzecznika praw obywatelskich (ombudsmana)?", o: ["W Szwecji", "W Wielkiej Brytanii", "We Francji", "W Szwajcarii"], c: 0,
+        e: "Szwedzki ombudsman działa od 1809 r. W Polsce Rzecznik Praw Obywatelskich urzęduje od 1988 r." },
+      { q: "Czym jest gerrymandering?", o: ["Wytyczaniem granic okręgów wyborczych dla korzyści jednej partii", "Kupowaniem głosów wyborców", "Przedłużaniem debaty, by zablokować głosowanie", "Zmianą partii przez posła w trakcie kadencji"], c: 0,
+        e: "Nazwa pochodzi od gubernatora Massachusetts Elbridge'a Gerry'ego. W 1812 r. podpisał ustawę o okręgu, którego kształt przypominał salamandrę." },
+      { q: "Jak nazywa się taktyka przedłużania debaty w parlamencie, by uniemożliwić głosowanie?", o: ["Filibuster", "Lobbing", "Impeachment", "Kohabitacja"], c: 0,
+        e: "Słynie z niej Senat USA, gdzie zamknięcie takiej debaty wymaga zwykle 60 głosów." },
+      { q: "Jak potocznie nazywa się media, gdy mowa o ich roli w kontrolowaniu władzy?", o: ["Czwarta władza", "Trzeci sektor", "Druga izba", "Piąta kolumna"], c: 0,
+        e: "Określenie podkreśla rolę mediów obok władzy ustawodawczej, wykonawczej i sądowniczej. Trzeci sektor to organizacje pozarządowe." },
+      { q: "Jak nazywa się grupa społeczna żyjąca z niestabilnej pracy, np. na krótkich umowach?", o: ["Prekariat", "Proletariat", "Merytokracja", "Klasa próżniacza"], c: 0,
+        e: "Pojęcie spopularyzował ekonomista Guy Standing. Słowo łączy angielskie „precarious” (niepewny) i „proletariat”." }
+    ]
+  }
+];
+
+const BANK_MEGA = [
+  {
+    name: "Ustrój RP", blurb: "Artykuły, terminy i większości",
+    q: [
+      { q: "Ile osób liczy Trybunał Stanu łącznie z przewodniczącym?", o: ["15", "17", "19", "21"], c: 2, fix: 1,
+        e: "Przewodniczy mu Pierwszy Prezes Sądu Najwyższego. Do tego dochodzi 2 zastępców i 16 członków wybieranych przez Sejm na czas jego kadencji." },
+      { q: "Na ile lat powoływani są członkowie Rady Polityki Pieniężnej?", o: ["4 lata", "5 lat", "6 lat", "8 lat"], c: 2, fix: 1,
+        e: "Po trzech członków RPP powołują Prezydent, Sejm i Senat, każdego na 6 lat. Radzie przewodniczy Prezes NBP." },
+      { q: "Ile dni ma prezydent na podpisanie zwykłej ustawy przedstawionej przez Marszałka Sejmu?", o: ["7", "14", "21", "30"], c: 2, fix: 1,
+        e: "Standardowo 21 dni. Ustawę budżetową i ustawy uchwalone w trybie pilnym prezydent podpisuje w ciągu 7 dni." },
+      { q: "Ile czasu ma Senat na zajęcie stanowiska wobec zwykłej ustawy uchwalonej przez Sejm?", o: ["14 dni", "21 dni", "30 dni", "60 dni"], c: 2, fix: 1,
+        e: "Senat ma 30 dni, przy ustawie budżetowej 20, a w trybie pilnym 14. Jeśli w terminie nic nie uchwali, ustawa jest przyjęta w brzmieniu Sejmu." },
+      { q: "Ilu posłów musi podpisać wniosek o konstruktywne wotum nieufności wobec rządu?", o: ["15", "46", "69", "115"], c: 1, fix: 1,
+        e: "Wniosek wobec rządu wymaga 46 podpisów i musi wskazywać nowego premiera. Wniosek o wotum nieufności wobec pojedynczego ministra wymaga 69 podpisów." },
+      { q: "Jaką większością Senat uchwala ustawę o zmianie Konstytucji?", o: ["Zwykłą", "Bezwzględną", "3/5 głosów", "2/3 głosów"], c: 1, fix: 1,
+        e: "Senat potrzebuje bezwzględnej większości w obecności co najmniej połowy senatorów. Sejm musi uchwalić zmianę większością 2/3." },
+      { q: "Który artykuł Konstytucji RP stanowi, że Polska jest demokratycznym państwem prawnym?", o: ["Art. 1", "Art. 2", "Art. 4", "Art. 10"], c: 1, fix: 1,
+        e: "Art. 2 mówi o demokratycznym państwie prawnym. Art. 1 o dobru wspólnym, art. 4 o władzy zwierzchniej Narodu, a art. 10 o trójpodziale władzy." },
+      { q: "Ile artykułów liczy Konstytucja RP z 1997 r.?", o: ["186", "213", "243", "276"], c: 2, fix: 1,
+        e: "Konstytucja ma 243 artykuły podzielone na 13 rozdziałów." },
+      { q: "Który organ rozstrzyga o ważności wyborów do Sejmu?", o: ["Państwowa Komisja Wyborcza", "Sąd Najwyższy", "Trybunał Konstytucyjny", "Prezydent RP"], c: 1,
+        e: "Według art. 101 Konstytucji ważność wyborów stwierdza Sąd Najwyższy. PKW organizuje wybory i ogłasza ich wyniki." },
+      { q: "Jak nazywa się wymóg, by akt urzędowy prezydenta podpisał także premier?", o: ["Kontrasygnata", "Promulgacja", "Prerogatywa", "Inkorporacja"], c: 0,
+        e: "Podpisując akt, premier bierze za niego odpowiedzialność przed Sejmem. Akty zwolnione z kontrasygnaty to prerogatywy wymienione w art. 144 ust. 3." },
+      { q: "Ilu członków liczy Krajowa Rada Sądownictwa?", o: ["15", "21", "25", "30"], c: 2, fix: 1,
+        e: "W KRS zasiada 15 sędziów, 4 posłów, 2 senatorów, Pierwszy Prezes SN, Prezes NSA, Minister Sprawiedliwości i osoba wskazana przez prezydenta." },
+      { q: "W jakim terminie od dnia wyborów prezydent musi zwołać pierwsze posiedzenie nowego Sejmu?", o: ["14 dni", "21 dni", "30 dni", "60 dni"], c: 2, fix: 1,
+        e: "Pierwsze posiedzenia Sejmu i Senatu zwołuje się na dzień przypadający w ciągu 30 dni od dnia wyborów." },
+      { q: "Jakiej części rocznego PKB nie może przekroczyć państwowy dług publiczny według Konstytucji?", o: ["1/2", "3/5", "2/3", "3/4"], c: 1, fix: 1,
+        e: "Art. 216 ust. 5 zakazuje zadłużania, przez które dług publiczny przekroczyłby 3/5 wartości rocznego PKB." },
+      { q: "Na jak długo najwyżej można wprowadzić stan wyjątkowy (bez przedłużenia)?", o: ["30 dni", "60 dni", "90 dni", "120 dni"], c: 2, fix: 1,
+        e: "Stan wyjątkowy trwa najwyżej 90 dni i można go raz przedłużyć o 60 dni za zgodą Sejmu. Stan klęski żywiołowej trwa do 30 dni." },
+      { q: "Jaka frekwencja jest potrzebna, by wynik ogólnokrajowego referendum był wiążący?", o: ["30%", "40%", "Ponad 50%", "Co najmniej 2/3"], c: 2, fix: 1,
+        e: "Musi zagłosować więcej niż połowa uprawnionych. Udało się to np. w referendum akcesyjnym w 2003 r. (ok. 59%)." },
+      { q: "Kto ma wyłączną inicjatywę ustawodawczą w sprawie ustawy budżetowej?", o: ["Rada Ministrów", "Prezydent RP", "Minister finansów", "Sejmowa Komisja Finansów Publicznych"], c: 0,
+        e: "Projekt budżetu może złożyć tylko Rada Ministrów (art. 221). Prezydent nie może zawetować budżetu, może jedynie skierować go do Trybunału Konstytucyjnego." }
+    ]
+  },
+  {
+    name: "Historia polityczna", blurb: "Od Nihil novi do III RP",
+    q: [
+      { q: "Ile dni sprawował urząd Gabriel Narutowicz, pierwszy prezydent II RP?", o: ["5", "12", "30", "47"], c: 0, fix: 1,
+        e: "Zaprzysiężono go 11 grudnia 1922 r., a 16 grudnia zginął w zamachu w warszawskiej Zachęcie." },
+      { q: "Która konstytucja stanowiła, że prezydent odpowiada „przed Bogiem i historią”?", o: ["Mała Konstytucja z 1919 r.", "Konstytucja marcowa z 1921 r.", "Konstytucja kwietniowa z 1935 r.", "Konstytucja PRL z 1952 r."], c: 2, fix: 1,
+        e: "Konstytucja kwietniowa wzmocniła prezydenta, który stał ponad rządem, Sejmem, Senatem, sądami i wojskiem." },
+      { q: "Kto został premierem rządu RP na uchodźstwie po śmierci gen. Sikorskiego w 1943 r.?", o: ["Stanisław Mikołajczyk", "Tomasz Arciszewski", "Władysław Raczkiewicz", "Kazimierz Sosnkowski"], c: 0,
+        e: "Mikołajczyk objął urząd w lipcu 1943 r. Raczkiewicz był wtedy prezydentem, a Sosnkowski Naczelnym Wodzem." },
+      { q: "W którym roku odbyło się referendum ludowe znane jako „3 razy TAK”?", o: ["1945", "1946", "1947", "1948"], c: 1, fix: 1,
+        e: "Komuniści sfałszowali głosowanie z 30 czerwca 1946 r. Była to próba sił przed wyborami do Sejmu Ustawodawczego w 1947 r." },
+      { q: "Który rząd odwołano w nocy z 4 na 5 czerwca 1992 r. („nocna zmiana”)?", o: ["Jana Olszewskiego", "Jana Krzysztofa Bieleckiego", "Hanny Suchockiej", "Waldemara Pawlaka"], c: 0,
+        e: "Wotum nieufności przegłosowano po ujawnieniu tzw. listy Macierewicza, czyli wykazu polityków, których archiwa SB wymieniały jako współpracowników." },
+      { q: "Jakie państwa tworzą Trójkąt Weimarski?", o: ["Polska, Niemcy, Francja", "Polska, Czechy, Węgry", "Polska, Litwa, Ukraina", "Polska, Niemcy, Czechy"], c: 0,
+        e: "Format powstał w 1991 r. w Weimarze. Polska, Litwa i Ukraina tworzą Trójkąt Lubelski." },
+      { q: "Ile państw liczyła Grupa Wyszehradzka w chwili powstania w 1991 r.?", o: ["3", "4", "5", "6"], c: 0, fix: 1,
+        e: "Założyły ją Polska, Węgry i Czechosłowacja. Po rozpadzie Czechosłowacji w 1993 r. grupa liczy cztery państwa." },
+      { q: "Który poseł jako pierwszy zerwał sejm, używając liberum veto (1652)?", o: ["Władysław Siciński", "Hieronim Radziejowski", "Jerzy Lubomirski", "Krzysztof Opaliński"], c: 0,
+        e: "Poseł upicki Władysław Siciński zerwał sejm w 1652 r. Liberum veto paraliżowało potem obrady przez ponad sto lat." },
+      { q: "W którym roku sejm w Radomiu uchwalił konstytucję Nihil novi?", o: ["1454", "1505", "1569", "1573"], c: 1, fix: 1,
+        e: "Nihil novi zakazywała królowi stanowienia nowych praw bez zgody senatu i izby poselskiej. 1454 to przywileje cerkwicko-nieszawskie, 1569 unia lubelska, 1573 artykuły henrykowskie." },
+      { q: "Kogo wybrano na pierwszej wolnej elekcji w 1573 r.?", o: ["Henryka Walezego", "Stefana Batorego", "Zygmunta III Wazę", "Maksymiliana Habsburga"], c: 0,
+        e: "Henryk Walezy zaprzysiągł artykuły henrykowskie i pacta conventa. Po kilku miesiącach uciekł do Francji, by objąć tron po bracie." },
+      { q: "Kto zastąpił Władysława Gomułkę na czele PZPR po Grudniu 1970?", o: ["Edward Gierek", "Stanisław Kania", "Edward Ochab", "Piotr Jaroszewicz"], c: 0,
+        e: "Gierek został I sekretarzem 20 grudnia 1970 r. Kania zastąpił go we wrześniu 1980 r." },
+      { q: "W którym mieście podpisano pierwsze z porozumień sierpniowych 1980 r.?", o: ["Szczecin", "Gdańsk", "Jastrzębie-Zdrój", "Katowice"], c: 0,
+        e: "Porozumienie szczecińskie podpisano 30 sierpnia, gdańskie 31 sierpnia, jastrzębskie 3 września, a katowickie 11 września 1980 r." },
+      { q: "Jaki odsetek mandatów w Sejmie zagwarantowano w 1989 r. PZPR i jej sojusznikom?", o: ["50%", "60%", "65%", "70%"], c: 2, fix: 1,
+        e: "Kontrakt Okrągłego Stołu dał koalicji rządowej 65% miejsc w Sejmie. O pozostałe 35%, czyli 161 mandatów, toczyła się wolna rywalizacja." },
+      { q: "Kto był Marszałkiem Sejmu kontraktowego (1989–1991)?", o: ["Mikołaj Kozakiewicz", "Wiesław Chrzanowski", "Józef Zych", "Andrzej Stelmachowski"], c: 0,
+        e: "Kozakiewicz z ZSL kierował Sejmem X kadencji. Stelmachowski był wtedy marszałkiem Senatu, a Chrzanowski i Zych kierowali kolejnymi Sejmami." },
+      { q: "W którym roku Polska i zjednoczone Niemcy podpisały traktat potwierdzający granicę na Odrze i Nysie?", o: ["1970", "1990", "1991", "1993"], c: 1, fix: 1,
+        e: "Traktat graniczny podpisano 14 listopada 1990 r. W 1970 r. granicę uznała RFN w układzie z PRL, a w 1991 r. zawarto traktat o dobrym sąsiedztwie." }
+    ]
+  },
+  {
+    name: "Świat i instytucje", blurb: "Traktaty, procedury i ordynacje",
+    q: [
+      { q: "Ilu sędziów zasiada w Międzynarodowym Trybunale Sprawiedliwości?", o: ["9", "12", "15", "21"], c: 2, fix: 1,
+        e: "Sędziów wybierają Zgromadzenie Ogólne i Rada Bezpieczeństwa ONZ na 9 lat. Co trzy lata wymienia się jedną trzecią składu." },
+      { q: "Ile głosów potrzeba w Radzie Bezpieczeństwa ONZ do przyjęcia rezolucji w sprawie merytorycznej?", o: ["8", "9", "10", "12"], c: 1, fix: 1,
+        e: "Potrzeba 9 z 15 głosów i braku sprzeciwu któregokolwiek stałego członka. Wstrzymanie się od głosu nie jest wetem." },
+      { q: "Jak zdefiniowana jest większość kwalifikowana w Radzie UE?", o: ["50% państw i 60% ludności", "55% państw i 65% ludności", "60% państw i 70% ludności", "2/3 państw i 75% ludności"], c: 1, fix: 1,
+        e: "To zasada podwójnej większości z traktatu lizbońskiego. Mniejszość blokująca musi obejmować co najmniej 4 państwa." },
+      { q: "Który artykuł Traktatu Północnoatlantyckiego dotyczy wspólnej obrony?", o: ["Art. 3", "Art. 4", "Art. 5", "Art. 6"], c: 2, fix: 1,
+        e: "Art. 5 uruchomiono tylko raz, po zamachach z 11 września 2001 r. Art. 4 przewiduje konsultacje i Polska powoływała się na niego m.in. w 2014 i 2022 r." },
+      { q: "Który artykuł Traktatu o Unii Europejskiej reguluje wystąpienie państwa z UE?", o: ["Art. 7", "Art. 49", "Art. 50", "Art. 52"], c: 2, fix: 1,
+        e: "Z art. 50 skorzystała Wielka Brytania. Art. 49 dotyczy przystąpienia, a art. 7 procedury wobec państwa naruszającego wartości Unii." },
+      { q: "W którym roku Szwajcarki uzyskały prawo głosu na szczeblu federalnym?", o: ["1919", "1945", "1971", "1990"], c: 2, fix: 1,
+        e: "Zdecydowało referendum w 1971 r. Ostatni kanton, Appenzell Innerrhoden, musiał przyznać to prawo dopiero po wyroku sądu federalnego w 1990 r." },
+      { q: "Jak nazywa się parlament Japonii?", o: ["Kokkai", "Storting", "Riksdag", "Madżlis"], c: 0,
+        e: "Kokkai składa się z Izby Reprezentantów i Izby Radców. Storting to parlament Norwegii, a Riksdag Szwecji." },
+      { q: "W którym państwie UE izbę niższą parlamentu wybiera się systemem pojedynczego głosu przechodniego (STV)?", o: ["W Irlandii", "W Holandii", "W Niemczech", "We Francji"], c: 0,
+        e: "Irlandzcy wyborcy szeregują kandydatów według preferencji. Ten sam system stosuje Malta." },
+      { q: "Parlament którego państwa uchodzi za najstarszy działający na świecie (założony w 930 r.)?", o: ["Islandii", "Wielkiej Brytanii", "Szwecji", "Węgier"], c: 0,
+        e: "Althing zebrał się po raz pierwszy w 930 r. na równinie Þingvellir." },
+      { q: "Na ile lat wybierany jest Sekretarz Generalny ONZ?", o: ["4", "5", "6", "7"], c: 1, fix: 1,
+        e: "Zgromadzenie Ogólne powołuje go na 5 lat na wniosek Rady Bezpieczeństwa. Zwyczajowo sprawuje się najwyżej dwie kadencje." },
+      { q: "Ile państw jest członkami ONZ?", o: ["189", "191", "193", "195"], c: 2, fix: 1,
+        e: "Ostatnim przyjętym państwem był Sudan Południowy w 2011 r. Watykan i Palestyna mają status obserwatorów." },
+      { q: "Kto był pierwszym Sekretarzem Generalnym ONZ?", o: ["Trygve Lie", "Dag Hammarskjöld", "U Thant", "Kurt Waldheim"], c: 0,
+        e: "Norweg Trygve Lie pełnił funkcję w latach 1946–1952. Jego następca Hammarskjöld zginął w katastrofie lotniczej w 1961 r." },
+      { q: "Polska przewodniczyła Radzie UE w pierwszej połowie 2025 r. Kiedy była jej pierwsza prezydencja?", o: ["I połowa 2005", "II połowa 2009", "II połowa 2011", "I połowa 2014"], c: 2, fix: 1,
+        e: "Pierwsza polska prezydencja trwała od lipca do grudnia 2011 r." },
+      { q: "Ile poprawek ma Konstytucja Stanów Zjednoczonych?", o: ["10", "21", "27", "33"], c: 2, fix: 1,
+        e: "Ostatnią, 27. poprawkę ratyfikowano w 1992 r., ponad 200 lat po jej zgłoszeniu. Pierwsze 10 tworzy Kartę Praw." },
+      { q: "Gdzie po raz pierwszy zaczęto mówić o „kohabitacji” prezydenta i premiera z przeciwnych obozów?", o: ["We Francji", "W Polsce", "W Portugalii", "W Finlandii"], c: 0,
+        e: "Pierwsza kohabitacja nastąpiła w 1986 r., gdy socjalista François Mitterrand musiał mianować premierem Jacques'a Chiraca." }
+    ]
+  },
+  {
+    name: "Społeczeństwo", blurb: "Teorie, autorzy i pojęcia",
+    q: [
+      { q: "Co głosi prawo Duvergera?", o: ["Okręgi jednomandatowe sprzyjają systemowi dwupartyjnemu", "Każda organizacja z czasem przechodzi w ręce oligarchii", "Partie konkurują głównie o wyborcę ze środka", "Wyższa frekwencja osłabia partie skrajne"], c: 0,
+        e: "Maurice Duverger zauważył, że ordynacja większościowa w okręgach jednomandatowych premiuje dwie największe partie." },
+      { q: "Kto sformułował „żelazne prawo oligarchii”?", o: ["Robert Michels", "Vilfredo Pareto", "Gaetano Mosca", "Max Weber"], c: 0,
+        e: "Michels opisał je w 1911 r. na przykładzie niemieckiej socjaldemokracji. Pareto i Mosca rozwijali pokrewną teorię elit." },
+      { q: "Kto wyróżnił panowanie tradycyjne, charyzmatyczne i legalne?", o: ["Max Weber", "Émile Durkheim", "Karol Marks", "Alexis de Tocqueville"], c: 0,
+        e: "To trzy typy prawomocnego panowania w socjologii Webera. Panowanie legalne opiera się na przepisach i biurokracji." },
+      { q: "Kto jest autorką teorii „spirali milczenia”?", o: ["Elisabeth Noelle-Neumann", "Hannah Arendt", "Simone de Beauvoir", "Chantal Mouffe"], c: 0,
+        e: "Według teorii z 1974 r. ludzie milkną, gdy sądzą, że ich poglądy są w mniejszości. To wzmacnia wrażenie przewagi opinii dominującej." },
+      { q: "Czym jest okno Overtona?", o: ["Zakresem poglądów uznawanych za akceptowalne w debacie publicznej", "Okresem między wyborami a zaprzysiężeniem władz", "Ostatnim terminem na zmianę ordynacji przed wyborami", "Wskaźnikiem zaufania do parlamentu"], c: 0,
+        e: "Nazwa pochodzi od Josepha Overtona. Idea uważana za skrajną może z czasem trafić do głównego nurtu, a potem stać się polityką państwa." },
+      { q: "Kto napisał „Samotną grę w kręgle” o zaniku kapitału społecznego w USA?", o: ["Robert Putnam", "Francis Fukuyama", "Pierre Bourdieu", "Christopher Lasch"], c: 0,
+        e: "Putnam pokazał spadek uczestnictwa w stowarzyszeniach i życiu wspólnotowym. Książka ukazała się w 2000 r." },
+      { q: "Kto jest autorem tezy o „zderzeniu cywilizacji”?", o: ["Samuel Huntington", "Francis Fukuyama", "Zbigniew Brzeziński", "Henry Kissinger"], c: 0,
+        e: "Huntington przedstawił ją w 1993 r., polemizując m.in. z tezą Fukuyamy o „końcu historii”." },
+      { q: "Co pokazuje paradoks Condorceta?", o: ["Zbiorowe preferencje mogą być nieprzechodnie, choć indywidualne są spójne", "Duże partie zawsze zyskują na ordynacji proporcjonalnej", "Wyższa frekwencja zmniejsza legitymację władzy", "Wyborcy częściej głosują przeciw komuś niż za kimś"], c: 0,
+        e: "Większość może woleć A od B, B od C, a jednocześnie C od A. Problem uogólnił Kenneth Arrow w twierdzeniu o niemożliwości." },
+      { q: "Na czym polega efekt Bradleya?", o: ["Sondaże przeszacowują poparcie kandydata z mniejszości etnicznej", "Zwycięzca wyborów zyskuje poparcie tuż po nich", "Wyborcy przechodzą do kandydata prowadzącego w sondażach", "Niska frekwencja sprzyja partiom rządzącym"], c: 0,
+        e: "Tom Bradley, czarnoskóry burmistrz Los Angeles, prowadził w sondażach przed wyborami na gubernatora Kalifornii w 1982 r., ale przegrał." },
+      { q: "Co mierzy współczynnik obciążenia demograficznego?", o: ["Liczbę osób w wieku nieprodukcyjnym na 100 osób w wieku produkcyjnym", "Liczbę urodzeń na 1000 mieszkańców", "Udział emerytów w całej populacji", "Saldo migracji na 1000 mieszkańców"], c: 0,
+        e: "Im wyższy współczynnik, tym więcej dzieci i seniorów przypada na osoby w wieku produkcyjnym. W Polsce rośnie wraz ze starzeniem się społeczeństwa." },
+      { q: "Który socjolog jest autorem koncepcji „płynnej nowoczesności”?", o: ["Zygmunt Bauman", "Leszek Kołakowski", "Piotr Sztompka", "Jerzy Szacki"], c: 0,
+        e: "Urodzony w Poznaniu Bauman opisał świat, w którym trwałe struktury i więzi zastępuje ciągła zmiana. „Płynna nowoczesność” ukazała się w 2000 r." },
+      { q: "Kto jest autorem koncepcji „społeczeństwa ryzyka”?", o: ["Ulrich Beck", "Anthony Giddens", "Jürgen Habermas", "Niklas Luhmann"], c: 0,
+        e: "Beck wydał książkę w 1986 r., w roku katastrofy w Czarnobylu. Opisał społeczeństwo zajęte zarządzaniem zagrożeniami, które samo wytwarza." },
+      { q: "Kto wprowadził do socjologii pojęcie anomii?", o: ["Émile Durkheim", "Max Weber", "Auguste Comte", "Georg Simmel"], c: 0,
+        e: "Durkheim opisał anomię jako stan rozpadu norm, m.in. w pracy „Samobójstwo” z 1897 r." },
+      { q: "Kto opisał „próżnię socjologiczną” w społeczeństwie PRL?", o: ["Stefan Nowak", "Jan Szczepański", "Jadwiga Staniszkis", "Piotr Sztompka"], c: 0,
+        e: "Nowak zauważył, że Polacy identyfikowali się z rodziną i narodem, a brakowało im więzi z grupami pośrednimi, takimi jak stowarzyszenia czy instytucje." },
+      { q: "Kto ukuł pojęcie „samospełniającej się przepowiedni”?", o: ["Robert K. Merton", "Talcott Parsons", "Erving Goffman", "George H. Mead"], c: 0,
+        e: "Merton opisał je w 1948 r. na przykładzie banku, który upada, bo klienci uwierzyli w jego bankructwo i masowo wycofali pieniądze." },
+      { q: "Kto w książce „Nadzorować i karać” uczynił panoptykon metaforą nowoczesnej władzy?", o: ["Michel Foucault", "Jeremy Bentham", "Gilles Deleuze", "Jean Baudrillard"], c: 0,
+        e: "Panoptykon jako projekt więzienia wymyślił Jeremy Bentham. Foucault w 1975 r. użył go do opisu społeczeństwa nadzoru." }
+    ]
+  }
+];
+
+const BANK_PRO = [
+  {
+    name: "Wybory", q: [
+      { q: "Który komitet zdobył najwięcej głosów w wyborach do Sejmu w 1991 r.?", o: ["Unia Demokratyczna", "Sojusz Lewicy Demokratycznej", "Wyborcza Akcja Katolicka", "Porozumienie Obywatelskie Centrum"], c: 0,
+        e: "UD Tadeusza Mazowieckiego zdobyła 12,3% głosów, minimalnie wyprzedzając SLD (ok. 12%). Bez progu do Sejmu weszło wtedy kilkadziesiąt ugrupowań." },
+      { q: "W których wyborach do Sejmu po raz pierwszy obowiązywał ogólnokrajowy próg 5% dla partii?", o: ["1991", "1993", "1997", "2001"], c: 1, fix: 1,
+        e: "Próg wprowadzono przed przedterminowymi wyborami w 1993 r. Ponad jedna trzecia głosów przepadła wtedy na ugrupowania pod progiem." },
+      { q: "Ile mandatów zdobyła koalicja SLD–UP w 2001 r.?", o: ["200", "216", "231", "243"], c: 1, fix: 1,
+        e: "SLD–UP zdobyła 216 mandatów (ok. 41% głosów), zabrakło 15 do samodzielnej większości. Leszek Miller utworzył rząd z PSL." },
+      { q: "Które z tych ugrupowań NIE weszło do Sejmu po raz pierwszy w 2001 r.?", o: ["Platforma Obywatelska", "Prawo i Sprawiedliwość", "Liga Polskich Rodzin", "Polskie Stronnictwo Ludowe"], c: 3,
+        e: "PO, PiS, LPR i Samoobrona weszły do Sejmu po raz pierwszy w 2001 r. PSL zasiadało w nim nieprzerwanie od 1991 r." },
+      { q: "Ile mandatów zdobyło PiS w 2015 r., uzyskując samodzielną większość?", o: ["231", "235", "242", "248"], c: 1, fix: 1,
+        e: "Przy 37,6% głosów PiS dostało 235 mandatów. Była to pierwsza samodzielna większość jednej partii w III RP." },
+      { q: "Które ugrupowanie w 2015 r. nie przekroczyło 8-procentowego progu dla koalicji?", o: ["Zjednoczona Lewica", "Kukiz'15", "Nowoczesna", "KORWiN"], c: 0,
+        e: "Zjednoczona Lewica zdobyła 7,55% i po raz pierwszy w III RP w Sejmie zabrakło lewicy. KORWiN miał 4,76% przy progu 5%." },
+      { q: "Ile mandatów zdobyło PiS w wyborach do Sejmu w 2023 r.?", o: ["182", "194", "200", "212"], c: 1, fix: 1,
+        e: "PiS wygrało z 194 mandatami, ale KO (157), Trzecia Droga (65) i Lewica (26) miały razem 248 i utworzyły rząd." },
+      { q: "Z jakim wynikiem Karol Nawrocki wygrał II turę wyborów prezydenckich w 2025 r.?", o: ["50,21%", "50,89%", "51,03%", "52,10%"], c: 1, fix: 1,
+        e: "Nawrocki pokonał Rafała Trzaskowskiego stosunkiem 50,89% do 49,11%. Wynik 51,03% to rezultat Andrzeja Dudy z II tury w 2020 r." },
+      { q: "Kto zajął trzecie miejsce w I turze wyborów prezydenckich w 1995 r.?", o: ["Jacek Kuroń", "Jan Olszewski", "Waldemar Pawlak", "Tadeusz Zieliński"], c: 0,
+        e: "Kuroń zdobył ok. 9,2%, za Kwaśniewskim (35,1%) i Wałęsą (33,1%). Olszewski był czwarty z ok. 6,9%." },
+      { q: "Kto zmierzył się z Lechem Wałęsą w II turze wyborów prezydenckich w 1990 r.?", o: ["Stanisław Tymiński", "Tadeusz Mazowiecki", "Włodzimierz Cimoszewicz", "Leszek Moczulski"], c: 0,
+        e: "Nieznany wcześniej biznesmen z Kanady zdobył w I turze 23% i wyeliminował premiera Mazowieckiego (18%)." },
+      { q: "Kto jako jedyny spoza Komitetu Obywatelskiego „Solidarność” zdobył mandat senatora w 1989 r.?", o: ["Henryk Stokłosa", "Aleksander Kwaśniewski", "Andrzej Stelmachowski", "Mieczysław Rakowski"], c: 0,
+        e: "Przedsiębiorca z Piły Henryk Stokłosa wygrał jako kandydat niezależny. Pozostałe 99 mandatów zdobyła „Solidarność”." },
+      { q: "Ilu z 35 kandydatów z listy krajowej uzyskało mandat w I turze wyborów 4 czerwca 1989 r.?", o: ["0", "2", "5", "12"], c: 1, fix: 1,
+        e: "Przeszli tylko Mikołaj Kozakiewicz i Adam Zieliński, bo wyborcy skreślali nazwiska. Pozostałe mandaty obsadzono po zmianie ordynacji w II turze." },
+      { q: "Ile mandatów zdobyło PSL w 1993 r., co pozostaje jego najlepszym wynikiem w III RP?", o: ["87", "112", "132", "147"], c: 2, fix: 1,
+        e: "PSL miało 132 posłów i utworzyło koalicję z SLD (171 mandatów). Premierem został Waldemar Pawlak." },
+      { q: "W których wyborach do Sejmu III RP mandaty dzielono zmodyfikowaną metodą Sainte-Laguë?", o: ["1993", "1997", "2001", "2005"], c: 2, fix: 1,
+        e: "W 2001 r. zastosowano metodę Sainte-Laguë z pierwszym dzielnikiem 1,4. Od 2002 r. ponownie obowiązuje D'Hondt." },
+      { q: "Od których wyborów senatorów wybiera się w okręgach jednomandatowych?", o: ["2001", "2005", "2011", "2015"], c: 2, fix: 1,
+        e: "Kodeks wyborczy z 2011 r. wprowadził 100 okręgów jednomandatowych. Wcześniej okręgi do Senatu były wielomandatowe." },
+      { q: "Ile mandatów przypada na okręg nr 19 (Warszawa) w wyborach do Sejmu?", o: ["12", "16", "20", "24"], c: 2, fix: 1,
+        e: "Warszawa wybiera 20 posłów, najwięcej ze wszystkich 41 okręgów. Najmniejsze okręgi mają ustawowe minimum 7 mandatów." }
+    ]
+  },
+  {
+    name: "Rządy III RP", q: [
+      { q: "Kto został premierem po wyborach w 1993 r.?", o: ["Waldemar Pawlak", "Józef Oleksy", "Włodzimierz Cimoszewicz", "Leszek Miller"], c: 0,
+        e: "Koalicja SLD–PSL miała w tej kadencji trzech premierów: Pawlaka, Oleksego i Cimoszewicza." },
+      { q: "Który premier podał się do dymisji po zarzutach współpracy z rosyjskim wywiadem (sprawa „Olina”)?", o: ["Józef Oleksy", "Waldemar Pawlak", "Jan Krzysztof Bielecki", "Marek Belka"], c: 0,
+        e: "Oskarżenia ogłosił w 1995 r. szef MSW Andrzej Milczanowski. Oleksy odszedł w styczniu 1996 r., a prokuratura umorzyła potem śledztwo." },
+      { q: "Kto był liderem AWS, który po wyborach 1997 r. nie objął urzędu premiera?", o: ["Marian Krzaklewski", "Jerzy Buzek", "Jan Rokita", "Maciej Płażyński"], c: 0,
+        e: "Przewodniczący „Solidarności” Marian Krzaklewski wskazał na premiera Jerzego Buzka, sam pozostając szefem klubu AWS." },
+      { q: "Po wotum nieufności dla którego rządu Lech Wałęsa rozwiązał Sejm w 1993 r.?", o: ["Hanny Suchockiej", "Jana Olszewskiego", "Jana Krzysztofa Bieleckiego", "Waldemara Pawlaka"], c: 0,
+        e: "Rząd Suchockiej przegrał głosowanie 28 maja 1993 r. jednym głosem. Wałęsa nie przyjął dymisji i rozwiązał parlament." },
+      { q: "Kto był pierwszym premierem z PiS?", o: ["Kazimierz Marcinkiewicz", "Jarosław Kaczyński", "Ludwik Dorn", "Beata Szydło"], c: 0,
+        e: "Marcinkiewicz rządził od października 2005 do lipca 2006 r. Potem premierem został Jarosław Kaczyński." },
+      { q: "Z kim PiS tworzyło koalicję rządową w latach 2006–2007?", o: ["Z Samoobroną i LPR", "Z PO i PSL", "Z PSL i LPR", "Z Samoobroną i PSL"], c: 0,
+        e: "Koalicja z Samoobroną Andrzeja Leppera i LPR Romana Giertycha rozpadła się latem 2007 r." },
+      { q: "Który wicepremier został odwołany w 2007 r. w związku z tzw. aferą gruntową?", o: ["Andrzej Lepper", "Roman Giertych", "Ludwik Dorn", "Przemysław Gosiewski"], c: 0,
+        e: "CBA prowadziło prowokację przy odrolnieniu gruntów w resorcie rolnictwa. Odwołanie Leppera zapoczątkowało koniec koalicji." },
+      { q: "W którym roku Sejm III RP po raz pierwszy sam skrócił swoją kadencję?", o: ["1993", "2001", "2007", "2011"], c: 2, fix: 1,
+        e: "Sejm V kadencji przegłosował samorozwiązanie 7 września 2007 r. W 1993 r. Sejm rozwiązał prezydent." },
+      { q: "Ilu różnych marszałków pełniło obowiązki Prezydenta RP w 2010 r.?", o: ["1", "2", "3", "4"], c: 2, fix: 1,
+        e: "Po katastrofie smoleńskiej był to Bronisław Komorowski, po jego wyborze na krótko Bogdan Borusewicz, a potem nowy marszałek Sejmu Grzegorz Schetyna." },
+      { q: "Kto był autorem tytułu „Wasz prezydent, nasz premier” z lipca 1989 r.?", o: ["Adam Michnik", "Jacek Kuroń", "Bronisław Geremek", "Tadeusz Mazowiecki"], c: 0,
+        e: "Michnik zaproponował w „Gazecie Wyborczej”, by prezydentem został kandydat PZPR, a rząd utworzyła „Solidarność”." },
+      { q: "Kto był pierwszym prezesem Prawa i Sprawiedliwości?", o: ["Lech Kaczyński", "Jarosław Kaczyński", "Ludwik Dorn", "Kazimierz Marcinkiewicz"], c: 0,
+        e: "Lech Kaczyński kierował partią w latach 2001–2003. W 2003 r. zastąpił go brat Jarosław." },
+      { q: "Który z „trzech tenorów” zakładających PO był wcześniej Marszałkiem Sejmu?", o: ["Maciej Płażyński", "Andrzej Olechowski", "Donald Tusk", "Jan Rokita"], c: 0,
+        e: "Płażyński był marszałkiem w latach 1997–2001. Olechowski był wcześniej ministrem finansów i spraw zagranicznych, a Tusk wicemarszałkiem Senatu." },
+      { q: "Czego dotyczyła nowelizacja, przy której Lew Rywin złożył propozycję korupcyjną?", o: ["Ustawy o radiofonii i telewizji", "Prawa prasowego", "Ustawy o grach losowych", "Prawa zamówień publicznych"], c: 0,
+        e: "Rywin żądał 17,5 mln dolarów od Agory w zamian za korzystny kształt ustawy. Sprawę zbadała pierwsza sejmowa komisja śledcza." },
+      { q: "W której restauracji nagrywano polityków w aferze taśmowej (2014)?", o: ["Sowa & Przyjaciele", "Belvedere", "U Fukiera", "Bristol"], c: 0,
+        e: "Kelnerzy nagrywali rozmowy m.in. ministrów i prezesa NBP. Część nagrań pochodziła też z restauracji Amber Room." },
+      { q: "Który Marszałek Sejmu podał się do dymisji w 2019 r. po ujawnieniu lotów rządowymi samolotami?", o: ["Marek Kuchciński", "Elżbieta Witek", "Stanisław Karczewski", "Ryszard Terlecki"], c: 0,
+        e: "Kuchciński odszedł w sierpniu 2019 r. Jego następczynią została Elżbieta Witek." },
+      { q: "Kto był najpierw Marszałkiem Sejmu, a potem premierem?", o: ["Ewa Kopacz", "Beata Szydło", "Hanna Suchocka", "Marek Belka"], c: 0,
+        e: "Kopacz kierowała Sejmem w latach 2011–2014, a po odejściu Tuska do Brukseli została premierem." },
+      { q: "Który premier podał się do dymisji 2 maja 2004 r., dzień po wejściu Polski do UE?", o: ["Leszek Miller", "Marek Belka", "Jerzy Buzek", "Włodzimierz Cimoszewicz"], c: 0,
+        e: "Miller żegnał się słowami, że prawdziwego mężczyznę poznaje się nie po tym, jak zaczyna, ale jak kończy." },
+      { q: "Kto był ministrem spraw zagranicznych w rządzie Tadeusza Mazowieckiego?", o: ["Krzysztof Skubiszewski", "Bronisław Geremek", "Władysław Bartoszewski", "Andrzej Olechowski"], c: 0,
+        e: "Skubiszewski kierował dyplomacją w czterech kolejnych rządach, od 1989 do 1993 r." },
+      { q: "Kto był ministrem spraw wewnętrznych w rządzie Mazowieckiego do lipca 1990 r.?", o: ["Czesław Kiszczak", "Krzysztof Kozłowski", "Andrzej Milczanowski", "Florian Siwicki"], c: 0,
+        e: "Kiszczak zachował resort z kontraktu Okrągłego Stołu. Zastąpił go Krzysztof Kozłowski, a Siwicki kierował wtedy MON." },
+      { q: "Jaką funkcję pełnił Karol Nawrocki tuż przed objęciem urzędu prezydenta?", o: ["Prezesa IPN", "Dyrektora Muzeum II Wojny Światowej", "Wiceministra kultury", "Rzecznika Praw Obywatelskich"], c: 0,
+        e: "Nawrocki był prezesem IPN od 2021 r. Wcześniej kierował Muzeum II Wojny Światowej w Gdańsku." },
+      { q: "Kto był pierwszym prezesem Instytutu Pamięci Narodowej?", o: ["Leon Kieres", "Janusz Kurtyka", "Łukasz Kamiński", "Jarosław Szarek"], c: 0,
+        e: "Leon Kieres kierował IPN w latach 2000–2005. Janusz Kurtyka zginął w katastrofie smoleńskiej jako prezes IPN." },
+      { q: "Kto jako pierwszy premier III RP utrzymał urząd po kolejnych wyborach do Sejmu?", o: ["Donald Tusk", "Jerzy Buzek", "Leszek Miller", "Waldemar Pawlak"], c: 0,
+        e: "Po wygranej PO w 2011 r. Tusk powołał drugi rząd. Wcześniej żaden premier nie przetrwał wyborów." }
+    ]
+  },
+  {
+    name: "PRL i II RP", q: [
+      { q: "Jaką przewagą ponad wymagane minimum Zgromadzenie Narodowe wybrało Jaruzelskiego na prezydenta w 1989 r.?", o: ["1 głosu", "7 głosów", "15 głosów", "30 głosów"], c: 0,
+        e: "Jaruzelski dostał 270 głosów przy wymaganych 269. Część posłów opozycji celowo oddała głosy nieważne." },
+      { q: "Kiedy zakończyły się obrady Okrągłego Stołu?", o: ["6 lutego 1989", "5 kwietnia 1989", "4 czerwca 1989", "19 lipca 1989"], c: 1, fix: 1,
+        e: "Obrady trwały od 6 lutego do 5 kwietnia 1989 r. 19 lipca Zgromadzenie Narodowe wybrało Jaruzelskiego." },
+      { q: "Kto był ostatnim I sekretarzem KC PZPR?", o: ["Mieczysław Rakowski", "Wojciech Jaruzelski", "Czesław Kiszczak", "Aleksander Kwaśniewski"], c: 0,
+        e: "Rakowski objął funkcję w lipcu 1989 r. i kierował partią do jej rozwiązania w styczniu 1990 r." },
+      { q: "Kto w sierpniu 1989 r. został desygnowany na premiera, ale nie zdołał utworzyć rządu?", o: ["Czesław Kiszczak", "Mieczysław Rakowski", "Zbigniew Messner", "Florian Siwicki"], c: 0,
+        e: "Sejm wybrał Kiszczaka 2 sierpnia, lecz ZSL i SD przeszły na stronę „Solidarności”. Kilka dni później premierem został Mazowiecki." },
+      { q: "Kto wyreżyserował „Dziady” zdjęte z afisza Teatru Narodowego w 1968 r.?", o: ["Kazimierz Dejmek", "Adam Hanuszkiewicz", "Konrad Swinarski", "Jerzy Grzegorzewski"], c: 0,
+        e: "Zdjęcie spektaklu stało się iskrą protestów studenckich w marcu 1968 r." },
+      { q: "Od strajku w których zakładach zaczął się Poznański Czerwiec 1956?", o: ["Zakładach im. Cegielskiego", "Zakładach Metalowych im. Waltera", "Zakładach Mechanicznych Ursus", "Stoczni im. Lenina"], c: 0,
+        e: "Robotnicy ówczesnych Zakładów im. Stalina (ZISPO), czyli dawnego Cegielskiego, wyszli na ulice 28 czerwca 1956 r." },
+      { q: "W których zakładach w Radomiu zaczął się protest w czerwcu 1976 r.?", o: ["Zakładach Metalowych im. Waltera", "Zakładach im. Cegielskiego", "Zakładach Mechanicznych Ursus", "Hucie Katowice"], c: 0,
+        e: "Strajk wybuchł 25 czerwca 1976 r. po ogłoszeniu podwyżek cen. Tego samego dnia strajkował też Ursus pod Warszawą." },
+      { q: "Kto stanął na czele pierwszego rządu powołanego przez Piłsudskiego w listopadzie 1918 r.?", o: ["Jędrzej Moraczewski", "Ignacy Jan Paderewski", "Ignacy Daszyński", "Wincenty Witos"], c: 0,
+        e: "Daszyński kierował wcześniej rządem lubelskim, ale pierwszy rząd powołany przez Naczelnika Państwa utworzył Moraczewski." },
+      { q: "Czyj rząd obalił zamach majowy w 1926 r.?", o: ["Wincentego Witosa", "Władysława Grabskiego", "Aleksandra Skrzyńskiego", "Kazimierza Bartla"], c: 0,
+        e: "Trzeci rząd Witosa przetrwał zaledwie kilka dni. Po zamachu premierem został Kazimierz Bartel, a władzę przejął obóz Piłsudskiego." },
+      { q: "W której twierdzy więziono przywódców Centrolewu w 1930 r.?", o: ["Brzeskiej", "Modlińskiej", "Dęblińskiej", "Toruńskiej"], c: 0,
+        e: "Proces brzeski, m.in. Witosa i Liebermana, odbył się w latach 1931–1932." },
+      { q: "Kto był ostatnim premierem II RP przed wybuchem wojny?", o: ["Felicjan Sławoj Składkowski", "Marian Zyndram-Kościałkowski", "Aleksander Prystor", "Walery Sławek"], c: 0,
+        e: "Składkowski rządził od 1936 r. do września 1939 r., najdłużej ze wszystkich premierów II RP." },
+      { q: "Co oznaczał skrót BBWR?", o: ["Bezpartyjny Blok Współpracy z Rządem", "Blok Bezpartyjny Wyborców Republiki", "Bezpartyjny Blok Wsparcia Rządu", "Blok Budowy Wolnej Rzeczypospolitej"], c: 0,
+        e: "Prorządowy blok sanacji założył Walery Sławek w 1927 r. Rozwiązano go w 1935 r." },
+      { q: "Komu okólnik premiera z 1936 r. nadał status pierwszej osoby po Prezydencie?", o: ["Edwardowi Śmigłemu-Rydzowi", "Józefowi Beckowi", "Walerowi Sławkowi", "Felicjanowi Sławojowi Składkowskiemu"], c: 0,
+        e: "Generalny inspektor sił zbrojnych Śmigły-Rydz miał być „pierwszym obywatelem po Prezydencie”. W listopadzie 1936 r. został marszałkiem Polski." },
+      { q: "Jaki organ zastąpił urząd prezydenta w PRL na mocy Konstytucji z 1952 r.?", o: ["Rada Państwa", "Krajowa Rada Narodowa", "Prezydium Sejmu", "Rada Ministrów"], c: 0,
+        e: "Kolegialna Rada Państwa istniała do 1989 r., kiedy przywrócono urząd prezydenta." },
+      { q: "Kto najdłużej sprawował urząd premiera w PRL?", o: ["Józef Cyrankiewicz", "Piotr Jaroszewicz", "Bolesław Bierut", "Edward Osóbka-Morawski"], c: 0,
+        e: "Cyrankiewicz był premierem w latach 1947–1952 i 1954–1970, łącznie ponad 20 lat." }
+    ]
+  },
+  {
+    name: "Ustrój i prawo", q: [
+      { q: "Który artykuł Konstytucji stanowi, że Rada Ministrów prowadzi politykę wewnętrzną i zagraniczną?", o: ["Art. 126", "Art. 141", "Art. 146", "Art. 154"], c: 2, fix: 1,
+        e: "Art. 146 daje rządowi domniemanie kompetencji: sprawy nie zastrzeżone dla innych organów należą do Rady Ministrów." },
+      { q: "Który artykuł Konstytucji zakazuje partii odwołujących się do metod nazizmu, faszyzmu i komunizmu?", o: ["Art. 11", "Art. 13", "Art. 25", "Art. 53"], c: 1, fix: 1,
+        e: "Art. 13 zakazuje też partii, których program dopuszcza nienawiść rasową lub przemoc. Art. 11 dotyczy wolności tworzenia partii." },
+      { q: "Który artykuł Konstytucji definiuje małżeństwo jako związek kobiety i mężczyzny?", o: ["Art. 18", "Art. 32", "Art. 47", "Art. 72"], c: 0, fix: 1,
+        e: "Art. 18 obejmuje ochroną małżeństwo, rodzinę, macierzyństwo i rodzicielstwo. Art. 32 to zasada równości, art. 47 prawo do prywatności." },
+      { q: "Ilu posłów trzeba, by utworzyć klub poselski?", o: ["3", "7", "15", "23"], c: 2, fix: 1,
+        e: "Klub wymaga co najmniej 15 posłów, koło 3. Status klubu daje m.in. przedstawiciela w Konwencie Seniorów." },
+      { q: "Ilu posłów może wspólnie skierować wniosek do Trybunału Konstytucyjnego?", o: ["15", "30", "46", "50"], c: 3, fix: 1,
+        e: "Wniosek może złożyć 50 posłów albo 30 senatorów. Prawo to ma też m.in. prezydent, premier i RPO." },
+      { q: "Jaką większością rząd uzyskuje wotum zaufania w trzecim kroku tworzenia rządu?", o: ["Zwykłą", "Bezwzględną", "3/5 głosów", "2/3 głosów"], c: 0, fix: 1,
+        e: "W pierwszym i drugim kroku potrzeba bezwzględnej większości, w trzecim wystarczy zwykła. Gdy i to zawiedzie, prezydent skraca kadencję Sejmu." },
+      { q: "Na ile okręgów wyborczych podzielona jest Polska w wyborach do Sejmu?", o: ["16", "41", "52", "100"], c: 1, fix: 1,
+        e: "41 okręgów wielomandatowych do Sejmu, 100 jednomandatowych do Senatu i 13 okręgów w wyborach do PE." },
+      { q: "Na ile okręgów podzielona jest Polska w wyborach do Parlamentu Europejskiego?", o: ["1", "13", "16", "41"], c: 1, fix: 1,
+        e: "Jest 13 okręgów, ale mandaty dzieli się najpierw między komitety w skali kraju, dopiero potem między okręgi." },
+      { q: "Ile wynosi ustawowe minimum mandatów w okręgu wyborczym do Sejmu?", o: ["3", "5", "7", "10"], c: 2, fix: 1,
+        e: "Kodeks wyborczy przewiduje co najmniej 7 mandatów w okręgu. Najwięcej, 20, ma Warszawa." },
+      { q: "Kiedy zaczyna się cisza wyborcza przed niedzielnym głosowaniem?", o: ["O północy z czwartku na piątek", "O północy z piątku na sobotę", "W sobotę w południe", "O północy z soboty na niedzielę"], c: 1, fix: 1,
+        e: "Kampania kończy się 24 godziny przed dniem głosowania, czyli o północy z piątku na sobotę. Cisza trwa do zamknięcia lokali." },
+      { q: "Ilu członków Zgromadzenia Narodowego musi podpisać wniosek o postawienie prezydenta przed Trybunałem Stanu?", o: ["46", "115", "140", "280"], c: 2, fix: 1,
+        e: "Wniosek podpisuje co najmniej 140 członków ZN, a uchwała wymaga 2/3 ustawowej liczby członków Zgromadzenia." },
+      { q: "Jak nazywał się urząd prowadzący lustrację przed przejęciem jej przez IPN?", o: ["Rzecznik Interesu Publicznego", "Rzecznik Lustracyjny", "Prokurator Generalny ds. Lustracji", "Komisarz Weryfikacyjny"], c: 0,
+        e: "Urząd działał na mocy ustawy z 1997 r. Pierwszym rzecznikiem był sędzia Bogusław Nizieński." },
+      { q: "Jaki odsetek głosujących poparł Konstytucję w referendum w 1997 r.?", o: ["52,7%", "58,9%", "64,3%", "77,5%"], c: 0, fix: 1,
+        e: "Za było 52,71% przy frekwencji 42,86%. Referendum konstytucyjne nie wymaga progu frekwencji. 77,5% poparło akcesję do UE w 2003 r." },
+      { q: "Jaka była frekwencja w referendum z 15 października 2023 r.?", o: ["ok. 31%", "ok. 41%", "ok. 49%", "ok. 52%"], c: 1, fix: 1,
+        e: "Głosowało 40,91% uprawnionych, więc wynik nie był wiążący. Część opozycji wzywała do niepobierania kart referendalnych." },
+      { q: "Jaką frekwencję miało referendum z 6 września 2015 r. (m.in. o JOW-ach)?", o: ["ok. 7,8%", "ok. 15,6%", "ok. 24,1%", "ok. 32,7%"], c: 0, fix: 1,
+        e: "Referendum zarządził Bronisław Komorowski po I turze wyborów prezydenckich. To najniższa frekwencja w historii III RP." },
+      { q: "Ile podpisów obywateli trzeba zebrać, by zarejestrować kandydata na prezydenta?", o: ["10 000", "50 000", "100 000", "200 000"], c: 2, fix: 1,
+        e: "Potrzeba 100 tys. podpisów. Wcześniej komitet musi zebrać 1000 podpisów, żeby w ogóle powstać." }
+    ]
+  }
+];
+
+const BANK_POP = [
+  {
+    name: "Muzyka", q: [
+      { q: "Z jaką piosenką Polska wróciła na Eurowizję w 2014 r. po dwóch latach przerwy?", o: ["„My Słowianie”", "„Color of Your Life”", "„Flashlight”", "„Lova Lova”"], c: 0,
+        e: "Donatan i Cleo zajęli w Kopenhadze 14. miejsce. „Color of Your Life” to piosenka Michała Szpaka z 2016 r., a „Flashlight” Kasi Moś z 2017 r." },
+      { q: "Które miejsce zajął Michał Szpak w finale Eurowizji 2016?", o: ["3.", "8.", "11.", "14."], c: 1, fix: 1,
+        e: "Szpak był 8., głównie dzięki głosom widzów. Lepszy wynik ma tylko Edyta Górniak (2. miejsce w 1994 r.)." },
+      { q: "Kto wygrał dla Polski pierwszą Eurowizję Junior w 2018 r.?", o: ["Roksana Węgiel", "Viki Gabor", "Laura Bączkiewicz", "Sara James"], c: 0,
+        e: "Roksana Węgiel wygrała w Mińsku piosenką „Anyone I Want to Be”. Rok później zwyciężyła Viki Gabor." },
+      { q: "W którym mieście Viki Gabor wygrała Eurowizję Junior 2019?", o: ["W Gliwicach", "W Krakowie", "W Warszawie", "W Mińsku"], c: 0,
+        e: "Konkurs odbył się w Gliwicach, bo rok wcześniej wygrała Polska. Viki Gabor śpiewała „Superhero”." },
+      { q: "Które miejsce zajęła Justyna Steczkowska z „Gają” w finale Eurowizji 2025?", o: ["8.", "14.", "18.", "22."], c: 1, fix: 1,
+        e: "Steczkowska zdobyła 156 punktów, prawie wszystkie od widzów. Pierwszy raz reprezentowała Polskę 30 lat wcześniej, w 1995 r." },
+      { q: "Która artystka miała reprezentować Polskę na odwołanej Eurowizji 2020, a pojechała na konkurs dopiero w 2026 r.?", o: ["Alicja Szemplińska", "Blanka", "Sara James", "Ochman"], c: 0,
+        e: "W 2020 r. miała zaśpiewać „Empires”. W 2026 r. zajęła z piosenką „PRAY” 12. miejsce ze 150 punktami." },
+      { q: "W którym talent show zwyciężył Dawid Podsiadło?", o: ["X Factor", "Must Be the Music", "Idol", "The Voice of Poland"], c: 0,
+        e: "Podsiadło wygrał 2. edycję X Factora w 2012 r. Rok później wydał debiutancki album „Comfort and Happiness”." },
+      { q: "Jak naprawdę nazywa się sanah?", o: ["Zuzanna Grabowska", "Zuzanna Jurczak", "Joanna Grabowska", "Sandra Nowak"], c: 0,
+        e: "Zuzanna Irena Grabowska ukończyła szkołę muzyczną w klasie skrzypiec." },
+      { q: "Jak nazywał się wspólny album Taco Hemingwaya i Quebonafide z 2018 r.?", o: ["„Soma 0,5 mg”", "„Café Belga”", "„Romantic Psycho”", "„Pocztówka z WWA”"], c: 0,
+        e: "Duet wydał płytę jako Taconafide. „Café Belga” to solowy album Taco, a „Romantic Psycho” Quebonafide." },
+      { q: "Kim zawodowo jest ojciec rapera Maty?", o: ["Profesorem prawa", "Kardiochirurgiem", "Posłem na Sejm", "Dyrygentem"], c: 0,
+        e: "Marcin Matczak wykłada teorię prawa na Uniwersytecie Warszawskim. Mata zasłynął w 2020 r. utworem i albumem „Patointeligencja”." },
+      { q: "Który zespół nagrał disco polo „Ona tańczy dla mnie” (2012)?", o: ["Weekend", "Akcent", "Boys", "Piękni i Młodzi"], c: 0,
+        e: "Przebój zespołu Radosława Liszewskiego stał się jednym z najczęściej oglądanych polskich teledysków na YouTube." },
+      { q: "Pod jaką nazwą od 2018 r. odbywa się dawny Przystanek Woodstock?", o: ["Pol'and'Rock", "Rock'n'Pol", "Przystanek Owsiak", "Orkiestra Fest"], c: 0,
+        e: "Nazwę zmieniono z powodu sporu o prawa do marki Woodstock. Festiwal jest związany z Jurkiem Owsiakiem i WOŚP." },
+      { q: "Kto zaśpiewał „Koko Koko Euro Spoko” przed Euro 2012?", o: ["Jarzębina", "Brathanki", "Golec uOrkiestra", "Feel"], c: 0,
+        e: "Ludowy zespół z Kocudzy na Lubelszczyźnie zrobił z niej nieoficjalny przebój mistrzostw." },
+      { q: "Kto rozpoczął charytatywną akcję #Hot16Challenge2 w 2020 r.?", o: ["Solar", "Mata", "Quebonafide", "Sokół"], c: 0,
+        e: "Solar zbierał pieniądze dla medyków w czasie pandemii. W akcji wziął udział m.in. prezydent Andrzej Duda." }
+    ]
+  },
+  {
+    name: "Film i seriale", q: [
+      { q: "Który film jako pierwszy polski zdobył Oscara dla najlepszego filmu nieanglojęzycznego?", o: ["„Ida”", "„Zimna wojna”", "„Boże Ciało”", "„IO”"], c: 0,
+        e: "„Ida” Pawła Pawlikowskiego dostała Oscara w 2015 r. „Zimna wojna”, „Boże Ciało” i „IO” miały tylko nominacje." },
+      { q: "Za który film Paweł Pawlikowski dostał nagrodę za reżyserię w Cannes w 2018 r.?", o: ["„Zimna wojna”", "„Ida”", "„Pokot”", "„Body/Ciało”"], c: 0,
+        e: "„Zimna wojna” zdobyła potem trzy nominacje do Oscara, w tym za reżyserię i zdjęcia." },
+      { q: "Kto wyreżyserował nominowane do Oscara „Boże Ciało”?", o: ["Jan Komasa", "Wojciech Smarzowski", "Jan Holoubek", "Maciej Pieprzyca"], c: 0,
+        e: "Film z Bartoszem Bielenią był nominowany w 2020 r. Komasa nakręcił też „Salę samobójców” i „Miasto 44”." },
+      { q: "Jakie zwierzę jest bohaterem filmu „IO” Jerzego Skolimowskiego?", o: ["Osioł", "Koń", "Pies", "Wilk"], c: 0,
+        e: "Film zdobył Nagrodę Jury w Cannes w 2022 r. i nominację do Oscara." },
+      { q: "Na podstawie której powieści Olgi Tokarczuk powstał film „Pokot”?", o: ["„Prowadź swój pług przez kości umarłych”", "„Bieguni”", "„Księgi Jakubowe”", "„Dom dzienny, dom nocny”"], c: 0,
+        e: "Agnieszka Holland dostała za „Pokot” Srebrnego Niedźwiedzia na Berlinale 2017." },
+      { q: "Za którą książkę Olga Tokarczuk dostała Międzynarodową Nagrodę Bookera w 2018 r.?", o: ["„Bieguni”", "„Księgi Jakubowe”", "„Empuzjon”", "„Prawiek i inne czasy”"], c: 0,
+        e: "Angielski przekład „Biegunów” nosił tytuł „Flights”. Rok później Tokarczuk dostała Nobla za 2018 r." },
+      { q: "Kto wyreżyserował „Kler” (2018)?", o: ["Wojciech Smarzowski", "Patryk Vega", "Władysław Pasikowski", "Jan Komasa"], c: 0,
+        e: "„Kler” miał jedno z najlepszych otwarć w historii polskich kin. Smarzowski nakręcił też „Wołyń” i „Dom zły”." },
+      { q: "Kogo zagrał Tomasz Kot w filmie „Bogowie” (2014)?", o: ["Zbigniewa Religę", "Jana Kaczkowskiego", "Jerzego Kukuczkę", "Ryszarda Kuklińskiego"], c: 0,
+        e: "Film opowiada o pierwszym udanym przeszczepie serca w Polsce w 1985 r. w Zabrzu." },
+      { q: "Kto zagrał księdza Jana Kaczkowskiego w filmie „Johnny” (2022)?", o: ["Dawid Ogrodnik", "Bartosz Bielenia", "Piotr Trojan", "Tomasz Ziętek"], c: 0,
+        e: "Ogrodnik zagrał wcześniej m.in. Tomasza Beksińskiego w „Ostatniej rodzinie”." },
+      { q: "Jaką techniką zrealizowano film „Chłopi” (2023)?", o: ["Animacji malowanej farbami olejnymi", "Animacji poklatkowej z lalek", "Animacji komputerowej 3D", "Animacji wycinankowej"], c: 0,
+        e: "Zespół malarzy przemalował nagranych aktorów, klatka po klatce. Tak samo powstał wcześniejszy „Twój Vincent” tych samych twórców." },
+      { q: "Który film Agnieszki Holland dostał Nagrodę Specjalną Jury w Wenecji w 2023 r.?", o: ["„Zielona granica”", "„Obywatel Jones”", "„Szarlatan”", "„Pokot”"], c: 0,
+        e: "Film o kryzysie na granicy polsko-białoruskiej wywołał ostry spór polityczny jeszcze przed premierą." },
+      { q: "Jak nazywał się pierwszy polski serial oryginalny Netflixa (2018)?", o: ["„1983”", "„Wielka woda”", "„Sexify”", "„Rojst”"], c: 0,
+        e: "Serial, przy którym reżyserowały m.in. Agnieszka Holland i Kasia Adamik, pokazywał alternatywną historię, w której PRL przetrwał." },
+      { q: "Kto zastąpił Henry'ego Cavilla w roli Geralta w 4. sezonie serialu „Wiedźmin”?", o: ["Liam Hemsworth", "Chris Hemsworth", "Michał Żebrowski", "Ben Barnes"], c: 0,
+        e: "W polskim „Wiedźminie” z 2001 r. Geralta grał Michał Żebrowski." },
+      { q: "W jakiej fikcyjnej wsi rozgrywa się serial „Ranczo”?", o: ["Wilkowyje", "Pcim Dolny", "Wólka Kosowska", "Lipce"], c: 0,
+        e: "Serial emitowano w latach 2006–2016. Lipce to wieś z „Chłopów”." },
+      { q: "O kim opowiadał film biograficzny „Zenek” (2020)?", o: ["O Zenonie Martyniuku", "O Zenonie Laskowiku", "O Zbigniewie Wodeckim", "O Krzysztofie Krawczyku"], c: 0,
+        e: "Lider zespołu Akcent jest najbardziej znanym wykonawcą disco polo." }
+    ]
+  },
+  {
+    name: "Internet, TV i gry", q: [
+      { q: "Która polska gra jako pierwsza trafiła na szkolną listę lektur (2020)?", o: ["„This War of Mine”", "„Wiedźmin 3”", "„Frostpunk”", "„Gothic”"], c: 0,
+        e: "Gra 11 bit studios z 2014 r. opowiada o cywilach w oblężonym mieście." },
+      { q: "Kiedy premierę miał Cyberpunk 2077?", o: ["W grudniu 2020", "W kwietniu 2020", "W listopadzie 2019", "W lutym 2021"], c: 0, fix: 1,
+        e: "Po kilku przesunięciach gra wyszła 10 grudnia 2020 r. Wersje na stare konsole były tak zabugowane, że Sony wycofało grę z PlayStation Store." },
+      { q: "Które polskie studio stworzyło remake Silent Hill 2 (2024)?", o: ["Bloober Team", "Techland", "CD Projekt Red", "People Can Fly"], c: 0,
+        e: "Krakowskie studio znane wcześniej z gier „Layers of Fear” i „The Medium”." },
+      { q: "Które studio stworzyło grę „Dying Light”?", o: ["Techland", "11 bit studios", "CI Games", "Flying Wild Hog"], c: 0,
+        e: "Wrocławski Techland wydał grę o zombie w 2015 r. Wcześniej zrobił serię „Dead Island”." },
+      { q: "Który polityk nagrał w maju 2020 r. zwrotkę w ramach #Hot16Challenge2?", o: ["Andrzej Duda", "Donald Tusk", "Szymon Hołownia", "Rafał Trzaskowski"], c: 0,
+        e: "Nagranie prezydenta obejrzano miliony razy. Akcja zebrała miliony złotych dla medyków." },
+      { q: "Kto stoi na czele youtuberskiej grupy Ekipa?", o: ["Friz", "Reziger", "Rafatus", "Blowek"], c: 0,
+        e: "Karol „Friz” Wiśniewski zbudował wokół Ekipy także biznes, m.in. markę lodów." },
+      { q: "Kto jest twórcą animacji „Kapitan Bomba”?", o: ["Bartosz Walaszek", "Tomasz Bagiński", "Kuba Wojewódzki", "Cezary Pazura"], c: 0,
+        e: "Walaszek sam podkłada w niej większość głosów. Tomasz Bagiński to twórca nominowanej do Oscara „Katedry”." },
+      { q: "Która stacja emituje program „Rolnik szuka żony”?", o: ["TVP1", "TVN", "Polsat", "TV4"], c: 0,
+        e: "Program jest na antenie TVP1 od 2014 r. i od lat należy do najchętniej oglądanych w telewizji." },
+      { q: "W jakim mieście dzieje się akcja serialu „Ojciec Mateusz”?", o: ["W Sandomierzu", "W Kazimierzu Dolnym", "W Zamościu", "W Toruniu"], c: 0,
+        e: "Serial z Arturem Żmijewskim ma ponad 400 odcinków i wypromował Sandomierz jako cel wycieczek." }
+    ]
+  },
+  {
+    name: "Sport i gwiazdy", q: [
+      { q: "W ile minut Robert Lewandowski strzelił 5 goli Wolfsburgowi we wrześniu 2015 r.?", o: ["9", "13", "17", "21"], c: 0, fix: 1,
+        e: "Wszedł z ławki po przerwie i strzelił pięć goli w 8 minut i 59 sekund. To cztery rekordy Guinnessa naraz." },
+      { q: "Z jakim wynikiem Iga Świątek wygrała finał Wimbledonu 2025?", o: ["6:0, 6:0", "6:2, 6:1", "6:4, 7:5", "7:6, 6:3"], c: 0, fix: 1,
+        e: "Pokonała Amandę Anisimovą bez straty gema. Taki wynik w finale Wimbledonu kobiet padł pierwszy raz od 1911 r." },
+      { q: "Który turniej wielkoszlemowy Iga Świątek wygrała jako pierwszy?", o: ["Roland Garros 2020", "Australian Open 2022", "US Open 2022", "Wimbledon 2025"], c: 0,
+        e: "Wygrała w Paryżu w październiku 2020 r., gdy pandemia przesunęła turniej na jesień, jako zawodniczka spoza czołowej pięćdziesiątki." },
+      { q: "W jakim zespole Robert Kubica wrócił do Formuły 1 w 2019 r.?", o: ["Williams", "Renault", "Alfa Romeo", "Haas"], c: 0,
+        e: "Wrócił osiem lat po wypadku w rajdzie. Potem był kierowcą rezerwowym w Alfie Romeo." },
+      { q: "Jaki sukces odniósł Robert Kubica w czerwcu 2025 r.?", o: ["Wygrał 24-godzinny wyścig Le Mans", "Wygrał Rajd Dakar", "Zdobył mistrzostwo DTM", "Wrócił do F1 jako kierowca startowy"], c: 0,
+        e: "Kubica wygrał Le Mans w Ferrari 499P zespołu AF Corse, jako pierwszy Polak w historii." },
+      { q: "Które państwo było współgospodarzem Euro 2012 razem z Polską?", o: ["Ukraina", "Czechy", "Niemcy", "Litwa"], c: 0,
+        e: "Finał odbył się w Kijowie, a mecz otwarcia w Warszawie." }
+    ]
+  }
+];
+
+const BANK_URZ = [
+  {
+    name: "Naczelne organy", q: [
+      { q: "Kieruje pracami Rady Ministrów, zapewnia wykonywanie jej polityki, kontrasygnuje akty prezydenta i jest zwierzchnikiem służbowym pracowników administracji rządowej. Co to za urząd?", o: ["Prezes Rady Ministrów", "Prezydent RP", "Szef Kancelarii Prezesa Rady Ministrów", "Marszałek Sejmu"], c: 0,
+        e: "To kompetencje premiera z art. 148 Konstytucji. Kontrasygnata premiera jest potrzebna pod aktami urzędowymi prezydenta, poza prerogatywami." },
+      { q: "Zwołuje Zgromadzenie Narodowe i mu przewodniczy, a gdy prezydent nie może sprawować urzędu, przejmuje jego obowiązki. Co to za urząd?", o: ["Marszałek Sejmu", "Marszałek Senatu", "Pierwszy Prezes Sądu Najwyższego", "Prezes Rady Ministrów"], c: 0,
+        e: "Marszałek Senatu wchodzi w te role dopiero wtedy, gdy Marszałek Sejmu nie może tego zrobić." },
+      { q: "Przejmuje obowiązki Prezydenta RP, gdy nie może tego zrobić Marszałek Sejmu, i zastępuje go w przewodniczeniu Zgromadzeniu Narodowemu. Co to za urząd?", o: ["Marszałek Senatu", "Wicemarszałek Sejmu", "Prezes Rady Ministrów", "Prezes Trybunału Konstytucyjnego"], c: 0,
+        e: "Tak było 8 lipca 2010 r., gdy Bogdan Borusewicz przez kilka godzin pełnił obowiązki prezydenta." },
+      { q: "Jest najwyższym zwierzchnikiem Sił Zbrojnych, stosuje prawo łaski, nadaje ordery i obywatelstwo polskie. Co to za urząd?", o: ["Prezydent RP", "Minister Obrony Narodowej", "Prezes Rady Ministrów", "Szef Sztabu Generalnego"], c: 0,
+        e: "To prerogatywy prezydenta, które nie wymagają kontrasygnaty premiera." },
+      { q: "Za jego pośrednictwem prezydent w czasie pokoju sprawuje zwierzchnictwo nad Siłami Zbrojnymi. Co to za urząd?", o: ["Minister Obrony Narodowej", "Szef Sztabu Generalnego", "Szef Biura Bezpieczeństwa Narodowego", "Naczelny Dowódca Sił Zbrojnych"], c: 0,
+        e: "Tak stanowi art. 134 ust. 2 Konstytucji. Naczelnego Dowódcę prezydent mianuje dopiero na czas wojny." },
+      { q: "To Rada Ministrów obradująca pod przewodnictwem prezydenta, zwoływana w sprawach szczególnej wagi. Nie ma kompetencji Rady Ministrów. Co to za organ?", o: ["Rada Gabinetowa", "Rada Bezpieczeństwa Narodowego", "Komitet Rady Ministrów", "Konwent Seniorów"], c: 0,
+        e: "Rada Gabinetowa z art. 141 Konstytucji zbiera się rzadko. Nie podejmuje decyzji, tylko omawia sprawy." },
+      { q: "Jest organem doradczym prezydenta w sprawach wewnętrznego i zewnętrznego bezpieczeństwa państwa. Co to za organ?", o: ["Rada Bezpieczeństwa Narodowego", "Rada Gabinetowa", "Biuro Bezpieczeństwa Narodowego", "Rządowy Zespół Zarządzania Kryzysowego"], c: 0,
+        e: "RBN przewiduje art. 135 Konstytucji. BBN to urząd obsługujący prezydenta w tych sprawach, nie organ doradczy z Konstytucji." },
+      { q: "Zapewnia współdziałanie klubów poselskich w sprawach działalności i trybu prac Sejmu. Tworzą go Marszałek, wicemarszałkowie i przewodniczący klubów. Co to za organ?", o: ["Konwent Seniorów", "Prezydium Sejmu", "Komisja Regulaminowa", "Zgromadzenie Narodowe"], c: 0,
+        e: "Prezydium Sejmu to tylko Marszałek i wicemarszałkowie. Konwent Seniorów dochodzi do tego przewodniczących klubów." },
+      { q: "Ma wyłączną inicjatywę ustawodawczą w sprawie ustawy budżetowej i domniemanie kompetencji w sprawach polityki państwa. Co to za organ?", o: ["Rada Ministrów", "Sejm", "Prezydent RP", "Najwyższa Izba Kontroli"], c: 0,
+        e: "Sprawy niezastrzeżone dla innych organów należą do Rady Ministrów (art. 146), a projekt budżetu może złożyć tylko ona (art. 221)." }
+    ]
+  },
+  {
+    name: "Sądy i kontrola", q: [
+      { q: "Orzeka o zgodności ustaw z Konstytucją, rozstrzyga spory kompetencyjne między centralnymi organami państwa i bada zgodność z Konstytucją celów partii politycznych. Co to za organ?", o: ["Trybunał Konstytucyjny", "Sąd Najwyższy", "Trybunał Stanu", "Naczelny Sąd Administracyjny"], c: 0,
+        e: "To kompetencje TK z art. 188 i 189 Konstytucji. Jego wyroki są ostateczne i powszechnie obowiązujące." },
+      { q: "Orzeka o odpowiedzialności konstytucyjnej prezydenta, premiera, ministrów, prezesa NBP i prezesa NIK. Co to za organ?", o: ["Trybunał Stanu", "Trybunał Konstytucyjny", "Sąd Najwyższy", "Sejmowa Komisja Odpowiedzialności Konstytucyjnej"], c: 0,
+        e: "Komisja Odpowiedzialności Konstytucyjnej tylko przygotowuje sprawę. Orzeka Trybunał Stanu." },
+      { q: "Sprawuje nadzór nad orzekaniem sądów powszechnych i wojskowych, rozpatruje kasacje i stwierdza ważność wyborów do Sejmu. Co to za organ?", o: ["Sąd Najwyższy", "Trybunał Konstytucyjny", "Krajowa Rada Sądownictwa", "Państwowa Komisja Wyborcza"], c: 0,
+        e: "PKW organizuje wybory i ogłasza wyniki, ale ich ważność stwierdza SN." },
+      { q: "Nadzoruje orzekanie wojewódzkich sądów administracyjnych i rozpoznaje skargi kasacyjne od ich orzeczeń. Co to za organ?", o: ["Naczelny Sąd Administracyjny", "Sąd Najwyższy", "Trybunał Konstytucyjny", "Samorządowe Kolegium Odwoławcze"], c: 0,
+        e: "SKO rozpatruje odwołania od decyzji samorządu, ale to organ administracji, nie sąd." },
+      { q: "Stoi na straży niezależności sądów i niezawisłości sędziów oraz przedstawia prezydentowi wnioski o powołanie sędziów. Co to za organ?", o: ["Krajowa Rada Sądownictwa", "Ministerstwo Sprawiedliwości", "Pierwszy Prezes Sądu Najwyższego", "Trybunał Konstytucyjny"], c: 0,
+        e: "Bez wniosku KRS prezydent nie może powołać sędziego (art. 179 i 186 Konstytucji)." },
+      { q: "Kontroluje administrację rządową, NBP i państwowe osoby prawne pod względem legalności, gospodarności, celowości i rzetelności. Podlega Sejmowi. Co to za organ?", o: ["Najwyższa Izba Kontroli", "Regionalna Izba Obrachunkowa", "Centralne Biuro Antykorupcyjne", "Krajowa Administracja Skarbowa"], c: 0,
+        e: "NIK jest naczelnym organem kontroli państwowej. Samorządy kontrolują pod względem finansów regionalne izby obrachunkowe." },
+      { q: "Nadzoruje gospodarkę finansową samorządu terytorialnego i wydaje opinie o projektach budżetów gmin. Co to za organ?", o: ["Regionalna Izba Obrachunkowa", "Najwyższa Izba Kontroli", "Wojewoda", "Samorządowe Kolegium Odwoławcze"], c: 0,
+        e: "RIO działają w każdym województwie. Kontrolują samorządy pod względem zgodności z prawem i dokumentacji." },
+      { q: "Stoi na straży wolności i praw człowieka i obywatela, może zaskarżyć ustawę do TK i co roku informuje Sejm o stanie przestrzegania praw. Co to za urząd?", o: ["Rzecznik Praw Obywatelskich", "Rzecznik Praw Dziecka", "Prokurator Generalny", "Rzecznik Praw Pacjenta"], c: 0,
+        e: "RPO jest niezależny i odpowiada tylko przed Sejmem. Rzecznik Praw Dziecka ma węższy zakres." },
+      { q: "Jest naczelnym organem prokuratury. Od 2016 r. funkcję tę pełni jednocześnie Minister Sprawiedliwości. Co to za urząd?", o: ["Prokurator Generalny", "Prokurator Krajowy", "Pierwszy Prezes Sądu Najwyższego", "Rzecznik Praw Obywatelskich"], c: 0,
+        e: "Prokurator Krajowy jest pierwszym zastępcą Prokuratora Generalnego." },
+      { q: "Nadzoruje przestrzeganie prawa pracy, w tym bezpieczeństwa i higieny pracy. Podlega Sejmowi. Co to za organ?", o: ["Państwowa Inspekcja Pracy", "Zakład Ubezpieczeń Społecznych", "Rada Dialogu Społecznego", "Główny Inspektor Sanitarny"], c: 0,
+        e: "PIP podlega Sejmowi, a nadzór nad nią sprawuje Rada Ochrony Pracy." }
+    ]
+  },
+  {
+    name: "Urzędy i służby", q: [
+      { q: "Ma wyłączne prawo emisji pieniądza oraz ustalania i realizowania polityki pieniężnej i odpowiada za wartość polskiego pieniądza. Co to za organ?", o: ["Narodowy Bank Polski", "Ministerstwo Finansów", "Komisja Nadzoru Finansowego", "Bank Gospodarstwa Krajowego"], c: 0,
+        e: "Tak stanowi art. 227 Konstytucji. BGK to państwowy bank rozwoju, który nie emituje pieniądza." },
+      { q: "Corocznie ustala założenia polityki pieniężnej i decyduje o wysokości stóp procentowych NBP. Co to za organ?", o: ["Rada Polityki Pieniężnej", "Zarząd NBP", "Komisja Nadzoru Finansowego", "Rada Ministrów"], c: 0,
+        e: "RPP liczy 10 osób: prezesa NBP i po trzech członków powoływanych przez Prezydenta, Sejm i Senat." },
+      { q: "Nadzoruje rynek bankowy, kapitałowy, ubezpieczeniowy i emerytalny. Co to za organ?", o: ["Komisja Nadzoru Finansowego", "Narodowy Bank Polski", "Urząd Ochrony Konkurencji i Konsumentów", "Bankowy Fundusz Gwarancyjny"], c: 0,
+        e: "KNF wydaje m.in. zezwolenia na działalność banków. Pieniądze klientów upadłych banków wypłaca BFG." },
+      { q: "Stoi na straży wolności słowa, prawa do informacji i interesu publicznego w radiofonii i telewizji oraz przyznaje koncesje nadawcom. Co to za organ?", o: ["Krajowa Rada Radiofonii i Telewizji", "Rada Mediów Narodowych", "Urząd Komunikacji Elektronicznej", "Ministerstwo Kultury"], c: 0,
+        e: "KRRiT to organ konstytucyjny (art. 213). Częstotliwości jako zasób techniczny rozdziela UKE." },
+      { q: "Chroni konkurencję i konsumentów, nakłada kary za zmowy cenowe i nadużywanie pozycji dominującej, zgadza się na fuzje firm. Co to za urząd?", o: ["Prezes UOKiK", "Komisja Nadzoru Finansowego", "Rzecznik Finansowy", "Prezes URE"], c: 0,
+        e: "URE reguluje rynek energii i zatwierdza taryfy, a Rzecznik Finansowy pomaga klientom w sporach z instytucjami finansowymi." },
+      { q: "Nadzoruje przetwarzanie danych osobowych i nakłada kary za naruszenie RODO. Co to za urząd?", o: ["Prezes Urzędu Ochrony Danych Osobowych", "Rzecznik Praw Obywatelskich", "Generalny Inspektor Informacji Finansowej", "Prezes Urzędu Komunikacji Elektronicznej"], c: 0,
+        e: "UODO zastąpił w 2018 r. Generalnego Inspektora Ochrony Danych Osobowych (GIODO)." },
+      { q: "Gromadzi dokumenty organów bezpieczeństwa PRL, prowadzi śledztwa w sprawie zbrodni nazistowskich i komunistycznych oraz prowadzi lustrację. Co to za instytucja?", o: ["Instytut Pamięci Narodowej", "Archiwum Akt Nowych", "Agencja Bezpieczeństwa Wewnętrznego", "Rzecznik Interesu Publicznego"], c: 0,
+        e: "IPN działa od 2000 r. Lustrację przejął w 2007 r. od zlikwidowanego Rzecznika Interesu Publicznego." },
+      { q: "Zwalcza korupcję w instytucjach publicznych i w gospodarce oraz kontroluje oświadczenia majątkowe osób publicznych. Co to za służba?", o: ["Centralne Biuro Antykorupcyjne", "Agencja Bezpieczeństwa Wewnętrznego", "Centralne Biuro Śledcze Policji", "Najwyższa Izba Kontroli"], c: 0,
+        e: "CBA powstało w 2006 r. CBŚP walczy z przestępczością zorganizowaną." },
+      { q: "Rozpoznaje zagrożenia bezpieczeństwa wewnętrznego państwa, prowadzi kontrwywiad i przeciwdziała terroryzmowi. Co to za służba?", o: ["Agencja Bezpieczeństwa Wewnętrznego", "Agencja Wywiadu", "Służba Kontrwywiadu Wojskowego", "Służba Ochrony Państwa"], c: 0,
+        e: "Agencja Wywiadu działa za granicą, a SKW zajmuje się kontrwywiadem w wojsku." },
+      { q: "Chroni najważniejsze osoby w państwie, w tym prezydenta i premiera, oraz wybrane obiekty. W 2018 r. zastąpiła Biuro Ochrony Rządu. Co to za służba?", o: ["Służba Ochrony Państwa", "Żandarmeria Wojskowa", "Straż Marszałkowska", "Agencja Bezpieczeństwa Wewnętrznego"], c: 0,
+        e: "Straż Marszałkowska chroni budynki Sejmu i Senatu, a Żandarmeria Wojskowa jest policją wojskową." },
+      { q: "Czuwa nad przestrzeganiem prawa wyborczego, ogłasza wyniki wyborów i przyjmuje sprawozdania finansowe partii. Co to za organ?", o: ["Państwowa Komisja Wyborcza", "Sąd Najwyższy", "Krajowe Biuro Wyborcze", "Ministerstwo Spraw Wewnętrznych"], c: 0,
+        e: "PKW składa się z sędziów i osób wskazanych przez Sejm. Krajowe Biuro Wyborcze tylko ją obsługuje." },
+      { q: "Jest forum dialogu rządu, związków zawodowych i organizacji pracodawców. W 2015 r. zastąpiła Komisję Trójstronną. Co to za organ?", o: ["Rada Dialogu Społecznego", "Rada Ochrony Pracy", "Państwowa Inspekcja Pracy", "Rada Gabinetowa"], c: 0,
+        e: "RDS opiniuje m.in. projekty płacy minimalnej i budżetu." }
+    ]
+  },
+  {
+    name: "Samorząd i Europa", q: [
+      { q: "Reprezentuje Radę Ministrów w województwie, jest zwierzchnikiem zespolonej administracji rządowej i nadzoruje legalność uchwał samorządów. Co to za urząd?", o: ["Wojewoda", "Marszałek województwa", "Starosta", "Przewodniczący sejmiku województwa"], c: 0,
+        e: "Wojewodę powołuje premier. Marszałek województwa kieruje samorządem województwa, a nie administracją rządową." },
+      { q: "Przewodniczy zarządowi województwa, kieruje urzędem marszałkowskim i reprezentuje samorząd województwa na zewnątrz. Co to za urząd?", o: ["Marszałek województwa", "Wojewoda", "Przewodniczący sejmiku", "Starosta"], c: 0,
+        e: "Wybiera go sejmik województwa. Wojewoda to przedstawiciel rządu w tym samym województwie." },
+      { q: "Przewodniczy zarządowi powiatu i kieruje jego urzędem. Co to za urząd?", o: ["Starosta", "Wójt", "Przewodniczący rady powiatu", "Wojewoda"], c: 0,
+        e: "Starostę wybiera rada powiatu. Wójta, burmistrza i prezydenta miasta wybierają mieszkańcy w wyborach bezpośrednich." },
+      { q: "Jest organem stanowiącym i kontrolnym gminy, uchwala jej budżet i udziela absolutorium. Co to za organ?", o: ["Rada gminy", "Wójt", "Sołtys", "Regionalna Izba Obrachunkowa"], c: 0,
+        e: "Wójt (burmistrz, prezydent miasta) jest organem wykonawczym. Sołtys kieruje sołectwem, jednostką pomocniczą gminy." },
+      { q: "Ma co do zasady wyłączną inicjatywę ustawodawczą w UE i czuwa nad stosowaniem traktatów, stąd przydomek „strażniczka traktatów”. Co to za instytucja?", o: ["Komisja Europejska", "Rada Unii Europejskiej", "Parlament Europejski", "Rada Europejska"], c: 0,
+        e: "Projekty aktów prawnych zgłasza Komisja, a przyjmują je Parlament Europejski i Rada UE." },
+      { q: "Tworzą ją szefowie państw lub rządów państw członkowskich; wyznacza ogólne kierunki i priorytety polityczne UE. Co to za instytucja?", o: ["Rada Europejska", "Rada Unii Europejskiej", "Rada Europy", "Komisja Europejska"], c: 0,
+        e: "Rada UE to ministrowie państw członkowskich, a Rada Europy to osobna organizacja spoza UE." },
+      { q: "Organizacja międzynarodowa z siedzibą w Strasburgu, niebędąca organem UE, do której należy kilkadziesiąt państw Europy. Co to za instytucja?", o: ["Rada Europy", "Rada Europejska", "Parlament Europejski", "OBWE"], c: 0,
+        e: "Rada Europy stworzyła Europejską Konwencję Praw Człowieka. Parlament Europejski też obraduje w Strasburgu, ale jest instytucją UE." },
+      { q: "Rozpatruje skargi na naruszenie Europejskiej Konwencji Praw Człowieka przez państwa. Co to za sąd?", o: ["Europejski Trybunał Praw Człowieka", "Trybunał Sprawiedliwości UE", "Międzynarodowy Trybunał Sprawiedliwości", "Międzynarodowy Trybunał Karny"], c: 0,
+        e: "ETPCz działa w Strasburgu przy Radzie Europy. TSUE w Luksemburgu stosuje prawo Unii." },
+      { q: "Odpowiada na pytania prejudycjalne sądów krajowych o wykładnię prawa Unii. Co to za sąd?", o: ["Trybunał Sprawiedliwości UE", "Europejski Trybunał Praw Człowieka", "Europejski Trybunał Obrachunkowy", "Sąd Najwyższy"], c: 0,
+        e: "TSUE ma siedzibę w Luksemburgu. Europejski Trybunał Obrachunkowy nie jest sądem, tylko kontroluje finanse UE." },
+      { q: "Rozpatruje skargi na niewłaściwe administrowanie w instytucjach i organach Unii Europejskiej. Co to za urząd?", o: ["Europejski Rzecznik Praw Obywatelskich", "Europejski Inspektor Ochrony Danych", "Prokuratura Europejska", "Europejski Trybunał Obrachunkowy"], c: 0,
+        e: "Europejskiego Rzecznika wybiera Parlament Europejski. Prokuratura Europejska ściga przestępstwa przeciw budżetowi UE." }
+    ]
+  }
+];
+
+const BANK_UZW = [
+  {
+    name: "Alkohol", q: [
+      { q: "Która poprawka do Konstytucji USA zniosła prohibicję w 1933 r.?", o: ["18.", "19.", "21.", "25."], c: 2, fix: 1,
+        e: "18. poprawka wprowadziła prohibicję w 1920 r., a 21. ją uchyliła. To jedyna poprawka, która w całości uchyliła inną." },
+      { q: "Z czego wolno wytwarzać wódkę z oznaczeniem geograficznym „Polska Wódka”?", o: ["Tylko z polskich zbóż lub ziemniaków", "Z dowolnych zbóż destylowanych w Polsce", "Tylko z żyta", "Z polskich zbóż, ziemniaków lub buraków cukrowych"], c: 0,
+        e: "Cały proces, od surowca po butelkowanie, musi przebiegać w Polsce. Dozwolone zboża to żyto, pszenica, jęczmień, owies i pszenżyto." },
+      { q: "Jaką moc ma klasyczny polski spirytus rektyfikowany?", o: ["88%", "92%", "95%", "99%"], c: 2, fix: 1,
+        e: "Zwykłą destylacją nie da się przekroczyć ok. 95,6%, bo woda i etanol tworzą wtedy azeotrop." },
+      { q: "Której substancji z piołunu przypisywano szkodliwe działanie absyntu, za które zakazano go m.in. we Francji w 1915 r.?", o: ["Tujonu", "Kumaryny", "Anetolu", "Absyntyny"], c: 0,
+        e: "Współczesne badania pokazały, że tujonu w absyncie było zbyt mało, by tłumaczyć „absyntyzm”. Winny był głównie sam alkohol." },
+      { q: "Dlaczego oryginalna Żubrówka była przez lata zakazana w USA?", o: ["Przez kumarynę z trawy żubrowej", "Przez zbyt wysoką moc", "Przez tujon z dodatku piołunu", "Przez barwnik z trawy"], c: 0,
+        e: "Amerykańskie przepisy zakazują kumaryny w żywności. Na rynek USA powstała wersja bez kumaryny." },
+      { q: "Którego składnika nie wymieniało bawarskie Reinheitsgebot z 1516 r.?", o: ["Drożdży", "Chmielu", "Jęczmienia", "Wody"], c: 0,
+        e: "Prawo czystości piwa dopuszczało wodę, jęczmień i chmiel. Roli drożdży w fermentacji wtedy jeszcze nie znano." },
+      { q: "Ile najmniej kukurydzy musi zawierać zacier bourbona?", o: ["40%", "51%", "65%", "80%"], c: 1, fix: 1,
+        e: "Bourbon dojrzewa też obowiązkowo w nowych, wypalanych od środka beczkach dębowych." },
+      { q: "Ile co najmniej lat musi dojrzewać szkocka whisky w dębowych beczkach w Szkocji?", o: ["2", "3", "5", "10"], c: 1, fix: 1,
+        e: "Trzy lata to ustawowe minimum. Wiek podany na etykiecie dotyczy najmłodszego destylatu w butelce." },
+      { q: "Czym jest „remuage” w produkcji szampana?", o: ["Stopniowym obracaniem butelek, by osad zsunął się do szyjki", "Mieszaniem win z różnych roczników", "Dolewaniem słodkiego likieru przed zakorkowaniem", "Drugą fermentacją w kadziach"], c: 0,
+        e: "Osad usuwa się potem przy degorżowaniu, a dolewany słodki likier to dosage." },
+      { q: "Z czego destyluje się włoską grappę?", o: ["Z wytłoczyn winogron", "Z gotowego wina", "Ze śliwek", "Z fermentowanego miodu"], c: 0,
+        e: "Wytłoczyny to skórki, pestki i szypułki pozostałe po tłoczeniu. Brandy z gotowego wina to inny trunek." },
+      { q: "Z jakiej rośliny musi powstać tequila?", o: ["Z agawy niebieskiej", "Z dowolnej agawy", "Z trzciny cukrowej", "Z kaktusa peyotl"], c: 0,
+        e: "Mezcal można robić z wielu gatunków agawy, ale tequilę tylko z agawy niebieskiej odmiany Weber." },
+      { q: "Do jakiego związku wątroba najpierw przekształca etanol?", o: ["Aldehydu octowego", "Kwasu mlekowego", "Metanolu", "Acetonu"], c: 0,
+        e: "Odpowiada za to dehydrogenaza alkoholowa. Aldehyd octowy jest toksyczny i współodpowiada za objawy kaca." },
+      { q: "Od jakiego stężenia alkoholu we krwi polskie prawo mówi o stanie nietrzeźwości?", o: ["Od 0,2‰", "Powyżej 0,5‰", "Powyżej 0,8‰", "Powyżej 1‰"], c: 1, fix: 1,
+        e: "Od 0,2 do 0,5‰ to stan po użyciu alkoholu, czyli wykroczenie za kierownicą. Powyżej 0,5‰ to już przestępstwo." },
+      { q: "Któremu chemikowi przypisuje się (mylnie) ustalenie, że wódka powinna mieć 40%?", o: ["Dmitrijowi Mendelejewowi", "Ignacemu Łukasiewiczowi", "Antoine'owi Lavoisierowi", "Justusowi von Liebigowi"], c: 0,
+        e: "Mendelejew pisał doktorat o roztworach alkoholu i wody, ale nie o wódce. 40% przyjęto w Rosji wcześniej, głównie ze względów podatkowych." },
+      { q: "Z jakiej miejscowości pochodzi słynna śliwowica z oznaczeniem chronionym?", o: ["Z Łącka", "Z Szydłowa", "Z Lanckorony", "Z Zakopanego"], c: 0,
+        e: "Śliwowica łącka z Małopolski jest wpisana na unijną listę produktów regionalnych." }
+    ]
+  },
+  {
+    name: "Nikotyna i kofeina", q: [
+      { q: "Od czyjego nazwiska pochodzi słowo „nikotyna”?", o: ["Jeana Nicota, francuskiego posła w Lizbonie", "Nicolasa Monardesa, hiszpańskiego lekarza", "Nicolò Contiego, weneckiego kupca", "Niccolò Machiavellego"], c: 0,
+        e: "Nicot w XVI w. wysłał tytoń na dwór Katarzyny Medycejskiej jako lekarstwo." },
+      { q: "Kto jako pierwszy wyizolował kofeinę (1819), podobno za namową Goethego?", o: ["Friedlieb Ferdinand Runge", "Justus von Liebig", "Friedrich Sertürner", "Albert Hofmann"], c: 0,
+        e: "Goethe dał Rungemu paczkę ziaren kawy do zbadania. Sertürner wyizolował morfinę, a Hofmann odkrył działanie LSD." },
+      { q: "Czym chemicznie jest „teina” z herbaty?", o: ["Kofeiną", "Teobrominą", "Teofiliną", "L-teaniną"], c: 0,
+        e: "To ten sam związek. W herbacie działa łagodniej, bo towarzyszą mu m.in. L-teanina i garbniki." },
+      { q: "Który alkaloid kakao jest groźny dla psów?", o: ["Teobromina", "Kofeina", "Teofilina", "Anandamid"], c: 0,
+        e: "Psy rozkładają teobrominę bardzo wolno. Najwięcej jest jej w gorzkiej czekoladzie." },
+      { q: "Kto według legendy odkrył działanie kawy?", o: ["Etiopski pasterz Kaldi", "Jemeński sufi Szadili", "Turecki sułtan Sulejman", "Wiedeński kupiec Kulczycki"], c: 0,
+        e: "Kaldi miał zauważyć, że jego kozy brykają po zjedzeniu owoców kawowca. Kulczycki to bohater legendy o pierwszej kawiarni w Wiedniu." },
+      { q: "Przez przewód pokarmowy jakiego zwierzęcia przechodzą ziarna kawy kopi luwak?", o: ["Łaskuna (cywety)", "Słonia", "Nietoperza", "Pandy"], c: 0,
+        e: "Kawę z ziaren wydalonych przez słonie też się produkuje, ale sprzedaje się ją pod nazwą Black Ivory." },
+      { q: "Od kiedy w Polsce obowiązuje zakaz palenia w lokalach gastronomicznych?", o: ["Od 1 stycznia 2008", "Od 15 listopada 2010", "Od 1 maja 2012", "Od 20 maja 2016"], c: 1, fix: 1,
+        e: "Lokale mogły tylko wydzielić zamknięte palarnie z wentylacją." },
+      { q: "Od kiedy w UE zakazano sprzedaży papierosów mentolowych?", o: ["Od 2016", "Od 2018", "Od 20 maja 2020", "Od 2022"], c: 2, fix: 1,
+        e: "Dyrektywa tytoniowa z 2014 r. dała producentom papierosów mentolowych najdłuższy okres przejściowy." },
+      { q: "Z jakiej rośliny przygotowuje się yerba mate?", o: ["Z ostrokrzewu paragwajskiego", "Z krzewu herbacianego", "Z guarany", "Z koki"], c: 0,
+        e: "Yerba mate zawiera kofeinę i teobrominę. Guarana to inne pnącze z Amazonii." },
+      { q: "Z owoców jakiej palmy pochodzi „orzech” do żucia betelu?", o: ["Areki", "Kokosowej", "Daktylowej", "Olejowej"], c: 0,
+        e: "Orzech areki zawija się w liść pieprzu betelowego z wapnem. To jedna z najpopularniejszych używek Azji." },
+      { q: "Jaka substancja odpowiada za działanie liści khatu?", o: ["Katynon", "Kawaina", "Efedryna", "Harmina"], c: 0,
+        e: "Khat żuje się głównie w Jemenie i w Rogu Afryki. Kawaina pochodzi z polinezyjskiej kawy-kawy." }
+    ]
+  },
+  {
+    name: "Narkotyki: historia", q: [
+      { q: "W którym roku Albert Hofmann przypadkowo odkrył działanie LSD („Dzień Roweru”)?", o: ["1938", "1943", "1951", "1962"], c: 1, fix: 1,
+        e: "Hofmann zsyntetyzował LSD w 1938 r. w firmie Sandoz, ale działanie odkrył dopiero w 1943 r. 19 kwietnia wracał z pracy rowerem." },
+      { q: "Która firma od 1898 r. sprzedawała heroinę jako lek na kaszel?", o: ["Bayer", "Merck", "Sandoz", "Roche"], c: 0,
+        e: "Heroina była nazwą handlową Bayera. Ten sam zespół opracował w tym czasie aspirynę." },
+      { q: "Do mniej więcej którego roku Coca-Cola zawierała kokainę?", o: ["1886", "1903", "1929", "1951"], c: 1, fix: 1,
+        e: "Od początku XX w. firma używa liści koki pozbawionych kokainy, jako aromatu." },
+      { q: "Który słynny lekarz opublikował w 1884 r. entuzjastyczną pracę „Über Coca”?", o: ["Zygmunt Freud", "Carl Jung", "Robert Koch", "Ludwik Hirszfeld"], c: 0,
+        e: "Freud polecał kokainę m.in. na depresję. Później żałował tej publikacji." },
+      { q: "Które terytorium Chiny oddały Wielkiej Brytanii po I wojnie opiumowej?", o: ["Hongkong", "Makau", "Tajwan", "Szanghaj"], c: 0,
+        e: "Traktat nankiński z 1842 r. kończył wojnę o prawo Brytyjczyków do handlu opium. Makau było kolonią portugalską." },
+      { q: "Od kogo pochodzi nazwa morfiny, wyizolowanej z opium przez Sertürnera na początku XIX w.?", o: ["Od Morfeusza, boga snów", "Od Morfiusza, wynalazcy strzykawki", "Od greckiego „morfe”, czyli kształt", "Od miasta Morfou na Cyprze"], c: 0,
+        e: "Sertürner nazwał ją „morphium” od greckiego boga snów." },
+      { q: "Kto w 1964 r. wyizolował i opisał THC?", o: ["Raphael Mechoulam", "Albert Hofmann", "Alexander Shulgin", "Timothy Leary"], c: 0,
+        e: "Izraelski chemik odkrył też później układ endokannabinoidowy w ludzkim organizmie." },
+      { q: "Które państwo jako pierwsze na świecie zalegalizowało rekreacyjną marihuanę (2013)?", o: ["Urugwaj", "Kanada", "Holandia", "Portugalia"], c: 0,
+        e: "Kanada zrobiła to w 2018 r. Holandia tylko toleruje sprzedaż w coffee shopach." },
+      { q: "Jak nazywa się holenderska polityka tolerowania sprzedaży marihuany?", o: ["Gedoogbeleid", "Polderbeleid", "Verzuiling", "Drugsvrij"], c: 0,
+        e: "Sprzedaż w coffee shopach formalnie jest nielegalna, ale prokuratura jej nie ściga." },
+      { q: "Który kraj w 2001 r. zdekryminalizował posiadanie wszystkich narkotyków na własny użytek?", o: ["Portugalia", "Szwajcaria", "Czechy", "Hiszpania"], c: 0,
+        e: "Posiadanie stało się wykroczeniem administracyjnym, a sprawy trafiają do komisji, które mogą skierować na leczenie." },
+      { q: "Pod jakim pseudonimem Ross Ulbricht prowadził darknetowy rynek Silk Road?", o: ["Dread Pirate Roberts", "Satoshi", "Heisenberg", "The Dude"], c: 0,
+        e: "Ulbricht dostał dożywocie w 2015 r. W styczniu 2025 r. ułaskawił go Donald Trump." },
+      { q: "Jaką substancję zawiera kaktus peyotl?", o: ["Meskalinę", "Psylocybinę", "DMT", "Ibogainę"], c: 0,
+        e: "Opisał ją m.in. Aldous Huxley w „Drzwiach percepcji”. Ibogaina pochodzi z afrykańskiego krzewu iboga." },
+      { q: "Dlaczego DMT w ayahuasce działa po wypiciu, choć samo nie działałoby doustnie?", o: ["Pnącze Banisteriopsis caapi zawiera harminę blokującą enzym MAO", "Napar jest gotowany z alkoholem", "Liście kawy przyspieszają wchłanianie", "DMT działa doustnie bez dodatków"], c: 0,
+        e: "Bez inhibitora monoaminooksydazy DMT rozłożyłoby się w przewodzie pokarmowym." },
+      { q: "Jaki grzyb jest najpopularniejszym w Polsce źródłem psylocybiny?", o: ["Łysiczka lancetowata", "Muchomor czerwony", "Czernidłak kołpakowaty", "Gąska zielonka"], c: 0,
+        e: "Muchomor czerwony działa przez inne związki, kwas ibotenowy i muscymol." }
+    ]
+  },
+  {
+    name: "Polska i prawo", q: [
+      { q: "Jak w PRL nazywano narkotyk wytwarzany chałupniczo ze słomy makowej?", o: ["Kompot", "Brown sugar", "Polska biała", "Makiwara"], c: 0,
+        e: "Tzw. polska heroina była problemem od lat 70. Jej rozpowszechnienie skłoniło do pierwszej ustawy o narkomanii w 1985 r." },
+      { q: "Kto w 1978 r. założył stowarzyszenie Monar?", o: ["Marek Kotański", "Jerzy Owsiak", "Jacek Kuroń", "Ksiądz Jan Kaczkowski"], c: 0,
+        e: "Kotański był psychologiem i prowadził ośrodki dla osób uzależnionych oraz bezdomnych." },
+      { q: "Który organ w październiku 2010 r. zamknął sklepy z dopalaczami w całej Polsce?", o: ["Główny Inspektor Sanitarny", "Policja na polecenie MSWiA", "Prokurator Generalny", "Państwowa Inspekcja Farmaceutyczna"], c: 0,
+        e: "Inspekcja sanitarna zamknęła ponad tysiąc punktów po fali zatruć. Akcję ogłosił premier Donald Tusk." },
+      { q: "Od którego roku w Polsce można legalnie stosować medyczną marihuanę z recepty?", o: ["2013", "2015", "2017", "2020"], c: 2, fix: 1,
+        e: "Ustawa weszła w życie 1 listopada 2017 r. Susz przyrządza się w aptece jako lek recepturowy." },
+      { q: "Który artykuł ustawy o przeciwdziałaniu narkomanii pozwala umorzyć sprawę posiadania nieznacznej ilości na własny użytek?", o: ["Art. 62a", "Art. 58", "Art. 62 ust. 3", "Art. 70"], c: 0,
+        e: "Przepis obowiązuje od 2011 r. Prokurator lub sąd może umorzyć sprawę, jeśli ukaranie byłoby niecelowe." },
+      { q: "Jak nazywa się ustawa, która od 1982 r. reguluje sprzedaż alkoholu w Polsce?", o: ["O wychowaniu w trzeźwości i przeciwdziałaniu alkoholizmowi", "O przeciwdziałaniu narkomanii", "O ochronie zdrowia przed następstwami używania alkoholu", "Prawo spirytusowe"], c: 0,
+        e: "To na jej podstawie gminy wydają zezwolenia na sprzedaż alkoholu i mogą wprowadzać nocną prohibicję." },
+      { q: "Który polski artysta dopisywał na swoich portretach skróty substancji, pod których wpływem je malował?", o: ["Stanisław Ignacy Witkiewicz", "Jacek Malczewski", "Stanisław Wyspiański", "Zdzisław Beksiński"], c: 0,
+        e: "Witkacy oznaczał też, że w czasie pracy nie palił ani nie pił. Napisał książkę „Narkotyki – niemyte dusze”." }
+    ]
+  }
+];
+
+const BANK_KSH = [
+  {
+    name: "Spółki osobowe", q: [
+      { q: "Kiedy wierzyciel spółki jawnej może prowadzić egzekucję z majątku osobistego wspólnika?", o: ["Gdy egzekucja z majątku spółki okaże się bezskuteczna", "Od razu, równolegle z egzekucją ze spółki", "Tylko gdy wspólnik prowadził sprawy spółki", "Nigdy, wspólnik odpowiada tylko wkładem"], c: 0,
+        e: "To subsydiarność odpowiedzialności z art. 31 KSH. Pozew można złożyć wcześniej, ale egzekucja z majątku wspólnika wchodzi w grę dopiero po bezskutecznej egzekucji ze spółki." },
+      { q: "Za co NIE odpowiada partner w spółce partnerskiej?", o: ["Za zobowiązania z wykonywania wolnego zawodu przez innych partnerów", "Za zobowiązania z umów najmu zawartych przez spółkę", "Za zobowiązania podatkowe spółki", "Za własne błędy w wykonywaniu zawodu"], c: 0,
+        e: "Tak stanowi art. 95 KSH, chyba że umowa spółki stanowi inaczej. Za pozostałe zobowiązania spółki partner odpowiada jak wspólnik jawny." },
+      { q: "Co się dzieje, gdy nazwisko komandytariusza znajdzie się w firmie spółki komandytowej?", o: ["Odpowiada wobec osób trzecich jak komplementariusz", "Wpis jest nieważny z mocy prawa", "Traci prawo do zysku", "Musi podwyższyć sumę komandytową"], c: 0,
+        e: "Art. 104 § 4 KSH. Firma spółki komandytowej powinna zawierać nazwisko co najmniej jednego komplementariusza." },
+      { q: "W jakiej formie zawiera się umowę spółki komandytowej (poza systemem S24)?", o: ["Aktu notarialnego", "Pisemnej pod rygorem nieważności", "Pisemnej z podpisami notarialnie poświadczonymi", "Dowolnej"], c: 0,
+        e: "Umowa spółki jawnej wymaga tylko formy pisemnej pod rygorem nieważności. Spółkę komandytową można też założyć na wzorcu w systemie S24." },
+      { q: "Ile wynosi minimalny kapitał zakładowy spółki komandytowo-akcyjnej?", o: ["5 000 zł", "50 000 zł", "100 000 zł", "Nie ma minimum"], c: 1, fix: 1,
+        e: "50 tys. zł. Akcjonariusz S.K.A. nie odpowiada za zobowiązania spółki, a komplementariusz odpowiada całym majątkiem." },
+      { q: "Od kiedy spółki komandytowe co do zasady są podatnikami CIT?", o: ["Od 2014", "Od 2019", "Od 2021", "Od 2024"], c: 2, fix: 1,
+        e: "Od 1 stycznia 2021 r., a spółki, które wybrały odroczenie, od 1 maja 2021 r. Spółki komandytowo-akcyjne były podatnikami CIT już od 2014 r." },
+      { q: "Gdzie uregulowano spółkę cywilną?", o: ["W Kodeksie cywilnym", "W Kodeksie spółek handlowych", "W Prawie przedsiębiorców", "W ustawie o swobodzie działalności gospodarczej"], c: 0,
+        e: "Spółka cywilna to umowa z art. 860–875 Kodeksu cywilnego. Nie ma osobowości prawnej, a przedsiębiorcami są jej wspólnicy." },
+      { q: "Jak może działać komandytariusz w imieniu spółki komandytowej?", o: ["Tylko jako pełnomocnik albo prokurent", "Zawsze, jak każdy wspólnik", "Tylko za zgodą sądu rejestrowego", "W żaden sposób"], c: 0,
+        e: "Komandytariusz z mocy prawa nie reprezentuje spółki (art. 117 i 118 KSH). Jeśli działa bez umocowania, odpowiada jak komplementariusz." }
+    ]
+  },
+  {
+    name: "Sp. z o.o.", q: [
+      { q: "Jaki jest minimalny kapitał zakładowy i minimalna wartość nominalna udziału w sp. z o.o.?", o: ["5 000 zł i 50 zł", "5 000 zł i 1 zł", "10 000 zł i 100 zł", "1 zł i 1 zł"], c: 0,
+        e: "Tak stanowi art. 154 KSH. 1 zł kapitału akcyjnego to minimum w prostej spółce akcyjnej." },
+      { q: "Który artykuł KSH przewiduje odpowiedzialność członków zarządu sp. z o.o. za jej zobowiązania przy bezskutecznej egzekucji?", o: ["Art. 293", "Art. 299", "Art. 233", "Art. 586"], c: 1, fix: 1,
+        e: "Art. 299. Członek zarządu może się zwolnić m.in., jeśli wykaże, że we właściwym czasie złożono wniosek o upadłość. Art. 293 dotyczy szkody wyrządzonej samej spółce." },
+      { q: "Przy jakiej stracie zarząd sp. z o.o. musi zwołać zgromadzenie w sprawie dalszego istnienia spółki?", o: ["Gdy przekracza sumę kapitałów zapasowego i rezerwowych oraz połowy kapitału zakładowego", "Gdy przekracza cały kapitał zakładowy", "Gdy przekracza jedną trzecią kapitału zakładowego", "Gdy spółka ma stratę dwa lata z rzędu"], c: 0,
+        e: "To art. 233 KSH. W spółce akcyjnej (art. 397) próg to jedna trzecia kapitału zakładowego." },
+      { q: "Kiedy w sp. z o.o. trzeba powołać radę nadzorczą lub komisję rewizyjną?", o: ["Gdy kapitał przekracza 500 tys. zł i jest więcej niż 25 wspólników", "Gdy kapitał przekracza 100 tys. zł", "Gdy spółka zatrudnia ponad 50 osób", "Zawsze"], c: 0,
+        e: "Oba warunki z art. 213 § 2 KSH muszą być spełnione łącznie. W pozostałych spółkach organ nadzoru jest dobrowolny." },
+      { q: "Jaką większością głosów zmienia się umowę sp. z o.o.?", o: ["Bezwzględną", "2/3 głosów", "3/4 głosów", "Jednomyślnie"], c: 1, fix: 1,
+        e: "Art. 246 KSH. Istotna zmiana przedmiotu działalności wymaga już 3/4 głosów." },
+      { q: "Ile maksymalnie głosów może dawać jeden uprzywilejowany udział w sp. z o.o.?", o: ["2", "3", "5", "Bez ograniczeń"], c: 1, fix: 1,
+        e: "Art. 174 § 4 KSH. W spółce akcyjnej limit to 2 głosy na akcję." },
+      { q: "Kto nie może samodzielnie zawiązać sp. z o.o.?", o: ["Inna jednoosobowa sp. z o.o.", "Osoba fizyczna", "Spółka akcyjna", "Fundacja"], c: 0,
+        e: "Zakaz z art. 151 § 2 KSH ma zapobiegać tworzeniu łańcuchów spółek bez żadnego wspólnika-człowieka." },
+      { q: "W jakim terminie trzeba odbyć zwyczajne zgromadzenie wspólników sp. z o.o.?", o: ["W ciągu 3 miesięcy po roku obrotowym", "W ciągu 6 miesięcy po roku obrotowym", "Do końca roku kalendarzowego", "W ciągu 30 dni od sporządzenia sprawozdania"], c: 1, fix: 1,
+        e: "Art. 231 KSH. Zgromadzenie zatwierdza sprawozdania, dzieli zysk i udziela absolutorium." },
+      { q: "Jak nazywa się powództwo wspólnika o naprawienie szkody wyrządzonej spółce, gdy spółka sama nie pozwała (art. 295 KSH)?", o: ["Actio pro socio", "Actio pauliana", "Actio negatoria", "Actio de in rem verso"], c: 0,
+        e: "Actio pauliana to skarga pauliańska wierzyciela z Kodeksu cywilnego." },
+      { q: "Co od października 2022 r. chroni członka zarządu działającego „w granicach uzasadnionego ryzyka gospodarczego”?", o: ["Reguła biznesowej oceny sytuacji (business judgment rule)", "Zasada pomocniczości", "Domniemanie dobrej wiary z Kodeksu cywilnego", "Ubezpieczenie D&O"], c: 0,
+        e: "Reguła trafiła do art. 293 § 3 i art. 483 § 3 KSH razem z prawem holdingowym." }
+    ]
+  },
+  {
+    name: "S.A. i P.S.A.", q: [
+      { q: "Jaki jest minimalny kapitał zakładowy i minimalna wartość nominalna akcji w spółce akcyjnej?", o: ["100 000 zł i 1 grosz", "100 000 zł i 1 zł", "50 000 zł i 1 grosz", "500 000 zł i 10 zł"], c: 0,
+        e: "Art. 308 KSH. Spółka europejska (SE) potrzebuje co najmniej 120 tys. euro." },
+      { q: "Od kiedy można zakładać prostą spółkę akcyjną?", o: ["Od 1 stycznia 2020", "Od 1 lipca 2021", "Od 1 marca 2021", "Od 13 października 2022"], c: 1, fix: 1,
+        e: "1 marca 2021 r. weszła w życie dematerializacja akcji, a 13 października 2022 r. prawo holdingowe." },
+      { q: "Jaki jest minimalny kapitał akcyjny prostej spółki akcyjnej?", o: ["1 zł", "100 zł", "5 000 zł", "Nie ma minimum"], c: 0, fix: 1,
+        e: "Kapitał akcyjny nie jest podzielony na wartości nominalne, a akcje P.S.A. nie mają wartości nominalnej." },
+      { q: "Który typ spółki może mieć radę dyrektorów zamiast zarządu i rady nadzorczej (system monistyczny)?", o: ["Prosta spółka akcyjna", "Spółka akcyjna", "Sp. z o.o.", "Spółka komandytowo-akcyjna"], c: 0,
+        e: "W P.S.A. wspólnicy wybierają między zarządem z opcjonalną radą nadzorczą a radą dyrektorów." },
+      { q: "Ile maksymalnie głosów może dawać akcja uprzywilejowana w spółce akcyjnej (niepublicznej)?", o: ["2", "3", "5", "10"], c: 0, fix: 1,
+        e: "Art. 352 KSH. Spółka publiczna nie może w ogóle mieć akcji uprzywilejowanych co do głosu." },
+      { q: "Jaką większością zmienia się statut spółki akcyjnej?", o: ["Bezwzględną", "2/3 głosów", "3/4 głosów", "4/5 głosów"], c: 2, fix: 1,
+        e: "Art. 415 KSH wymaga 3/4 głosów. W sp. z o.o. do zmiany umowy wystarczą 2/3." },
+      { q: "Ile procent kapitału musi mieć akcjonariusz, by przymusowo wykupić akcje mniejszości (squeeze-out, art. 418 KSH)?", o: ["75%", "90%", "95%", "99%"], c: 2, fix: 1,
+        e: "Do 5 akcjonariuszy mających łącznie co najmniej 95% kapitału może wykupić pozostałych. Art. 418¹ daje mniejszości odwrotne prawo żądania wykupu (sell-out)." },
+      { q: "Do jakiej części kapitału zakładowego i na jak długo statut może upoważnić zarząd do podwyższenia kapitału (kapitał docelowy)?", o: ["Do 3/4, na 3 lata", "Do 1/2, na 5 lat", "Do całości, na 2 lata", "Do 1/3, na rok"], c: 0, fix: 1,
+        e: "Art. 444 KSH. Upoważnienie można odnawiać kolejnymi zmianami statutu." },
+      { q: "Od kiedy akcje wszystkich spółek akcyjnych muszą być zdematerializowane (w rejestrze akcjonariuszy lub depozycie)?", o: ["Od 1 stycznia 2020", "Od 1 marca 2021", "Od 1 lipca 2021", "Od 13 października 2022"], c: 1, fix: 1,
+        e: "Papierowe dokumenty akcji straciły moc 1 marca 2021 r. Nowelizacja z lutego 2026 r. domyka tę reformę." },
+      { q: "Przy jakiej stracie zarząd spółki akcyjnej musi zwołać walne zgromadzenie w sprawie dalszego istnienia spółki?", o: ["Gdy przekracza sumę kapitałów zapasowego i rezerwowych oraz jednej trzeciej kapitału zakładowego", "Gdy przekracza połowę kapitału zakładowego", "Gdy przekracza cały kapitał zakładowy", "Gdy wynosi ponad milion złotych"], c: 0,
+        e: "Art. 397 KSH. W sp. z o.o. próg to połowa kapitału zakładowego (art. 233)." }
+    ]
+  },
+  {
+    name: "Rejestr i różności", q: [
+      { q: "Jaki akt obowiązywał przed Kodeksem spółek handlowych?", o: ["Kodeks handlowy z 1934 r.", "Kodeks zobowiązań z 1933 r.", "Ustawa o przedsiębiorstwach państwowych z 1981 r.", "Prawo działalności gospodarczej z 1999 r."], c: 0,
+        e: "KSH uchwalono 15 września 2000 r. i obowiązuje od 1 stycznia 2001 r. Kodeks handlowy był rozporządzeniem Prezydenta RP." },
+      { q: "Ile typów spółek handlowych przewiduje dziś KSH?", o: ["5", "6", "7", "8"], c: 2, fix: 1,
+        e: "Jawna, partnerska, komandytowa, komandytowo-akcyjna, z o.o., prosta spółka akcyjna i akcyjna. Spółka cywilna nie jest handlowa." },
+      { q: "Od kiedy wszystkie wnioski do KRS składa się wyłącznie elektronicznie?", o: ["Od 1 stycznia 2019", "Od 1 lipca 2021", "Od 1 marca 2021", "Od 1 stycznia 2023"], c: 1, fix: 1,
+        e: "Wnioski składa się przez Portal Rejestrów Sądowych. Papierowe akta rejestrowe zastąpiły elektroniczne." },
+      { q: "Komu nie można udzielić prokury?", o: ["Osobie prawnej", "Członkowi rady nadzorczej sp. z o.o.", "Pracownikowi spółki", "Cudzoziemcowi"], c: 0,
+        e: "Prokurentem może być tylko osoba fizyczna z pełną zdolnością do czynności prawnych (art. 109² KC). Członek rady nadzorczej nie może jednak być prokurentem z innego powodu: KSH zakazuje łączenia tych funkcji." },
+      { q: "Od kiedy KSH reguluje „grupę spółek” i wiążące polecenia spółki dominującej?", o: ["Od 1 stycznia 2001", "Od 1 lipca 2021", "Od 13 października 2022", "Od 1 stycznia 2025"], c: 2, fix: 1,
+        e: "Tzw. prawo holdingowe wprowadziło też m.in. doradcę rady nadzorczej i regułę biznesowej oceny sytuacji." },
+      { q: "Jakim skrótem oznacza się prostą spółkę akcyjną w jej firmie?", o: ["P.S.A.", "PSA sp.", "S.P.A.", "p.s.a. sp. k."], c: 0,
+        e: "Dla spółki akcyjnej to S.A., dla komandytowo-akcyjnej S.K.A., a dla komandytowej sp.k." },
+      { q: "Od kiedy w Polsce można zakładać fundację rodzinną?", o: ["Od 1 lipca 2021", "Od 22 maja 2023", "Od 1 stycznia 2024", "Od 13 października 2022"], c: 1, fix: 1,
+        e: "Fundację rodzinną reguluje osobna ustawa, nie KSH. Ma służyć sukcesji firm rodzinnych." },
+      { q: "Jak nazywa się zasada, że spółka przekształcona przejmuje wszystkie prawa i obowiązki spółki przekształcanej?", o: ["Zasada kontynuacji", "Sukcesja uniwersalna częściowa", "Zasada jawności", "Zasada pierwszeństwa"], c: 0,
+        e: "Art. 553 KSH. Przy przekształceniu nie powstaje nowy podmiot, zmienia się tylko forma prawna." },
+      { q: "W jakim systemie można założyć sp. z o.o. przez internet na wzorcu umowy?", o: ["S24", "CEIDG", "e-KRS Plus", "ePUAP Biznes"], c: 0,
+        e: "Tak założona spółka powinna zostać wpisana do KRS następnego dnia. CEIDG to ewidencja przedsiębiorców będących osobami fizycznymi." }
+    ]
+  }
+];
+
+const BANK_TS = [
+  {
+    name: "Albumy", q: [
+      { q: "Jak nazywał się debiutancki singiel Taylor Swift z 2006 r.?", o: ["„Tim McGraw”", "„Teardrops on My Guitar”", "„Our Song”", "„Picture to Burn”"], c: 0,
+        e: "Piosenka nosi nazwisko gwiazdy country. Ukazała się na debiutanckim albumie „Taylor Swift”." },
+      { q: "W której wytwórni Taylor Swift wydała swoje pierwsze sześć albumów?", o: ["Big Machine Records", "Republic Records", "Sony Music Nashville", "Interscope"], c: 0,
+        e: "Big Machine założył Scott Borchetta. Od albumu „Lover” (2019) Swift jest w Republic Records." },
+      { q: "Który album Swift napisała w całości sama, bez współautorów?", o: ["„Speak Now”", "„Fearless”", "„Red”", "„1989”"], c: 0,
+        e: "„Speak Now” z 2010 r. był odpowiedzią na zarzuty, że nie pisze sama swoich piosenek." },
+      { q: "Który producent jest głównym współtwórcą popowego brzmienia „1989” i „The Life of a Showgirl”?", o: ["Max Martin", "Jack Antonoff", "Aaron Dessner", "Rick Rubin"], c: 0,
+        e: "Przy „The Life of a Showgirl” Max Martin pracował ze Shellbackiem. Antonoff to główny współpracownik „Midnights”, a Dessner „Folklore” i „Evermore”." },
+      { q: "Z muzykiem którego zespołu Swift nagrała większość albumów „Folklore” i „Evermore”?", o: ["The National", "Bon Iver", "HAIM", "The 1975"], c: 0,
+        e: "Aaron Dessner jest gitarzystą The National. Justin Vernon z Bon Iver zaśpiewał w duecie „exile”." },
+      { q: "Które trzy piosenki z „Folklore” opowiadają jeden szkolny trójkąt miłosny?", o: ["„cardigan”, „august”, „betty”", "„exile”, „seven”, „mirrorball”", "„the 1”, „hoax”, „peace”", "„invisible string”, „epiphany”, „mad woman”"], c: 0,
+        e: "Bohaterami są Betty, James i dziewczyna z „august”. Swift opowiedziała tę historię z trzech perspektyw." },
+      { q: "Co jako pierwsza artystka w historii osiągnęła Swift dzięki albumowi „Midnights” (2022)?", o: ["Zajęła całą pierwszą dziesiątkę Billboard Hot 100", "Sprzedała milion winyli w tydzień", "Dostała Oscara za piosenkę", "Wydała album jednocześnie w 10 wersjach"], c: 0,
+        e: "Wszystkie miejsca od 1 do 10 zajęły piosenki z „Midnights”, na czele z „Anti-Hero”." },
+      { q: "Gdzie Swift ogłosiła album „The Tortured Poets Department”?", o: ["Podczas odbierania nagrody Grammy w lutym 2024", "Na koncercie Eras Tour w Tokio", "W podcaście „New Heights”", "Na gali VMA 2023"], c: 0,
+        e: "Ogłosiła go, odbierając Grammy za „Midnights”. Album ukazał się 19 kwietnia 2024 r., z wersją „Anthology” liczącą 31 piosenek." },
+      { q: "Który z kolei album studyjny Swift to „The Life of a Showgirl” (2025)?", o: ["10.", "11.", "12.", "13."], c: 2, fix: 1,
+        e: "Ukazał się 3 października 2025 r. Nagrany był w Szwecji w trakcie europejskiej części Eras Tour." },
+      { q: "Czyj rekord sprzedaży z pierwszego tygodnia pobiła w 2025 r. płyta „The Life of a Showgirl”?", o: ["Adele, za album „25”", "Własny, za „1989”", "Michaela Jacksona, za „Thriller”", "Beyoncé, za „Lemonade”"], c: 0,
+        e: "Płyta miała ok. 4 mln jednostek w pierwszym tygodniu w USA. „25” Adele z 2015 r. miało ok. 3,5 mln." },
+      { q: "Kto gościnnie śpiewa w tytułowej piosence „The Life of a Showgirl”?", o: ["Sabrina Carpenter", "Olivia Rodrigo", "Lana Del Rey", "Phoebe Bridgers"], c: 0,
+        e: "Carpenter supportowała Swift na części koncertów Eras Tour. Lana Del Rey gościła na „Snow on the Beach” z „Midnights”." }
+    ]
+  },
+  {
+    name: "Rekordy i nagrody", q: [
+      { q: "Ile razy Taylor Swift zdobyła Grammy za Album Roku?", o: ["2", "3", "4", "5"], c: 2, fix: 1,
+        e: "Za „Fearless”, „1989”, „Folklore” i „Midnights”. Jest pierwszą osobą z czterema takimi nagrodami jako główna wykonawczyni." },
+      { q: "Która piosenka Swift jest najdłuższą w historii, jaka trafiła na 1. miejsce Billboard Hot 100?", o: ["„All Too Well (10 Minute Version)”", "„Champagne Problems”", "„Marjorie”", "„The Last Great American Dynasty”"], c: 0,
+        e: "W listopadzie 2021 r. pobiła rekord „American Pie” Dona McLeana." },
+      { q: "Za który teledysk Swift odbierała nagrodę VMA w 2009 r., gdy przerwał jej Kanye West?", o: ["„You Belong with Me”", "„Love Story”", "„Fifteen”", "„White Horse”"], c: 0,
+        e: "Kanye wszedł na scenę z tezą, że wygrać powinna Beyoncé. Konflikt wracał w karierze Swift przez kolejne lata." },
+      { q: "Ile lat miała Swift, gdy po raz pierwszy wygrała Grammy za Album Roku (za „Fearless”)?", o: ["18", "20", "22", "24"], c: 1, fix: 1,
+        e: "Była wtedy najmłodszą zdobywczynią tej nagrody. Rekord odebrała jej później Billie Eilish." },
+      { q: "Który tygodnik w 2023 r. wybrał Swift Człowiekiem Roku?", o: ["„Time”", "„Forbes”", "„Rolling Stone”", "„Billboard”"], c: 0,
+        e: "Była pierwszą osobą wyróżnioną za osiągnięcia w sztuce. W 2017 r. „Time” wyróżnił ją w grupie „Silence Breakers”." },
+      { q: "Ile koncertów liczyła trasa The Eras Tour?", o: ["101", "126", "149", "172"], c: 2, fix: 1,
+        e: "Trasa trwała od marca 2023 do grudnia 2024 r. i jako pierwsza w historii przekroczyła 2 mld dolarów przychodu." },
+      { q: "W jakim mieście zaczęła się trasa The Eras Tour (marzec 2023)?", o: ["Glendale (Arizona)", "Nashville", "Los Angeles", "Las Vegas"], c: 0,
+        e: "Pierwszy koncert odbył się 17 marca 2023 r. na stadionie w Glendale pod Phoenix." },
+      { q: "W jakim mieście odbył się ostatni koncert The Eras Tour w grudniu 2024 r.?", o: ["Vancouver", "Toronto", "Nowy Jork", "Londyn"], c: 0,
+        e: "Trasa zakończyła się 8 grudnia 2024 r. Wcześniej Swift zagrała sześć koncertów w Toronto." }
+    ]
+  },
+  {
+    name: "Biznes i prawa", q: [
+      { q: "Kto w 2019 r. przejął wytwórnię Big Machine razem z nagraniami pierwszych sześciu albumów Swift?", o: ["Scooter Braun", "Scott Borchetta", "Jay-Z", "Simon Cowell"], c: 0,
+        e: "Firma Ithaca Holdings Brauna kupiła Big Machine. Swift nazwała to najgorszym scenariuszem i postanowiła nagrać płyty od nowa." },
+      { q: "Który album jako pierwszy ukazał się w wersji „Taylor's Version” (2021)?", o: ["„Fearless”", "„Red”", "„Speak Now”", "„1989”"], c: 0,
+        e: "„Fearless (Taylor's Version)” ukazał się w kwietniu 2021 r., a „Red” w listopadzie tego samego roku." },
+      { q: "W którym roku Swift odkupiła nagrania swoich pierwszych albumów?", o: ["2023", "2024", "2025", "Nigdy ich nie odkupiła"], c: 2, fix: 1,
+        e: "Ogłosiła to 30 maja 2025 r. Nagrania kupiła od funduszu Shamrock Capital, który wcześniej odkupił je od Brauna." },
+      { q: "Pierwszy album, którego nagrania od początku należą do Swift, to:", o: ["„Lover”", "„Reputation”", "„Folklore”", "„1989”"], c: 0,
+        e: "„Lover” z 2019 r. był pierwszym po przejściu do Republic Records." },
+      { q: "Po chaosie przy sprzedaży biletów na Eras Tour w 2022 r. który serwis musiał się tłumaczyć przed Senatem USA?", o: ["Ticketmaster", "StubHub", "Eventim", "Ticketfly"], c: 0,
+        e: "Ticketmaster należy do Live Nation. Przesłuchanie w Senacie w styczniu 2023 r. dotyczyło jego monopolu na rynku biletów." },
+      { q: "Który film koncertowy stał się najbardziej dochodowym w historii kin?", o: ["„Taylor Swift: The Eras Tour”", "„Michael Jackson's This Is It”", "„Justin Bieber: Never Say Never”", "„Renaissance: A Film by Beyoncé”"], c: 0,
+        e: "Film trafił do kin w październiku 2023 r., z pominięciem dużych studiów, przez sieć AMC." }
+    ]
+  },
+  {
+    name: "Życie i fani", q: [
+      { q: "Która liczba jest szczęśliwą liczbą Taylor Swift?", o: ["7", "13", "22", "89"], c: 1, fix: 1,
+        e: "Urodziła się 13 grudnia 1989 r. Na początku kariery rysowała 13 na dłoni przed koncertami." },
+      { q: "W jakim stanie urodziła się Taylor Swift?", o: ["Pensylwania", "Tennessee", "Teksas", "Nowy Jork"], c: 0,
+        e: "Urodziła się w West Reading w Pensylwanii, a jako nastolatka przeprowadziła się z rodziną w okolice Nashville." },
+      { q: "Jak wabi się kot Swift nazwany po bohaterce serialu „Prawo i porządek: Sekcja specjalna”?", o: ["Olivia Benson", "Meredith Grey", "Benjamin Button", "Detective Stabler"], c: 0,
+        e: "Meredith Grey to bohaterka „Chirurgów”, a Benjamin Button to trzeci kot, adoptowany na planie teledysku „ME!”." },
+      { q: "W jakiej drużynie NFL gra Travis Kelce?", o: ["Kansas City Chiefs", "Philadelphia Eagles", "Buffalo Bills", "San Francisco 49ers"], c: 0,
+        e: "W Eagles grał jego brat Jason. Bracia prowadzą razem podcast „New Heights”." },
+      { q: "Gdzie Swift ogłosiła album „The Life of a Showgirl” w sierpniu 2025 r.?", o: ["W podcaście „New Heights”", "Na gali VMA", "Na koncercie w Londynie", "W „Saturday Night Live”"], c: 0,
+        e: "Wystąpiła w podcaście braci Kelce. Kilka tygodni później ogłosiła zaręczyny z Travisem." },
+      { q: "W którym roku Taylor Swift poślubiła Travisa Kelce?", o: ["2024", "2025", "2026", "Jeszcze się nie pobrali"], c: 2, fix: 1,
+        e: "Zaręczyli się w sierpniu 2025 r., a ślub odbył się w lipcu 2026 r. w Nowym Jorku." },
+      { q: "Ile koncertów Eras Tour Swift zagrała w Warszawie w sierpniu 2024 r.?", o: ["1", "2", "3", "4"], c: 2, fix: 1,
+        e: "Zagrała 1, 2 i 3 sierpnia na PGE Narodowym. Były to jej pierwsze koncerty w Polsce." },
+      { q: "Dlaczego odwołano koncerty Eras Tour w Wiedniu w sierpniu 2024 r.?", o: ["Udaremniono planowany zamach terrorystyczny", "Przez upały", "Przez chorobę Swift", "Przez strajk obsługi stadionu"], c: 0,
+        e: "Austriackie służby zatrzymały podejrzanych o planowanie ataku. Fani śpiewali wtedy na wiedeńskich ulicach." },
+      { q: "W jakim filmie Swift zagrała kotkę Bombalurinę (2019)?", o: ["„Koty”", "„Walentynki”", "„Dawca pamięci”", "„Amsterdam”"], c: 0,
+        e: "„Koty” Toma Hoopera były kinową klapą. W „Walentynkach” (2010) Swift zadebiutowała jako aktorka." },
+      { q: "Kto zagrał główne role w „All Too Well: The Short Film” wyreżyserowanym przez Swift?", o: ["Sadie Sink i Dylan O'Brien", "Zendaya i Tom Holland", "Millie Bobby Brown i Noah Schnapp", "Emma Stone i Ryan Gosling"], c: 0,
+        e: "Krótki metraż z 2021 r. towarzyszył 10-minutowej wersji piosenki. Sadie Sink znana jest ze „Stranger Things”." },
+      { q: "Jak Swift podpisała we wrześniu 2024 r. post z poparciem dla Kamali Harris?", o: ["„Childless Cat Lady”", "„Swiftie in Chief”", "„Taylor's Version”", "„Cat Mom for America”"], c: 0,
+        e: "Nawiązała do wcześniejszych słów J.D. Vance'a o „bezdzietnych kociarach”." }
+    ]
+  }
+];
+
+
+
+const LEVELS = {
+  std: { label: "Umiarkowany", bank: BANK_STD, hint: "Pytania dla każdego, kto śledzi wiadomości. Polska i świat." },
+  mega: { label: "Mega", bank: BANK_MEGA, hint: "Artykuły Konstytucji, traktaty, teorie politologów. Polska i świat." },
+  pro: { label: "Ekspert PL", bank: BANK_PRO, hint: "Tylko polska polityka: wyniki wyborów, kulisy rządów III RP, PRL i II RP, ordynacja i regulamin Sejmu." },
+  pop: { label: "Popkultura PL", bank: BANK_POP, hint: "Polska popkultura 2010–2026: muzyka i Eurowizja, kino i seriale, internet, gry i sportowe gwiazdy." },
+  urz: { label: "Jaki to urząd?", bank: BANK_URZ, hint: "Opis kompetencji, a gracze rozpoznają urząd albo organ: od premiera i NIK po wojewodę, KNF i TSUE." },
+  uzw: { label: "Używki", bank: BANK_UZW, hint: "Bardzo trudne: historia, chemia, kultura i prawo alkoholu, tytoniu, kawy i narkotyków." },
+  ksh: { label: "Prawo spółek", bank: BANK_KSH, hint: "Kodeks spółek handlowych i okolice: kapitały, większości, odpowiedzialność zarządu, P.S.A., KRS." },
+  ts: { label: "Taylor Swift", bank: BANK_TS, hint: "Albumy, rekordy, Eras Tour, „Taylor's Version”, koty i Travis Kelce. Bez cytowania tekstów piosenek." }
+};
+const PLUS = 10;
+const LETTERS = ["A", "B", "C", "D"];
+const DEFAULT_NAMES = ["Adam", "Zając", "Asia", "Tomek", "Julia"];
+
+/* ---------- pomocnicze ---------- */
+const $ = (s) => document.querySelector(s);
+const SCREENS = ["s-role", "s-pjoin", "s-player", "s-hsetup", "s-host", "s-final"];
+function show(id) { SCREENS.forEach((s) => ($("#" + s).hidden = s !== id)); window.scrollTo(0, 0); }
+function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function load(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
+function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } }
+function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+const num = (n) => (n < 0 ? "−" + Math.abs(n) : String(n));
+const pts = (n) => num(n) + " pkt";
+const clip = (s, n) => (s && s.length > n ? s.slice(0, n - 1) + "…" : s || "");
+const BAD_CHARS = new RegExp("[\\u0000-\\u001f\\u007f-\\u009f\\u200b-\\u200f\\u2028-\\u202e\\u2060-\\u206f\\ufeff]", "g");
+const cleanName = (s) => String(s || "").replace(BAD_CHARS, "").trim().slice(0, 20);
+const XSVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5.4 C9.2 9.6 14 14.4 19 19.1"/><path d="M18.8 5.1 C14.3 9.6 9.9 14.2 5.2 19.2"/></svg>';
+function vibrate(p) { try { navigator.vibrate && navigator.vibrate(p); } catch (e) { } }
+
+/* ---------- pokój (room) ---------- */
+let room = null, roomState = "wait", role = null;
+function setConn(state) {
+  roomState = state;
+  const txt = state === "on" ? "Połączono" : state === "off" ? "Brak połączenia" : state === "idle" ? "Gotowe" : "Łączenie…";
+  document.querySelectorAll(".conn").forEach((el) => { el.className = "conn " + state; el.lastElementChild.textContent = txt; });
+  const note = $("#roomNote");
+  if (state === "off") {
+    note.hidden = false;
+    note.className = "notice";
+    note.textContent = "Brak połączenia z grą. Sprawdź internet. Telefon sam spróbuje połączyć się ponownie.";
+  } else note.hidden = true;
+}
+const PREFIX = "postaw-krzyzyk-live-v1-";
+const PEER_OPTS = window.PK_PEER_OPTS || {};
+function merge(a, patch) { const o = Object.assign({}, a); for (const k in patch) { if (patch[k] === null) delete o[k]; else o[k] = patch[k]; } return o; }
+function attachRoom(r) {
+  room = r;
+  room.onConnection((c) => setConn(c ? "on" : "wait"));
+  room.onPeers((ch) => { if (role === "host") hostOnPeers(ch); else if (role === "player") playerOnPeers(ch); });
+}
+function makeHostRoom(code) {
+  return new Promise((resolve, reject) => {
+    if (!window.Peer) { reject("nolib"); return; }
+    const pr = new Peer(PREFIX + code, PEER_OPTS);
+    const conns = new Map(), handlers = [], cbs = [];
+    let mine = {}, opened = false;
+    const snap = () => { const a = [{ peer: "me", isMe: true, sameTab: true, presence: mine, updatedAt: 0 }]; conns.forEach((v, k) => a.push({ peer: k, isMe: false, sameTab: false, presence: v.presence, updatedAt: v.updatedAt })); return a; };
+    const fire = () => { const peers = snap(); handlers.forEach((h) => h({ peers, joined: [], left: [], updated: peers })); };
+    const status = (v) => cbs.forEach((h) => h(v));
+    const room = {
+      presence: async (patch) => { mine = merge(mine, patch); conns.forEach((v) => { try { if (v.conn.open) v.conn.send({ t: "host", p: mine }); } catch (e) { } }); },
+      peers: snap,
+      onPeers: (h) => { handlers.push(h); setTimeout(fire, 0); return () => { }; },
+      onConnection: (h) => { cbs.push(h); setTimeout(() => h(opened && !pr.disconnected), 0); return () => { }; },
+      close: () => { try { pr.destroy(); } catch (e) { } }
+    };
+    pr.on("open", () => { const first = !opened; opened = true; status(true); if (first) resolve(room); });
+    pr.on("error", (e) => { if (!opened) { try { pr.destroy(); } catch (x) { } reject((e && e.type) || "error"); } else if (!e || e.type !== "peer-unavailable") status(false); });
+    pr.on("disconnected", () => { status(false); setTimeout(() => { try { if (!pr.destroyed) pr.reconnect(); } catch (e) { } }, 1500); });
+    pr.on("connection", (c) => {
+      c.on("open", () => { conns.set(c.peer, { conn: c, presence: {}, updatedAt: performance.now() }); try { c.send({ t: "host", p: mine }); } catch (e) { } fire(); });
+      c.on("data", (d) => { if (d && d.t === "pres" && d.p && typeof d.p === "object") { conns.set(c.peer, { conn: c, presence: d.p, updatedAt: performance.now() }); fire(); } });
+      const drop = () => { if (conns.has(c.peer)) { conns.delete(c.peer); fire(); } };
+      c.on("close", drop); c.on("error", drop);
+    });
+  });
+}
+function makePlayerRoom(code) {
+  return new Promise((resolve, reject) => {
+    if (!window.Peer) { reject("nolib"); return; }
+    const pr = new Peer(undefined, PEER_OPTS);
+    const handlers = [], cbs = [];
+    let mine = {}, host = null, hostAt = 0, c = null, settled = false, alive = true, retry = null;
+    const snap = () => { const a = [{ peer: "me", isMe: true, sameTab: true, presence: mine, updatedAt: 0 }]; if (host) a.push({ peer: "host", isMe: false, sameTab: false, presence: host, updatedAt: hostAt }); return a; };
+    const fire = () => { const peers = snap(); handlers.forEach((h) => h({ peers, joined: [], left: [], updated: peers })); };
+    const status = (v) => cbs.forEach((h) => h(v));
+    const later = () => { if (!alive || retry) return; retry = setTimeout(() => { retry = null; connect(); }, 2500); };
+    const connect = () => {
+      if (!alive) return;
+      if (pr.disconnected) { try { pr.reconnect(); } catch (e) { } later(); return; }
+      const cc = pr.connect(PREFIX + code, { reliable: true });
+      c = cc;
+      cc.on("open", () => { status(true); try { cc.send({ t: "pres", p: mine }); } catch (e) { } if (!settled) { settled = true; resolve(room); } });
+      cc.on("data", (d) => { if (d && d.t === "host" && d.p && typeof d.p === "object") { host = d.p; hostAt = performance.now(); fire(); } });
+      cc.on("close", () => { if (c !== cc) return; status(false); host = null; fire(); later(); });
+      cc.on("error", () => { if (c === cc && !cc.open) later(); });
+    };
+    const room = {
+      presence: async (patch) => { mine = merge(mine, patch); if (c && c.open) { try { c.send({ t: "pres", p: mine }); } catch (e) { } } },
+      peers: snap,
+      onPeers: (h) => { handlers.push(h); setTimeout(fire, 0); return () => { }; },
+      onConnection: (h) => { cbs.push(h); setTimeout(() => h(!!(c && c.open)), 0); return () => { }; },
+      close: () => { alive = false; try { pr.destroy(); } catch (e) { } }
+    };
+    pr.on("open", () => { if (!c || !c.open) connect(); });
+    pr.on("error", (e) => {
+      const t = e && e.type;
+      if (!settled) { settled = true; alive = false; try { pr.destroy(); } catch (x) { } reject(t === "peer-unavailable" ? "nogame" : (t || "error")); }
+      else { status(false); if (t === "peer-unavailable") later(); }
+    });
+    pr.on("disconnected", () => { setTimeout(() => { try { if (!pr.destroyed) pr.reconnect(); } catch (e) { } }, 1500); });
+    setTimeout(() => { if (!settled) { settled = true; alive = false; try { pr.destroy(); } catch (e) { } reject("timeout"); } }, 15000);
+  });
+}
+function newCode() { const A = "ABCDEFGHJKLMNPRSTUWXYZ"; let s = ""; for (let i = 0; i < 4; i++) s += A[Math.floor(Math.random() * A.length)]; return s; }
+function joinUrl(code) { return location.href.split("#")[0].split("?")[0] + "?kod=" + code; }
+function showCode(code) { document.querySelectorAll(".gamecode").forEach((el) => (el.textContent = code)); const u = document.querySelector("#joinUrl"); if (u) u.textContent = joinUrl(code); }
+function setDiag(t) { const f = document.querySelector("#foot"); if (f) f.textContent = "Brak połączenia z grą. Diagnostyka: " + t; }
+function setPresence(patch) { if (room) room.presence(patch).catch(() => { }); }
+
+/* ============================ GRACZ ============================ */
+const P = { name: load("pkl_name", ""), host: null, armSeen: 0, pressedArm: null, fsKey: null, lastArm: null, lastPh: null };
+
+function renderJoin() {
+  $("#pname").value = P.name;
+  $("#pcode").value = load("pkw_code", "") || "";
+  $("#pnameChips").innerHTML = DEFAULT_NAMES.map((n) => `<button type="button" class="chip" data-n="${esc(n)}">${esc(n)}</button>`).join("");
+  show("s-pjoin");
+}
+$("#pnameChips").addEventListener("click", (e) => { const b = e.target.closest("[data-n]"); if (b) $("#pname").value = b.dataset.n; });
+$("#btnJoin").addEventListener("click", async () => {
+  const n = cleanName($("#pname").value);
+  const code = String($("#pcode").value || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const err = $("#joinErr"); err.hidden = true;
+  if (!code) { $("#pcode").focus(); return; }
+  if (!n) { $("#pname").focus(); return; }
+  P.name = n; save("pkl_name", n); save("pkw_code", code);
+  const btn = $("#btnJoin"); btn.disabled = true; btn.textContent = "Łączę…";
+  try {
+    if (room && room.close) room.close();
+    const r = await makePlayerRoom(code);
+    role = "player"; attachRoom(r);
+    setPresence({ role: "player", name: n, buzz: null, fs: null });
+    renderPlayer(); show("s-player");
+  } catch (e) {
+    err.hidden = false;
+    err.textContent = e === "nogame" ? `Nie ma gry o kodzie ${code}. Sprawdź kod u prowadzącego.` : e === "nolib" ? "Nie udało się wczytać modułu połączeń. Sprawdź internet i odśwież stronę." : "Nie udało się połączyć. Sprawdź internet i spróbuj ponownie.";
+  } finally { btn.disabled = false; btn.textContent = "Dołącz do gry"; }
+});
+$("#btnLeave").addEventListener("click", () => { if (room && room.close) room.close(); room = null; role = null; save("pkl_role", null); setPresence({ role: null, name: null, buzz: null, fs: null }); show("s-role"); });
+
+function findHost(peers) {
+  let h = null;
+  for (const p of peers) {
+    const pr = p.presence || {};
+    if (pr.role === "host" && typeof pr.g === "string" && !p.sameTab && (!h || p.updatedAt > h.updatedAt)) h = p;
+  }
+  return h ? h.presence : null;
+}
+function playerOnPeers(ch) {
+  const h = findHost(ch.peers);
+  const prev = P.host;
+  P.host = h;
+  if (h && h.ph === "armed" && h.arm !== P.lastArm) { P.armSeen = performance.now(); P.lastArm = h.arm; vibrate(60); }
+  if (h && prev && h.win && h.win !== prev.win && h.win === P.name) vibrate([80, 40, 80]);
+  renderPlayer();
+}
+function isBlocked(h) { return !!(h && Array.isArray(h.blk) && h.blk.includes(P.name)); }
+function renderPlayer() {
+  const h = P.host, b = $("#buzz"), st = $("#pStatus");
+  $("#pName").textContent = P.name || "Gracz";
+  const sc = h && Array.isArray(h.sc) ? h.sc : [];
+  const mine = sc.find((x) => x[0] === P.name);
+  $("#pScore").textContent = pts(mine ? mine[1] : 0);
+  $("#pScores").innerHTML = sc.map((x) => `<span class="sc${x[0] === P.name ? " on" : ""}">${esc(x[0])} <b class="${x[1] < 0 ? "neg" : ""}">${num(x[1])}</b></span>`).join("");
+  b.className = "buzz"; b.disabled = false;
+  const showQ = h && h.q && ["q", "q2", "armed", "locked", "reveal"].includes(h.ph);
+  $("#pQ").hidden = !showQ;
+  if (showQ) {
+    $("#pQtext").textContent = h.q.t;
+    $("#pOpts").innerHTML = (h.q.o || []).map((o, i) => `<li class="${h.ph === "reveal" && h.rev === i ? "good" : ""}"><b>${LETTERS[i]}</b><span>${esc(o)}</span></li>`).join("");
+    const ex = $("#pExplain"); ex.hidden = !(h.ph === "reveal" && h.ex); ex.textContent = h.ex || "";
+  }
+  $("#pQnum").textContent = h && h.n ? `Pytanie ${h.qn + 1} z ${h.n}${h.q && h.q.c ? " · " + h.q.c : ""}` : "Czekamy na prowadzącego";
+  if (!h) { b.innerHTML = "Czekaj<small>na prowadzącego</small>"; b.disabled = true; st.textContent = roomState === "off" ? "Brak połączenia z grą." : "Prowadzący jeszcze nie otworzył gry."; return; }
+  if (h.ph === "lobby") { b.innerHTML = "Jesteś<small>w poczekalni</small>"; b.disabled = true; st.textContent = "Czekaj na start gry."; return; }
+  if (h.ph === "final") { b.innerHTML = "Koniec<small>gry</small>"; b.disabled = true; const top = sc[0]; st.textContent = top ? `Wygrywa ${top[0]} (${pts(top[1])})` : "Koniec gry"; return; }
+  const blocked = isBlocked(h);
+  if (h.ph === "q" || h.ph === "q2") {
+    if (blocked) { b.className = "buzz blocked"; b.innerHTML = "Blokada<small>w tym pytaniu</small>"; st.textContent = h.ph === "q2" ? "Odbicie dla pozostałych." : ""; }
+    else { b.innerHTML = "Czekaj<small>na sygnał</small>"; st.textContent = h.ph === "q2" ? "Za chwilę sygnał dla pozostałych!" : "Prowadzący czyta pytanie."; }
+    return;
+  }
+  if (h.ph === "armed") {
+    if (blocked) { b.className = "buzz blocked"; b.innerHTML = "Blokada<small>w tym pytaniu</small>"; st.textContent = ""; }
+    else if (P.pressedArm === `${h.g}:${h.arm}`) { b.className = "buzz pressed"; b.innerHTML = "Wciśnięte!<small>czekaj</small>"; st.textContent = ""; }
+    else { b.className = "buzz armed"; b.innerHTML = "Teraz!"; st.textContent = "Wciskaj!"; }
+    return;
+  }
+  if (h.ph === "locked") {
+    if (h.win === P.name) { b.className = "buzz win"; b.innerHTML = "Odpowiadasz!<small>powiedz odpowiedź na głos</small>"; st.textContent = ""; }
+    else { b.innerHTML = "Odpowiada<small>" + esc(h.win || "") + "</small>"; b.disabled = true; st.textContent = `Odpowiada ${h.win || ""}`; }
+    return;
+  }
+  if (h.ph === "reveal") {
+    b.disabled = true;
+    const l = h.last;
+    if (l && l.ok) { b.className = l.name === P.name ? "buzz win" : "buzz"; b.innerHTML = l.name === P.name ? "+10!" : "Dobrze<small>" + esc(l.name) + "</small>"; st.textContent = `${l.name} odpowiada dobrze.`; }
+    else { b.innerHTML = "Odpowiedź<small>na ekranie</small>"; st.textContent = "Nikt nie trafił."; }
+  }
+}
+function pressBuzz() {
+  const h = P.host;
+  if (!h || role !== "player") return;
+  if (isBlocked(h)) return;
+  const key = `${h.g}:${h.arm}`;
+  if (h.ph === "armed") {
+    if (P.pressedArm === key) return;
+    P.pressedArm = key;
+    setPresence({ buzz: { g: h.g, a: h.arm, rt: Math.round(performance.now() - P.armSeen) } });
+    vibrate(30);
+    renderPlayer();
+  } else if (h.ph === "q" || h.ph === "q2") {
+    const fk = `${h.g}:${h.qn}:${h.arm}`;
+    if (P.fsKey === fk) return;
+    P.fsKey = fk;
+    setPresence({ fs: { g: h.g, qn: h.qn, a: h.arm } });
+    vibrate([200]);
+    $("#pStatus").textContent = "Falstart! Blokada w tym pytaniu.";
+  }
+}
+$("#buzz").addEventListener("pointerdown", (e) => { e.preventDefault(); pressBuzz(); });
+$("#buzz").addEventListener("keydown", (e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); pressBuzz(); } });
+
+/* ============================ PROWADZĄCY ============================ */
+let settings = Object.assign({ level: "pro", count: 30, time: 10, minus: 1 }, load("pkl_settings2", {}));
+if (![1, 5, 10].includes(settings.minus)) settings.minus = 1;
+if (!LEVELS[settings.level]) settings.level = "pro";
+let H = load("pkl_host", null);
+let tId = null, tEnd = 0;
+let showKey = load("pkl_showkey", true);
+
+function setSeg(id, val) { document.querySelectorAll(`#${id} button`).forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === String(val)))); }
+function bindSeg(id, key, isNum) {
+  $("#" + id).addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    settings[key] = isNum ? +b.dataset.v : b.dataset.v; save("pkl_settings2", settings); renderHostSetup();
+  });
+}
+bindSeg("levelSeg", "level", false); bindSeg("countSeg", "count", true); bindSeg("timeSeg", "time", true); bindSeg("minusSeg", "minus", true);
+
+function connectedPlayers() {
+  if (!room) return [];
+  const names = [];
+  for (const p of room.peers()) { const pr = p.presence || {}; if (pr.role === "player" && pr.name) { const n = cleanName(pr.name); if (n && !names.includes(n)) names.push(n); } }
+  return names;
+}
+function rosterHTML(names, extra) {
+  const online = connectedPlayers();
+  return names.map((n) => {
+    const s = extra ? extra.scores[n] || 0 : null;
+    const blk = extra && extra.blk.includes(n);
+    return `<span class="sc${online.includes(n) ? "" : " off"}${blk ? " blk" : ""}${extra && extra.win === n ? " on" : ""}">${esc(n)}${s !== null ? ` <b class="${s < 0 ? "neg" : ""}">${num(s)}</b>` : ""}</span>`;
+  }).join("") || '<span class="hint">Nikt jeszcze nie dołączył.</span>';
+}
+function renderHostSetup() {
+  setSeg("levelSeg", settings.level); setSeg("countSeg", settings.count); setSeg("timeSeg", settings.time); setSeg("minusSeg", settings.minus);
+  $("#levelHint").textContent = LEVELS[settings.level].hint;
+  const names = connectedPlayers();
+  $("#hsRoster").innerHTML = rosterHTML(names, null);
+  $("#btnHStart").disabled = names.length === 0;
+  $("#btnHStart").textContent = names.length ? `Start gry (${names.length} ${names.length === 1 ? "gracz" : names.length < 5 ? "graczy" : "graczy"})` : "Czekam na graczy…";
+}
+function buildDeck(level, count) {
+  const bank = LEVELS[level].bank, seen = new Set(load("pk_seen", [])), all = [];
+  bank.forEach((cat, ci) => cat.q.forEach((Q, qi) => all.push({ id: `${level}:${ci}-${qi}`, Q, cat: cat.name })));
+  let fresh = shuffle(all.filter((x) => !seen.has(x.id)));
+  if (fresh.length < count) { all.forEach((x) => seen.delete(x.id)); fresh = fresh.concat(shuffle(all.filter((x) => !fresh.includes(x)))); }
+  const pick = fresh.slice(0, Math.min(count, all.length));
+  pick.forEach((x) => seen.add(x.id)); save("pk_seen", [...seen]);
+  return pick.map(({ id, Q, cat }) => {
+    const order = Q.fix ? Q.o.map((_, i) => i) : shuffle(Q.o.map((_, i) => i));
+    return { id, cat, q: Q.q, o: order.map((i) => Q.o[i]), c: order.indexOf(Q.c), e: Q.e };
+  });
+}
+function hostScores() {
+  const s = {};
+  H.players.forEach((n) => (s[n] = 0));
+  H.log.forEach((a) => { if (!(a.name in s)) s[a.name] = 0; s[a.name] += a.ok ? PLUS : -H.minus; });
+  return s;
+}
+function sortedScores() { const s = hostScores(); return Object.keys(s).map((n) => [n, s[n]]).sort((a, b) => b[1] - a[1]); }
+function saveH() { save("pkl_host", H); }
+
+function publishHost() {
+  if (role !== "host") return;
+  if (!H || H.ph === "lobby" || !H.deck) { setPresence({ role: "host", g: "lobby", ph: "lobby", n: 0, qn: 0, arm: 0, q: null, win: null, blk: [], sc: [], rev: null, ex: null, last: null }); return; }
+  const Q = H.deck[H.i];
+  setPresence({
+    role: "host", g: H.g, ph: H.ph, n: H.deck.length, qn: H.i, arm: H.arm,
+    q: Q ? { t: clip(Q.q, 300), o: Q.o.map((o) => clip(o, 100)), c: Q.cat } : null,
+    win: H.win, blk: H.blk.slice(0, 16), sc: sortedScores().slice(0, 16),
+    rev: H.ph === "reveal" ? Q.c : null, ex: H.ph === "reveal" ? clip(Q.e, 360) : null, last: H.last
+  });
+}
+function hostOnPeers(ch) {
+  if (!H || H.ph === "lobby" || !H.deck) { if (!$("#s-hsetup").hidden) renderHostSetup(); return; }
+  let changed = false;
+  const cands = [];
+  for (const p of ch.peers) {
+    const pr = p.presence || {};
+    if (pr.role !== "player" || !pr.name) continue;
+    const name = cleanName(pr.name); if (!name) continue;
+    if (!H.players.includes(name)) { H.players.push(name); changed = true; }
+    const fs = pr.fs;
+    if (fs && fs.g === H.g && fs.qn === H.i && fs.a === H.arm && (H.ph === "q" || H.ph === "q2") && !H.blk.includes(name)) {
+      H.blk.push(name); H.fs.push(name); changed = true;
+    }
+    const bz = pr.buzz;
+    if (bz && bz.g === H.g && bz.a === H.arm && (H.ph === "armed" || H.ph === "locked") && !H.blk.includes(name) && !H.order.some((o) => o.n === name)) {
+      cands.push({ n: name, at: p.updatedAt, rt: typeof bz.rt === "number" ? bz.rt : 99999 });
+    }
+  }
+  if (cands.length) {
+    cands.sort((a, b) => a.at - b.at || a.rt - b.rt);
+    const base = H.order.length ? H.order[0].at : cands[0].at;
+    cands.forEach((c) => H.order.push({ n: c.n, at: c.at, d: Math.max(0, Math.round(c.at - base)) }));
+    if (H.ph === "armed" && !H.win) { H.win = H.order[0].n; H.ph = "locked"; startAnswerTimer(); }
+    changed = true;
+  }
+  if (changed) { saveH(); publishHost(); }
+  renderHost();
+}
+function startAnswerTimer() {
+  stopTimer();
+  const t = $("#timer");
+  if (!H.time) { t.hidden = true; return; }
+  t.hidden = false; tEnd = performance.now() + H.time * 1000;
+  const tick = () => {
+    const left = Math.max(0, tEnd - performance.now());
+    $("#timerFill").style.transform = `scaleX(${left / (H.time * 1000)})`;
+    $("#timerNum").textContent = Math.ceil(left / 1000);
+    t.classList.toggle("low", left <= 3000);
+    if (left <= 0) { stopTimer(); if (H.ph === "locked") judge(false, true); }
+  };
+  tick(); tId = setInterval(tick, 100);
+}
+function stopTimer() { if (tId) { clearInterval(tId); tId = null; } $("#timer").hidden = true; }
+
+function hostStart() {
+  const players = connectedPlayers();
+  H = { g: "g" + Date.now().toString(36), level: settings.level, minus: settings.minus, time: settings.time, deck: buildDeck(settings.level, settings.count),
+        i: 0, ph: "q", arm: 0, win: null, order: [], blk: [], fs: [], last: null, log: [], players };
+  saveH(); publishHost(); renderHost(); show("s-host");
+}
+function signal() {
+  if (!H || !(H.ph === "q" || H.ph === "q2")) return;
+  H.arm++; H.ph = "armed"; H.win = null; H.order = [];
+  saveH(); publishHost(); renderHost();
+}
+function judge(ok, timeout) {
+  if (!H || H.ph !== "locked" || !H.win) return;
+  stopTimer();
+  const name = H.win;
+  H.log.push({ qi: H.i, name, ok, to: !!timeout });
+  H.last = { name, ok };
+  if (ok) { H.ph = "reveal"; }
+  else { H.blk.push(name); H.win = null; H.ph = "q2"; }
+  saveH(); publishHost(); renderHost();
+}
+function reveal() { if (!H) return; stopTimer(); H.ph = "reveal"; if (!H.last || H.last.ok === false) H.last = H.last ? { name: H.last.name, ok: false } : null; saveH(); publishHost(); renderHost(); }
+function nextQ() {
+  if (!H) return;
+  if (H.i >= H.deck.length - 1) { endGame(); return; }
+  H.i++; H.ph = "q"; H.win = null; H.order = []; H.blk = []; H.fs = []; H.last = null;
+  saveH(); publishHost(); renderHost();
+}
+function endGame() { stopTimer(); H.ph = "final"; saveH(); publishHost(); renderFinal(sortedScores(), true); }
+
+function renderHost() {
+  if (!H || !H.deck || H.ph === "lobby") return;
+  if (H.ph === "final") { renderFinal(sortedScores(), true); return; }
+  const Q = H.deck[H.i];
+  $("#hQnum").textContent = `Pytanie ${H.i + 1} z ${H.deck.length}`;
+  $("#hCat").textContent = Q.cat;
+  $("#hProg").style.width = (H.i / H.deck.length) * 100 + "%";
+  $("#stakeMinus").textContent = "−" + H.minus;
+  const sc = hostScores();
+  $("#hRoster").innerHTML = rosterHTML(Object.keys(sc), { scores: sc, blk: H.blk, win: H.win });
+  $("#hQtext").textContent = Q.q;
+  const reveal = H.ph === "reveal";
+  $("#hOpts").innerHTML = Q.o.map((o, i) => {
+    const cls = reveal ? (i === Q.c ? " is-correct" : " is-dim") : (showKey && i === Q.c ? " host-correct" : "");
+    const tag = reveal && i === Q.c ? '<span class="vtag">Poprawna</span>' : `<span class="key">${LETTERS[i]}${!reveal && showKey && i === Q.c ? " ✓" : ""}</span>`;
+    return `<div class="row${cls}" style="cursor:default"><span class="box">${XSVG}</span><span class="txt">${esc(o)}</span>${tag}</div>`;
+  }).join("");
+  const plateLbl = $("#plateLbl"), plateName = $("#plateName");
+  const ob = $("#hOrderBox");
+  ob.hidden = !H.order.length;
+  $("#hOrder").innerHTML = H.order.map((o, k) => `<li>${k + 1}. ${esc(o.n)}${k ? ` +${o.d} ms` : ""}</li>`).join("");
+  const fb = $("#hFb");
+  fb.hidden = true;
+  let acts = "";
+  const blkTxt = H.blk.length ? ` Zablokowani: ${H.blk.join(", ")}.` : "";
+  if (H.ph === "q") {
+    plateLbl.textContent = "Przeczytaj pytanie"; plateName.textContent = "Potem sygnał";
+    acts = `<button type="button" class="btn go" data-act="signal">Sygnał!</button><button type="button" class="btn ghost" data-act="reveal">Pomiń i pokaż odpowiedź</button>`;
+    if (H.fs.length) acts = `<p class="notice">Falstart: ${esc(H.fs.join(", "))}. Blokada w tym pytaniu.</p>` + acts;
+  } else if (H.ph === "q2") {
+    plateLbl.textContent = `${H.last ? H.last.name + ": źle, −" + H.minus : "Odbicie"}`; plateName.textContent = "Odbicie?";
+    acts = `<p class="hint">${esc(blkTxt.trim())}</p><button type="button" class="btn go" data-act="signal">Sygnał dla pozostałych</button><button type="button" class="btn ghost" data-act="reveal">Pokaż odpowiedź</button>`;
+  } else if (H.ph === "armed") {
+    plateLbl.textContent = "Sygnał dany"; plateName.textContent = "Czekam…";
+    acts = `<button type="button" class="btn ghost" data-act="reveal">Nikt nie wcisnął: pokaż odpowiedź</button>`;
+  } else if (H.ph === "locked") {
+    plateLbl.textContent = "Odpowiada"; plateName.textContent = H.win;
+    acts = `<div class="btn-row"><button type="button" class="btn ok" data-act="good">Dobrze +10</button><button type="button" class="btn bad" data-act="bad">Źle −${H.minus}</button></div>`;
+  } else if (reveal) {
+    const l = H.last;
+    plateLbl.textContent = l && l.ok ? "Punkt dla" : "Odpowiedź"; plateName.textContent = l && l.ok ? l.name : "Nikt nie trafił";
+    fb.hidden = false; fb.className = "feedback " + (l && l.ok ? "good" : "bad");
+    $("#hFbTitle").textContent = l && l.ok ? `${l.name}: dobrze! +${PLUS}` : `Poprawna: ${Q.o[Q.c]}`;
+    $("#hFbExplain").textContent = Q.e;
+    acts = `<button type="button" class="btn" data-act="next">${H.i >= H.deck.length - 1 ? "Zobacz wyniki" : "Następne pytanie"}</button>`;
+  }
+  $("#hActions").innerHTML = acts;
+}
+$("#hActions").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-act]"); if (!b) return;
+  const a = b.dataset.act;
+  if (a === "signal") signal(); else if (a === "reveal") reveal(); else if (a === "good") judge(true); else if (a === "bad") judge(false); else if (a === "next") nextQ();
+});
+$("#showKey").addEventListener("change", (e) => { showKey = e.target.checked; save("pkl_showkey", showKey); renderHost(); });
+let endArmed = null;
+$("#btnHEnd").addEventListener("click", () => {
+  const b = $("#btnHEnd");
+  if (endArmed) { clearTimeout(endArmed); endArmed = null; b.textContent = "Zakończ grę"; b.classList.remove("armed"); endGame(); return; }
+  b.textContent = "Na pewno? Kliknij ponownie"; b.classList.add("armed");
+  endArmed = setTimeout(() => { endArmed = null; b.textContent = "Zakończ grę"; b.classList.remove("armed"); }, 3000);
+});
+$("#btnHStart").addEventListener("click", hostStart);
+
+document.addEventListener("keydown", (e) => {
+  if (role !== "host" || !H || e.target.matches("input, textarea")) return;
+  if (e.key === " " && (H.ph === "q" || H.ph === "q2")) { e.preventDefault(); signal(); }
+  else if ((e.key === "d" || e.key === "D") && H.ph === "locked") judge(true);
+  else if ((e.key === "z" || e.key === "Z") && H.ph === "locked") judge(false);
+  else if (e.key === "Enter" && H.ph === "reveal") nextQ();
+});
+
+/* ---------- wyniki ---------- */
+function renderFinal(st, isHost) {
+  if (!st.length) st = [["—", 0]];
+  const top = st[0][1], winners = st.filter((x) => x[1] === top).map((x) => x[0]);
+  $("#fScore").textContent = num(top);
+  $("#t-final").textContent = winners.join(", ");
+  $("#fWinLbl").textContent = winners.length > 1 ? "Remis" : "Wygrywa";
+  $("#fHead").textContent = "Protokół · " + (H ? LEVELS[H.level].label : "");
+  $("#fCount").textContent = H ? `${H.i + 1} z ${H.deck.length} pytań` : "";
+  const stats = {};
+  if (H) H.log.forEach((a) => { stats[a.name] = stats[a.name] || { ok: 0, bad: 0 }; stats[a.name][a.ok ? "ok" : "bad"]++; });
+  const maxPos = Math.max(1, ...st.map((x) => x[1]));
+  let pos = 0, prev = null;
+  $("#fBoard").innerHTML = st.map((x, k) => {
+    if (x[1] !== prev) { pos = k + 1; prev = x[1]; }
+    const s = stats[x[0]] || { ok: 0, bad: 0 };
+    return `<li class="${pos === 1 && x[1] > 0 ? "lead" : ""}"><span class="pos">${pos}.</span><span class="nm">${esc(x[0])}${pos === 1 && x[1] > 0 ? ' <span class="star">★</span>' : ""}<span class="stat">${s.ok} dobrze · ${s.bad} źle</span></span><span class="p${x[1] < 0 ? " neg" : ""}">${pts(x[1])}</span><span class="bar"><i style="width:${(Math.max(0, x[1]) / maxPos) * 100}%"></i></span></li>`;
+  }).join("");
+  $("#fActions").innerHTML = isHost ? `<button type="button" class="btn go" data-f="again">Nowa gra</button>` : "";
+  show("s-final");
+}
+$("#fActions").addEventListener("click", (e) => {
+  if (e.target.closest('[data-f="again"]')) { H = { ph: "lobby" }; saveH(); publishHost(); renderHostSetup(); show("s-hsetup"); }
+});
+
+/* ---------- role ---------- */
+$("#btnBePlayer").addEventListener("click", () => { role = null; renderJoin(); });
+$("#btnBeHost").addEventListener("click", async () => {
+  const b = $("#btnBeHost"); b.disabled = true; b.textContent = "Tworzę grę…";
+  let code = load("pkw_hcode", null), r = null, why = null;
+  for (let k = 0; k < 4 && !r; k++) {
+    if (!code || k > 0) code = newCode();
+    try { r = await makeHostRoom(code); } catch (e) { why = e; if (e === "nolib") break; }
+  }
+  b.disabled = false; b.textContent = "Prowadzę grę";
+  if (!r) { const n = $("#roomNote"); n.hidden = false; n.className = "notice"; n.textContent = why === "nolib" ? "Nie udało się wczytać modułu połączeń. Sprawdź internet i odśwież stronę." : "Nie udało się utworzyć gry. Sprawdź internet i spróbuj ponownie."; return; }
+  if (room && room.close && room !== r) room.close();
+  save("pkw_hcode", code); role = "host"; attachRoom(r); showCode(code);
+  if (H && H.deck && H.ph && H.ph !== "lobby" && H.ph !== "final") { publishHost(); renderHost(); show("s-host"); if (H.ph === "locked") startAnswerTimer(); }
+  else { H = { ph: "lobby" }; saveH(); publishHost(); renderHostSetup(); show("s-hsetup"); }
+});
+$("#btnCopyLink").addEventListener("click", () => {
+  const code = load("pkw_hcode", ""), t = joinUrl(code), note = $("#copyLinkNote");
+  try { navigator.clipboard.writeText(t).then(() => (note.textContent = "Skopiowano link."), () => (note.textContent = "Zaznacz link powyżej i skopiuj go ręcznie.")); } catch (e) { note.textContent = "Zaznacz link powyżej i skopiuj go ręcznie."; }
+});
+$("#btnBack1").addEventListener("click", () => show("s-role"));
+$("#btnBack2").addEventListener("click", () => { if (room && room.close) room.close(); room = null; role = null; save("pkl_role", null); setPresence({ role: null, g: null, ph: null }); show("s-role"); });
+
+/* ---------- start ---------- */
+function boot() {
+  const q = new URLSearchParams(location.search).get("kod");
+  if (q) save("pkw_code", q.toUpperCase().replace(/[^A-Z0-9]/g, ""));
+  setConn("idle");
+  if (q) renderJoin(); else show("s-role");
+  if (!window.Peer) { setConn("off"); const n = $("#roomNote"); n.hidden = false; n.className = "notice"; n.textContent = "Nie udało się wczytać modułu połączeń (PeerJS). Sprawdź internet i odśwież stronę."; }
+}
+boot();
+</script>
+
+</body>
+</html>

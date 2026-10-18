@@ -1,0 +1,8 @@
+umiarkowany.js
+mega.js
+ekspert-pl.js
+popkultura-pl.js
+jaki-to-urzad.js
+uzywki.js
+prawo-spolek.js
+taylor-swift.js

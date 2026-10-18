@@ -1,0 +1,100 @@
+const BANK_URZ = [
+  {
+    name: "Naczelne organy", q: [
+      { q: "Kieruje pracami Rady Ministrów, zapewnia wykonywanie jej polityki, kontrasygnuje akty prezydenta i jest zwierzchnikiem służbowym pracowników administracji rządowej. Co to za urząd?", o: ["Prezes Rady Ministrów", "Prezydent RP", "Szef Kancelarii Prezesa Rady Ministrów", "Marszałek Sejmu"], c: 0,
+        e: "To kompetencje premiera z art. 148 Konstytucji. Kontrasygnata premiera jest potrzebna pod aktami urzędowymi prezydenta, poza prerogatywami." },
+      { q: "Zwołuje Zgromadzenie Narodowe i mu przewodniczy, a gdy prezydent nie może sprawować urzędu, przejmuje jego obowiązki. Co to za urząd?", o: ["Marszałek Sejmu", "Marszałek Senatu", "Pierwszy Prezes Sądu Najwyższego", "Prezes Rady Ministrów"], c: 0,
+        e: "Marszałek Senatu wchodzi w te role dopiero wtedy, gdy Marszałek Sejmu nie może tego zrobić." },
+      { q: "Przejmuje obowiązki Prezydenta RP, gdy nie może tego zrobić Marszałek Sejmu, i zastępuje go w przewodniczeniu Zgromadzeniu Narodowemu. Co to za urząd?", o: ["Marszałek Senatu", "Wicemarszałek Sejmu", "Prezes Rady Ministrów", "Prezes Trybunału Konstytucyjnego"], c: 0,
+        e: "Tak było 8 lipca 2010 r., gdy Bogdan Borusewicz przez kilka godzin pełnił obowiązki prezydenta." },
+      { q: "Jest najwyższym zwierzchnikiem Sił Zbrojnych, stosuje prawo łaski, nadaje ordery i obywatelstwo polskie. Co to za urząd?", o: ["Prezydent RP", "Minister Obrony Narodowej", "Prezes Rady Ministrów", "Szef Sztabu Generalnego"], c: 0,
+        e: "To prerogatywy prezydenta, które nie wymagają kontrasygnaty premiera." },
+      { q: "Za jego pośrednictwem prezydent w czasie pokoju sprawuje zwierzchnictwo nad Siłami Zbrojnymi. Co to za urząd?", o: ["Minister Obrony Narodowej", "Szef Sztabu Generalnego", "Szef Biura Bezpieczeństwa Narodowego", "Naczelny Dowódca Sił Zbrojnych"], c: 0,
+        e: "Tak stanowi art. 134 ust. 2 Konstytucji. Naczelnego Dowódcę prezydent mianuje dopiero na czas wojny." },
+      { q: "To Rada Ministrów obradująca pod przewodnictwem prezydenta, zwoływana w sprawach szczególnej wagi. Nie ma kompetencji Rady Ministrów. Co to za organ?", o: ["Rada Gabinetowa", "Rada Bezpieczeństwa Narodowego", "Komitet Rady Ministrów", "Konwent Seniorów"], c: 0,
+        e: "Rada Gabinetowa z art. 141 Konstytucji zbiera się rzadko. Nie podejmuje decyzji, tylko omawia sprawy." },
+      { q: "Jest organem doradczym prezydenta w sprawach wewnętrznego i zewnętrznego bezpieczeństwa państwa. Co to za organ?", o: ["Rada Bezpieczeństwa Narodowego", "Rada Gabinetowa", "Biuro Bezpieczeństwa Narodowego", "Rządowy Zespół Zarządzania Kryzysowego"], c: 0,
+        e: "RBN przewiduje art. 135 Konstytucji. BBN to urząd obsługujący prezydenta w tych sprawach, nie organ doradczy z Konstytucji." },
+      { q: "Zapewnia współdziałanie klubów poselskich w sprawach działalności i trybu prac Sejmu. Tworzą go Marszałek, wicemarszałkowie i przewodniczący klubów. Co to za organ?", o: ["Konwent Seniorów", "Prezydium Sejmu", "Komisja Regulaminowa", "Zgromadzenie Narodowe"], c: 0,
+        e: "Prezydium Sejmu to tylko Marszałek i wicemarszałkowie. Konwent Seniorów dochodzi do tego przewodniczących klubów." },
+      { q: "Ma wyłączną inicjatywę ustawodawczą w sprawie ustawy budżetowej i domniemanie kompetencji w sprawach polityki państwa. Co to za organ?", o: ["Rada Ministrów", "Sejm", "Prezydent RP", "Najwyższa Izba Kontroli"], c: 0,
+        e: "Sprawy niezastrzeżone dla innych organów należą do Rady Ministrów (art. 146), a projekt budżetu może złożyć tylko ona (art. 221)." }
+    ]
+  },
+  {
+    name: "Sądy i kontrola", q: [
+      { q: "Orzeka o zgodności ustaw z Konstytucją, rozstrzyga spory kompetencyjne między centralnymi organami państwa i bada zgodność z Konstytucją celów partii politycznych. Co to za organ?", o: ["Trybunał Konstytucyjny", "Sąd Najwyższy", "Trybunał Stanu", "Naczelny Sąd Administracyjny"], c: 0,
+        e: "To kompetencje TK z art. 188 i 189 Konstytucji. Jego wyroki są ostateczne i powszechnie obowiązujące." },
+      { q: "Orzeka o odpowiedzialności konstytucyjnej prezydenta, premiera, ministrów, prezesa NBP i prezesa NIK. Co to za organ?", o: ["Trybunał Stanu", "Trybunał Konstytucyjny", "Sąd Najwyższy", "Sejmowa Komisja Odpowiedzialności Konstytucyjnej"], c: 0,
+        e: "Komisja Odpowiedzialności Konstytucyjnej tylko przygotowuje sprawę. Orzeka Trybunał Stanu." },
+      { q: "Sprawuje nadzór nad orzekaniem sądów powszechnych i wojskowych, rozpatruje kasacje i stwierdza ważność wyborów do Sejmu. Co to za organ?", o: ["Sąd Najwyższy", "Trybunał Konstytucyjny", "Krajowa Rada Sądownictwa", "Państwowa Komisja Wyborcza"], c: 0,
+        e: "PKW organizuje wybory i ogłasza wyniki, ale ich ważność stwierdza SN." },
+      { q: "Nadzoruje orzekanie wojewódzkich sądów administracyjnych i rozpoznaje skargi kasacyjne od ich orzeczeń. Co to za organ?", o: ["Naczelny Sąd Administracyjny", "Sąd Najwyższy", "Trybunał Konstytucyjny", "Samorządowe Kolegium Odwoławcze"], c: 0,
+        e: "SKO rozpatruje odwołania od decyzji samorządu, ale to organ administracji, nie sąd." },
+      { q: "Stoi na straży niezależności sądów i niezawisłości sędziów oraz przedstawia prezydentowi wnioski o powołanie sędziów. Co to za organ?", o: ["Krajowa Rada Sądownictwa", "Ministerstwo Sprawiedliwości", "Pierwszy Prezes Sądu Najwyższego", "Trybunał Konstytucyjny"], c: 0,
+        e: "Bez wniosku KRS prezydent nie może powołać sędziego (art. 179 i 186 Konstytucji)." },
+      { q: "Kontroluje administrację rządową, NBP i państwowe osoby prawne pod względem legalności, gospodarności, celowości i rzetelności. Podlega Sejmowi. Co to za organ?", o: ["Najwyższa Izba Kontroli", "Regionalna Izba Obrachunkowa", "Centralne Biuro Antykorupcyjne", "Krajowa Administracja Skarbowa"], c: 0,
+        e: "NIK jest naczelnym organem kontroli państwowej. Samorządy kontrolują pod względem finansów regionalne izby obrachunkowe." },
+      { q: "Nadzoruje gospodarkę finansową samorządu terytorialnego i wydaje opinie o projektach budżetów gmin. Co to za organ?", o: ["Regionalna Izba Obrachunkowa", "Najwyższa Izba Kontroli", "Wojewoda", "Samorządowe Kolegium Odwoławcze"], c: 0,
+        e: "RIO działają w każdym województwie. Kontrolują samorządy pod względem zgodności z prawem i dokumentacji." },
+      { q: "Stoi na straży wolności i praw człowieka i obywatela, może zaskarżyć ustawę do TK i co roku informuje Sejm o stanie przestrzegania praw. Co to za urząd?", o: ["Rzecznik Praw Obywatelskich", "Rzecznik Praw Dziecka", "Prokurator Generalny", "Rzecznik Praw Pacjenta"], c: 0,
+        e: "RPO jest niezależny i odpowiada tylko przed Sejmem. Rzecznik Praw Dziecka ma węższy zakres." },
+      { q: "Jest naczelnym organem prokuratury. Od 2016 r. funkcję tę pełni jednocześnie Minister Sprawiedliwości. Co to za urząd?", o: ["Prokurator Generalny", "Prokurator Krajowy", "Pierwszy Prezes Sądu Najwyższego", "Rzecznik Praw Obywatelskich"], c: 0,
+        e: "Prokurator Krajowy jest pierwszym zastępcą Prokuratora Generalnego." },
+      { q: "Nadzoruje przestrzeganie prawa pracy, w tym bezpieczeństwa i higieny pracy. Podlega Sejmowi. Co to za organ?", o: ["Państwowa Inspekcja Pracy", "Zakład Ubezpieczeń Społecznych", "Rada Dialogu Społecznego", "Główny Inspektor Sanitarny"], c: 0,
+        e: "PIP podlega Sejmowi, a nadzór nad nią sprawuje Rada Ochrony Pracy." }
+    ]
+  },
+  {
+    name: "Urzędy i służby", q: [
+      { q: "Ma wyłączne prawo emisji pieniądza oraz ustalania i realizowania polityki pieniężnej i odpowiada za wartość polskiego pieniądza. Co to za organ?", o: ["Narodowy Bank Polski", "Ministerstwo Finansów", "Komisja Nadzoru Finansowego", "Bank Gospodarstwa Krajowego"], c: 0,
+        e: "Tak stanowi art. 227 Konstytucji. BGK to państwowy bank rozwoju, który nie emituje pieniądza." },
+      { q: "Corocznie ustala założenia polityki pieniężnej i decyduje o wysokości stóp procentowych NBP. Co to za organ?", o: ["Rada Polityki Pieniężnej", "Zarząd NBP", "Komisja Nadzoru Finansowego", "Rada Ministrów"], c: 0,
+        e: "RPP liczy 10 osób: prezesa NBP i po trzech członków powoływanych przez Prezydenta, Sejm i Senat." },
+      { q: "Nadzoruje rynek bankowy, kapitałowy, ubezpieczeniowy i emerytalny. Co to za organ?", o: ["Komisja Nadzoru Finansowego", "Narodowy Bank Polski", "Urząd Ochrony Konkurencji i Konsumentów", "Bankowy Fundusz Gwarancyjny"], c: 0,
+        e: "KNF wydaje m.in. zezwolenia na działalność banków. Pieniądze klientów upadłych banków wypłaca BFG." },
+      { q: "Stoi na straży wolności słowa, prawa do informacji i interesu publicznego w radiofonii i telewizji oraz przyznaje koncesje nadawcom. Co to za organ?", o: ["Krajowa Rada Radiofonii i Telewizji", "Rada Mediów Narodowych", "Urząd Komunikacji Elektronicznej", "Ministerstwo Kultury"], c: 0,
+        e: "KRRiT to organ konstytucyjny (art. 213). Częstotliwości jako zasób techniczny rozdziela UKE." },
+      { q: "Chroni konkurencję i konsumentów, nakłada kary za zmowy cenowe i nadużywanie pozycji dominującej, zgadza się na fuzje firm. Co to za urząd?", o: ["Prezes UOKiK", "Komisja Nadzoru Finansowego", "Rzecznik Finansowy", "Prezes URE"], c: 0,
+        e: "URE reguluje rynek energii i zatwierdza taryfy, a Rzecznik Finansowy pomaga klientom w sporach z instytucjami finansowymi." },
+      { q: "Nadzoruje przetwarzanie danych osobowych i nakłada kary za naruszenie RODO. Co to za urząd?", o: ["Prezes Urzędu Ochrony Danych Osobowych", "Rzecznik Praw Obywatelskich", "Generalny Inspektor Informacji Finansowej", "Prezes Urzędu Komunikacji Elektronicznej"], c: 0,
+        e: "UODO zastąpił w 2018 r. Generalnego Inspektora Ochrony Danych Osobowych (GIODO)." },
+      { q: "Gromadzi dokumenty organów bezpieczeństwa PRL, prowadzi śledztwa w sprawie zbrodni nazistowskich i komunistycznych oraz prowadzi lustrację. Co to za instytucja?", o: ["Instytut Pamięci Narodowej", "Archiwum Akt Nowych", "Agencja Bezpieczeństwa Wewnętrznego", "Rzecznik Interesu Publicznego"], c: 0,
+        e: "IPN działa od 2000 r. Lustrację przejął w 2007 r. od zlikwidowanego Rzecznika Interesu Publicznego." },
+      { q: "Zwalcza korupcję w instytucjach publicznych i w gospodarce oraz kontroluje oświadczenia majątkowe osób publicznych. Co to za służba?", o: ["Centralne Biuro Antykorupcyjne", "Agencja Bezpieczeństwa Wewnętrznego", "Centralne Biuro Śledcze Policji", "Najwyższa Izba Kontroli"], c: 0,
+        e: "CBA powstało w 2006 r. CBŚP walczy z przestępczością zorganizowaną." },
+      { q: "Rozpoznaje zagrożenia bezpieczeństwa wewnętrznego państwa, prowadzi kontrwywiad i przeciwdziała terroryzmowi. Co to za służba?", o: ["Agencja Bezpieczeństwa Wewnętrznego", "Agencja Wywiadu", "Służba Kontrwywiadu Wojskowego", "Służba Ochrony Państwa"], c: 0,
+        e: "Agencja Wywiadu działa za granicą, a SKW zajmuje się kontrwywiadem w wojsku." },
+      { q: "Chroni najważniejsze osoby w państwie, w tym prezydenta i premiera, oraz wybrane obiekty. W 2018 r. zastąpiła Biuro Ochrony Rządu. Co to za służba?", o: ["Służba Ochrony Państwa", "Żandarmeria Wojskowa", "Straż Marszałkowska", "Agencja Bezpieczeństwa Wewnętrznego"], c: 0,
+        e: "Straż Marszałkowska chroni budynki Sejmu i Senatu, a Żandarmeria Wojskowa jest policją wojskową." },
+      { q: "Czuwa nad przestrzeganiem prawa wyborczego, ogłasza wyniki wyborów i przyjmuje sprawozdania finansowe partii. Co to za organ?", o: ["Państwowa Komisja Wyborcza", "Sąd Najwyższy", "Krajowe Biuro Wyborcze", "Ministerstwo Spraw Wewnętrznych"], c: 0,
+        e: "PKW składa się z sędziów i osób wskazanych przez Sejm. Krajowe Biuro Wyborcze tylko ją obsługuje." },
+      { q: "Jest forum dialogu rządu, związków zawodowych i organizacji pracodawców. W 2015 r. zastąpiła Komisję Trójstronną. Co to za organ?", o: ["Rada Dialogu Społecznego", "Rada Ochrony Pracy", "Państwowa Inspekcja Pracy", "Rada Gabinetowa"], c: 0,
+        e: "RDS opiniuje m.in. projekty płacy minimalnej i budżetu." }
+    ]
+  },
+  {
+    name: "Samorząd i Europa", q: [
+      { q: "Reprezentuje Radę Ministrów w województwie, jest zwierzchnikiem zespolonej administracji rządowej i nadzoruje legalność uchwał samorządów. Co to za urząd?", o: ["Wojewoda", "Marszałek województwa", "Starosta", "Przewodniczący sejmiku województwa"], c: 0,
+        e: "Wojewodę powołuje premier. Marszałek województwa kieruje samorządem województwa, a nie administracją rządową." },
+      { q: "Przewodniczy zarządowi województwa, kieruje urzędem marszałkowskim i reprezentuje samorząd województwa na zewnątrz. Co to za urząd?", o: ["Marszałek województwa", "Wojewoda", "Przewodniczący sejmiku", "Starosta"], c: 0,
+        e: "Wybiera go sejmik województwa. Wojewoda to przedstawiciel rządu w tym samym województwie." },
+      { q: "Przewodniczy zarządowi powiatu i kieruje jego urzędem. Co to za urząd?", o: ["Starosta", "Wójt", "Przewodniczący rady powiatu", "Wojewoda"], c: 0,
+        e: "Starostę wybiera rada powiatu. Wójta, burmistrza i prezydenta miasta wybierają mieszkańcy w wyborach bezpośrednich." },
+      { q: "Jest organem stanowiącym i kontrolnym gminy, uchwala jej budżet i udziela absolutorium. Co to za organ?", o: ["Rada gminy", "Wójt", "Sołtys", "Regionalna Izba Obrachunkowa"], c: 0,
+        e: "Wójt (burmistrz, prezydent miasta) jest organem wykonawczym. Sołtys kieruje sołectwem, jednostką pomocniczą gminy." },
+      { q: "Ma co do zasady wyłączną inicjatywę ustawodawczą w UE i czuwa nad stosowaniem traktatów, stąd przydomek „strażniczka traktatów”. Co to za instytucja?", o: ["Komisja Europejska", "Rada Unii Europejskiej", "Parlament Europejski", "Rada Europejska"], c: 0,
+        e: "Projekty aktów prawnych zgłasza Komisja, a przyjmują je Parlament Europejski i Rada UE." },
+      { q: "Tworzą ją szefowie państw lub rządów państw członkowskich; wyznacza ogólne kierunki i priorytety polityczne UE. Co to za instytucja?", o: ["Rada Europejska", "Rada Unii Europejskiej", "Rada Europy", "Komisja Europejska"], c: 0,
+        e: "Rada UE to ministrowie państw członkowskich, a Rada Europy to osobna organizacja spoza UE." },
+      { q: "Organizacja międzynarodowa z siedzibą w Strasburgu, niebędąca organem UE, do której należy kilkadziesiąt państw Europy. Co to za instytucja?", o: ["Rada Europy", "Rada Europejska", "Parlament Europejski", "OBWE"], c: 0,
+        e: "Rada Europy stworzyła Europejską Konwencję Praw Człowieka. Parlament Europejski też obraduje w Strasburgu, ale jest instytucją UE." },
+      { q: "Rozpatruje skargi na naruszenie Europejskiej Konwencji Praw Człowieka przez państwa. Co to za sąd?", o: ["Europejski Trybunał Praw Człowieka", "Trybunał Sprawiedliwości UE", "Międzynarodowy Trybunał Sprawiedliwości", "Międzynarodowy Trybunał Karny"], c: 0,
+        e: "ETPCz działa w Strasburgu przy Radzie Europy. TSUE w Luksemburgu stosuje prawo Unii." },
+      { q: "Odpowiada na pytania prejudycjalne sądów krajowych o wykładnię prawa Unii. Co to za sąd?", o: ["Trybunał Sprawiedliwości UE", "Europejski Trybunał Praw Człowieka", "Europejski Trybunał Obrachunkowy", "Sąd Najwyższy"], c: 0,
+        e: "TSUE ma siedzibę w Luksemburgu. Europejski Trybunał Obrachunkowy nie jest sądem, tylko kontroluje finanse UE." },
+      { q: "Rozpatruje skargi na niewłaściwe administrowanie w instytucjach i organach Unii Europejskiej. Co to za urząd?", o: ["Europejski Rzecznik Praw Obywatelskich", "Europejski Inspektor Ochrony Danych", "Prokuratura Europejska", "Europejski Trybunał Obrachunkowy"], c: 0,
+        e: "Europejskiego Rzecznika wybiera Parlament Europejski. Prokuratura Europejska ściga przestępstwa przeciw budżetowi UE." }
+    ]
+  }
+];

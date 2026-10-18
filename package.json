@@ -1,0 +1,14 @@
+{
+  "name": "postaw-krzyzyk",
+  "private": true,
+  "description": "Teleturniej Postaw Krzyżyk: budowanie i testy",
+  "scripts": {
+    "build": "python3 tools/build.py",
+    "validate": "node tests/validate_questions.js",
+    "test": "node tests/validate_questions.js && python3 tools/build.py && python3 tests/smoke_teleturniej.py && python3 tests/smoke_live_claude.py && python3 tests/smoke_live_web.py"
+  },
+  "devDependencies": {
+    "peer": "1.0.2",
+    "peerjs": "1.5.4"
+  }
+}

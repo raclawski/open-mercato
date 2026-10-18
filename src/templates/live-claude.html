@@ -1,0 +1,849 @@
+<title>Postaw Krzyżyk Live</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one narrow column on a desk; every screen is a sheet of ballot paper.
+   The player on turn sits on a dark name plate; answers are ballot rows marked in ballpoint blue; the winner gets the red commission stamp. */
+:root {
+  --desk: #E4E7ED;
+  --paper: #FCFCFA;
+  --ink: #141922;
+  --muted: #576072;
+  --rule: #CFD4DD;
+  --rule-strong: #959DAD;
+  --hover: #F1F3F7;
+  --pen: #1E3DB5;
+  --stamp: #BE1430;
+  --stamp-soft: #F9E2E6;
+  --ok: #1B7146;
+  --ok-soft: #DDF0E5;
+  --shadow: rgba(20, 25, 34, .28);
+  --plate: #141922;
+  --plate-fg: #FCFCFA;
+
+  --f-display: "Archivo", "Arial Narrow", "Helvetica Neue", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --desk: #0E1117; --paper: #171B24; --ink: #E9EBF0; --muted: #9BA3B5; --rule: #2C3342;
+    --rule-strong: #4C5568; --hover: #1E2330; --pen: #86A2FF; --stamp: #FF6275; --stamp-soft: #3A1820;
+    --ok: #52C98F; --ok-soft: #14301F; --shadow: rgba(0, 0, 0, .6); --plate: #E9EBF0; --plate-fg: #10131A; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --desk: #0E1117; --paper: #171B24; --ink: #E9EBF0; --muted: #9BA3B5; --rule: #2C3342;
+  --rule-strong: #4C5568; --hover: #1E2330; --pen: #86A2FF; --stamp: #FF6275; --stamp-soft: #3A1820;
+  --ok: #52C98F; --ok-soft: #14301F; --shadow: rgba(0, 0, 0, .6); --plate: #E9EBF0; --plate-fg: #10131A; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body { background: var(--desk); color: var(--ink); font-family: var(--f-body); font-size: 16px; line-height: 1.5; -webkit-tap-highlight-color: transparent; }
+.app {
+  max-width: 36rem; margin: 0 auto; padding-block: 20px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 14px;
+}
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--pen); outline-offset: 2px; }
+.eyebrow { font-family: var(--f-mono); font-size: .72rem; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0; }
+.eyebrow.hot { color: var(--stamp); }
+h1, h2, h3, h4 { font-family: var(--f-display); text-wrap: balance; margin: 0; }
+.neg { color: var(--stamp); }
+
+.sheet { background: var(--paper); border: 1px solid var(--rule); border-radius: 3px; box-shadow: 0 1px 0 var(--rule), 0 18px 36px -24px var(--shadow); overflow: hidden; }
+.sheet-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 18px; border-bottom: 1px dashed var(--rule-strong); }
+.sheet-body { padding: 20px 18px 22px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+
+/* start */
+.masthead { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; }
+.masthead h1 { font-size: clamp(2.5rem, 11vw, 3.6rem); font-weight: 850; font-stretch: 72%; line-height: .92; letter-spacing: -.01em; }
+.masthead .sub { font-family: var(--f-mono); font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; color: var(--stamp); margin-top: 6px; display: block; }
+.bigbox { width: clamp(3.6rem, 16vw, 4.6rem); aspect-ratio: 1; max-width: 100%; border: 3px solid var(--ink); display: grid; place-items: center; }
+.bigbox svg { width: 82%; height: 82%; }
+.bigbox path { stroke: var(--pen); stroke-width: 2.6; stroke-linecap: round; fill: none; }
+.lede { margin: 0; color: var(--muted); }
+.lede strong { color: var(--ink); font-weight: 600; }
+.rules { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; font-size: .92rem; color: var(--muted); }
+.rules li { display: grid; grid-template-columns: 3.4rem 1fr; gap: 10px; align-items: baseline; }
+.rules b { font-family: var(--f-mono); color: var(--ink); font-weight: 600; text-align: right; }
+.rules b.neg { color: var(--stamp); }
+
+.field { display: grid; gap: 8px; }
+.field label, .field .label { font-weight: 600; font-size: .95rem; }
+.hint { font-size: .85rem; color: var(--muted); margin: 0; }
+input[type="text"] { font: inherit; color: var(--ink); background: var(--paper); border: 1px solid var(--rule-strong); border-radius: 3px; padding: 11px 12px; width: 100%; }
+.seg { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--rule-strong); border-radius: 3px; overflow: hidden; }
+.seg.c3 { grid-template-columns: repeat(3, 1fr); }
+.seg.g2 { grid-template-columns: 1fr 1fr; }
+.seg.g2 button:nth-child(odd) { border-left: 0; }
+.seg.g2 button:nth-child(n+3) { border-top: 1px solid var(--rule); }
+.seg.g2 button.wide { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--rule); }
+.seg button { border: 0; border-left: 1px solid var(--rule); background: var(--paper); padding: 10px 4px; cursor: pointer; font-family: var(--f-mono); font-size: .82rem; font-weight: 500; line-height: 1.25; }
+.seg button:first-child { border-left: 0; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.seg button.hotbtn[aria-pressed="true"] { background: var(--stamp); color: var(--paper); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 420px) { .two { grid-template-columns: 1fr; } }
+
+/* chips */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1.5px solid var(--rule-strong); background: var(--paper); color: var(--ink); border-radius: 99px; padding: 8px 16px; min-height: 44px; cursor: pointer; font-weight: 600; }
+.chip:hover { background: var(--hover); }
+.chip[aria-pressed="true"] { background: var(--pen); border-color: var(--pen); color: var(--paper); }
+.chip[aria-pressed="true"]::before { content: "→ "; }
+.chip .self { font-weight: 400; font-size: .8rem; opacity: .8; }
+
+/* play */
+.hud { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.hud-q { font-family: var(--f-display); font-stretch: 85%; font-weight: 700; font-size: 1.05rem; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.pill { font-family: var(--f-mono); font-size: .68rem; font-weight: 600; letter-spacing: .06em; color: var(--stamp); border: 1.5px solid var(--stamp); padding: 1px 7px; border-radius: 99px; text-transform: uppercase; }
+.progress { height: 5px; background: var(--rule); border-radius: 3px; overflow: hidden; }
+.progress i { display: block; height: 100%; background: var(--ink); }
+.scores { display: flex; flex-wrap: wrap; gap: 6px; }
+.sc { font-family: var(--f-mono); font-size: .8rem; padding: 4px 10px; border: 1px solid var(--rule); border-radius: 99px; background: var(--paper); white-space: nowrap; }
+.sc b { font-weight: 600; font-variant-numeric: tabular-nums; }
+.sc.on { background: var(--plate); color: var(--plate-fg); border-color: var(--plate); }
+.sc.on b.neg { color: var(--stamp); }
+
+.plate { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; background: var(--plate); color: var(--plate-fg); }
+.plate .lbl { font-family: var(--f-mono); font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; opacity: .7; display: block; }
+.plate .nm { font-family: var(--f-display); font-stretch: 72%; font-weight: 850; font-size: clamp(1.7rem, 8.5vw, 2.4rem); line-height: 1; display: block; overflow-wrap: anywhere; }
+.plate .stake { font-family: var(--f-mono); font-size: .8rem; text-align: right; line-height: 1.5; white-space: nowrap; }
+.plate .stake .m { color: var(--stamp); }
+.plate .left { min-width: 0; }
+
+.timer { display: grid; grid-template-columns: 1fr 3.2rem; gap: 10px; align-items: center; }
+.timer-track { height: 6px; background: var(--rule); border-radius: 3px; overflow: hidden; }
+.timer-fill { display: block; height: 100%; background: var(--ink); transform-origin: left center; transform: scaleX(1); }
+.timer.low .timer-fill { background: var(--stamp); }
+.timer-num { font-family: var(--f-mono); font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+.timer.low .timer-num { color: var(--stamp); }
+.qtext { font-size: clamp(1.3rem, 5.4vw, 1.65rem); font-weight: 700; font-stretch: 88%; line-height: 1.2; }
+
+.ballot { display: grid; gap: 8px; }
+.row { display: grid; grid-template-columns: 2rem 1fr auto; gap: 12px; align-items: center; width: 100%; min-height: 3.3rem; padding: 10px 12px; text-align: left; background: var(--paper); border: 1px solid var(--rule); border-radius: 3px; cursor: pointer; transition: background-color .15s, border-color .15s, opacity .2s; }
+.row:hover:not(:disabled) { background: var(--hover); border-color: var(--rule-strong); }
+.row:disabled { cursor: default; }
+.row .txt { min-width: 0; font-weight: 500; line-height: 1.35; }
+.box { width: 1.75rem; height: 1.75rem; border: 2px solid var(--ink); background: var(--paper); display: grid; place-items: center; }
+.box svg { width: 100%; height: 100%; overflow: visible; }
+.box path { stroke: var(--pen); stroke-width: 3; stroke-linecap: round; fill: none; stroke-dasharray: 22; stroke-dashoffset: 22; }
+.row.marked .box path { stroke-dashoffset: 0; transition: stroke-dashoffset .22s ease-out; }
+.row.marked .box path + path { transition-delay: .14s; }
+.key { font-family: var(--f-mono); font-size: .75rem; color: var(--muted); }
+.row.is-correct { background: var(--ok-soft); border-color: var(--ok); }
+.row.is-wrong { background: var(--stamp-soft); border-color: var(--stamp); }
+.row.is-dim { opacity: .5; }
+.vtag { font-family: var(--f-mono); font-size: .68rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+.is-correct .vtag { color: var(--ok); }
+.is-wrong .vtag { color: var(--stamp); }
+
+.feedback { display: grid; gap: 8px; padding-top: 16px; border-top: 1px dashed var(--rule-strong); }
+.feedback h3 { font-size: 1.3rem; font-stretch: 85%; font-weight: 800; }
+.feedback.good h3 { color: var(--ok); }
+.feedback.bad h3 { color: var(--stamp); }
+.feedback p { margin: 0; }
+.feedback .answer-line { font-weight: 600; }
+.nextpick { display: grid; gap: 10px; padding-top: 14px; border-top: 1px dashed var(--rule-strong); }
+.nextpick h4 { font-stretch: 85%; font-weight: 800; font-size: 1.1rem; }
+
+.btn { display: block; width: 100%; border: 0; border-radius: 3px; background: var(--ink); color: var(--paper); padding: 15px 18px; font-family: var(--f-display); font-stretch: 90%; font-weight: 750; font-size: 1.1rem; letter-spacing: .01em; cursor: pointer; }
+.btn:hover:not(:disabled) { background: var(--pen); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--rule-strong); }
+.btn.ghost:hover { background: var(--hover); }
+.btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.link-btn { border: 0; background: none; padding: 4px 0; cursor: pointer; font-family: var(--f-mono); font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.link-btn.armed { color: var(--stamp); }
+
+/* final */
+.result { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; align-items: center; }
+.stamp { width: 9.5rem; aspect-ratio: 1; max-width: 100%; border-radius: 50%; border: 3px solid var(--stamp); color: var(--stamp); display: grid; place-items: center; text-align: center; transform: rotate(-9deg); box-shadow: inset 0 0 0 5px var(--paper), inset 0 0 0 7px var(--stamp); animation: thump .45s cubic-bezier(.2, .9, .3, 1.3) both; }
+.stamp .s-label { font-family: var(--f-mono); font-size: .58rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; display: block; }
+.stamp .s-num { font-family: var(--f-display); font-stretch: 70%; font-weight: 900; font-size: 2.6rem; line-height: 1; display: block; font-variant-numeric: tabular-nums; }
+@keyframes thump { from { transform: rotate(-9deg) scale(1.25); } to { transform: rotate(-9deg) scale(1); } }
+.rank { min-width: 0; }
+.rank h2 { font-size: clamp(1.6rem, 7vw, 2.4rem); font-weight: 850; font-stretch: 75%; line-height: 1; overflow-wrap: anywhere; }
+.rank p { margin: 6px 0 0; color: var(--muted); }
+.board-title { font-stretch: 85%; font-weight: 800; font-size: 1.15rem; margin: 0 0 10px; }
+.board { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.board li { display: grid; grid-template-columns: 1.6rem minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; }
+.board .pos { font-family: var(--f-mono); color: var(--muted); font-size: .85rem; }
+.board .nm { font-weight: 600; overflow-wrap: anywhere; }
+.board .stat { display: block; font-weight: 400; font-size: .8rem; color: var(--muted); font-family: var(--f-mono); }
+.board .p { font-family: var(--f-mono); font-weight: 600; font-variant-numeric: tabular-nums; }
+.board .bar { grid-column: 2 / 4; height: 5px; background: var(--rule); border-radius: 3px; overflow: hidden; }
+.board .bar i { display: block; height: 100%; background: var(--pen); }
+.board .lead .bar i { background: var(--stamp); }
+.board .star { color: var(--stamp); }
+.mini { list-style: none; margin: 0; padding: 0; display: grid; }
+.mini li { display: grid; grid-template-columns: 1.4rem 1fr; gap: 8px; padding: 9px 0; border-top: 1px solid var(--rule); font-size: .93rem; }
+.mini li:first-child { border-top: 0; }
+.mark-ok { color: var(--ok); font-weight: 700; }
+.mark-no { color: var(--stamp); font-weight: 700; }
+.mini .ans { display: block; color: var(--muted); font-size: .84rem; }
+details.review { border-top: 1px dashed var(--rule-strong); padding-top: 12px; }
+details.review summary { cursor: pointer; font-weight: 600; }
+.copy-note { font-size: .8rem; color: var(--muted); text-align: center; margin: 0; min-height: 1.2em; }
+.share-text { width: 100%; font: inherit; font-size: .85rem; padding: 8px; border: 1px solid var(--rule); border-radius: 3px; background: var(--paper); color: var(--ink); resize: none; }
+.foot { text-align: center; font-size: .75rem; color: var(--muted); margin: 4px 0 0; }
+
+@media (max-width: 440px) { .stamp { width: 7.6rem; } .stamp .s-num { font-size: 2.1rem; } .result { gap: 14px; } }
+@media (max-width: 360px) { .result { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; } .btn-row { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .stamp { animation: none; } .row.marked .box path, .row { transition: none; } }
+
+
+/* ---------- live: przyciski ---------- */
+.conn { font-family: var(--f-mono); font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 6px; margin: 0; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--rule-strong); flex: none; }
+.conn.on .dot { background: var(--ok); }
+.conn.off .dot { background: var(--stamp); }
+.rolepick { display: grid; gap: 10px; }
+.btn.go { background: var(--stamp); color: var(--paper); font-size: 1.45rem; padding: 20px; }
+.btn.go:hover:not(:disabled) { background: var(--stamp); filter: brightness(1.08); }
+.btn.ok { background: var(--ok); color: var(--paper); }
+.btn.bad { background: var(--stamp); color: var(--paper); }
+.btn.ok:hover:not(:disabled), .btn.bad:hover:not(:disabled) { filter: brightness(1.08); }
+.btn.ok:hover:not(:disabled) { background: var(--ok); }
+.btn.bad:hover:not(:disabled) { background: var(--stamp); }
+.notice { margin: 0; padding: 12px 14px; border: 1px solid var(--stamp); background: var(--stamp-soft); border-radius: 3px; font-size: .9rem; }
+.notice.soft { border-color: var(--rule); background: var(--hover); }
+.buzz {
+  width: min(72vw, 300px); aspect-ratio: 1; max-width: 100%; border-radius: 50%; border: 0; margin: 4px auto;
+  display: grid; place-items: center; text-align: center; padding: 18px;
+  font-family: var(--f-display); font-stretch: 75%; font-weight: 900; font-size: clamp(1.5rem, 8.5vw, 2.5rem); line-height: 1.05;
+  text-transform: uppercase; cursor: pointer; background: var(--rule); color: var(--muted);
+  box-shadow: inset 0 -10px 0 var(--shadow); touch-action: manipulation; user-select: none; -webkit-user-select: none;
+}
+.buzz small { display: block; font-family: var(--f-mono); font-size: .72rem; font-weight: 500; letter-spacing: .06em; margin-top: 8px; text-transform: none; }
+.buzz.armed { background: var(--stamp); color: var(--paper); animation: pulse .8s ease-in-out infinite; }
+.buzz.pressed { background: var(--pen); color: var(--paper); }
+.buzz.win { background: var(--ok); color: var(--paper); }
+.buzz.blocked { background: var(--stamp-soft); color: var(--stamp); }
+.buzz:active { transform: scale(.97); }
+@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+.big-status { text-align: center; font-family: var(--f-display); font-stretch: 80%; font-weight: 800; font-size: 1.3rem; margin: 0; }
+.order { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; font-family: var(--f-mono); font-size: .8rem; }
+.order li { padding: 3px 9px; border: 1px solid var(--rule); border-radius: 99px; }
+.order li:first-child { border-color: var(--ok); color: var(--ok); font-weight: 600; }
+.roster { display: flex; flex-wrap: wrap; gap: 6px; }
+.roster .sc.off { opacity: .5; }
+.roster .sc.blk { border-color: var(--stamp); color: var(--stamp); }
+.host-actions { display: grid; gap: 10px; }
+.row.host-correct { border-color: var(--ok); border-style: dashed; }
+.row.host-correct .key { color: var(--ok); font-weight: 600; }
+.pq { font-size: clamp(1.1rem, 5vw, 1.4rem); font-weight: 700; font-stretch: 88%; line-height: 1.25; margin: 0; }
+.popts { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.popts li { display: grid; grid-template-columns: 1.4rem 1fr; gap: 8px; padding: 8px 10px; border: 1px solid var(--rule); border-radius: 3px; font-size: .95rem; }
+.popts li b { font-family: var(--f-mono); color: var(--muted); }
+.popts li.good { background: var(--ok-soft); border-color: var(--ok); }
+.toggle { display: flex; align-items: center; gap: 8px; font-size: .88rem; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .buzz.armed { animation: none; } }
+</style>
+
+<main class="app">
+
+  <!-- WYBÓR ROLI -->
+  <section id="s-role" class="sheet" aria-labelledby="t-role">
+    <div class="sheet-head">
+      <p class="eyebrow hot">Teleturniej · na przyciski</p>
+      <p class="conn" id="connRole"><span class="dot"></span><span>Łączenie…</span></p>
+    </div>
+    <div class="sheet-body">
+      <div class="masthead">
+        <div class="bigbox" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.6 4.9 C9 9.4 14.2 14.6 19.4 19.3"/><path d="M19.1 4.6 C14.4 9.3 9.8 14.1 4.8 19.5"/></svg></div>
+        <h1 id="t-role">Postaw<br>krzyżyk<span class="sub">Live</span></h1>
+      </div>
+      <ul class="rules">
+        <li><b>1</b><span>Prowadzący czyta pytanie i daje <strong>sygnał</strong>.</span></li>
+        <li><b>2</b><span>Kto pierwszy wciśnie przycisk na swoim telefonie, ten odpowiada. Wciśnięcie przed sygnałem to falstart i blokada w tym pytaniu.</span></li>
+        <li><b>+10</b><span>Za dobrą odpowiedź.</span></li>
+        <li><b class="neg" id="ruleMinus">−1</b><span>Za złą. Prowadzący może wtedy dać sygnał pozostałym.</span></li>
+      </ul>
+      <p class="notice soft" id="roomNote" hidden></p>
+      <div class="rolepick">
+        <button type="button" class="btn go" id="btnBePlayer">Jestem graczem</button>
+        <button type="button" class="btn ghost" id="btnBeHost">Prowadzę grę</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- GRACZ: DOŁĄCZ -->
+  <section id="s-pjoin" class="sheet" hidden aria-labelledby="t-pjoin">
+    <div class="sheet-head">
+      <p class="eyebrow">Gracz</p>
+      <p class="conn" id="connPJ"><span class="dot"></span><span>Łączenie…</span></p>
+    </div>
+    <div class="sheet-body">
+      <h2 id="t-pjoin" style="font-size:1.6rem;font-stretch:80%;font-weight:850">Jak masz na imię?</h2>
+      <div class="field">
+        <label for="pname">Imię widoczne dla wszystkich</label>
+        <input type="text" id="pname" maxlength="20" autocomplete="off" placeholder="np. Asia">
+      </div>
+      <div class="chips" id="pnameChips" aria-label="Szybki wybór"></div>
+      <button type="button" class="btn" id="btnJoin">Dołącz do gry</button>
+      <button type="button" class="link-btn" id="btnBack1">← Zmień rolę</button>
+    </div>
+  </section>
+
+  <!-- GRACZ: PRZYCISK -->
+  <section id="s-player" hidden>
+    <div style="display:grid;gap:10px">
+      <div class="hud">
+        <div class="hud-q"><span id="pName">Asia</span><span class="pill" id="pScore">0 pkt</span></div>
+        <p class="conn" id="connP"><span class="dot"></span><span>Łączenie…</span></p>
+      </div>
+      <div class="scores" id="pScores"></div>
+    </div>
+    <article class="sheet" style="margin-top:14px">
+      <div class="sheet-head">
+        <p class="eyebrow" id="pQnum">Czekamy na prowadzącego</p>
+        <button type="button" class="link-btn" id="btnLeave">Wyjdź</button>
+      </div>
+      <div class="sheet-body">
+        <button type="button" class="buzz" id="buzz">Czekaj<small>na prowadzącego</small></button>
+        <p class="big-status" id="pStatus" aria-live="assertive"></p>
+        <div id="pQ" hidden style="display:grid;gap:10px">
+          <p class="pq" id="pQtext"></p>
+          <ul class="popts" id="pOpts"></ul>
+          <p class="hint" id="pExplain" hidden></p>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <!-- PROWADZĄCY: USTAWIENIA -->
+  <section id="s-hsetup" class="sheet" hidden aria-labelledby="t-hsetup">
+    <div class="sheet-head">
+      <p class="eyebrow hot">Prowadzący</p>
+      <p class="conn" id="connHS"><span class="dot"></span><span>Łączenie…</span></p>
+    </div>
+    <div class="sheet-body">
+      <h2 id="t-hsetup" style="font-size:1.6rem;font-stretch:80%;font-weight:850">Poczekalnia</h2>
+      <div class="field">
+        <span class="label">Gracze przy przyciskach</span>
+        <div class="roster" id="hsRoster"></div>
+        <p class="hint" id="hsRosterHint">Gracze otwierają ten sam link na swoich telefonach i wybierają „Jestem graczem”.</p>
+      </div>
+      <div class="field">
+        <span class="label" id="lbl-level">Poziom pytań</span>
+        <div class="seg g2" role="group" aria-labelledby="lbl-level" id="levelSeg">
+          <button type="button" data-v="std">Umiarkowany</button>
+          <button type="button" data-v="mega">Mega</button>
+          <button type="button" data-v="pro" class="hotbtn">Ekspert PL</button>
+          <button type="button" data-v="pop" class="hotbtn">Popkultura PL</button>
+          <button type="button" data-v="urz" class="hotbtn">Jaki to urząd?</button>
+          <button type="button" data-v="uzw" class="hotbtn">Używki</button>
+          <button type="button" data-v="ksh" class="hotbtn">Prawo spółek</button>
+          <button type="button" data-v="ts" class="hotbtn">Taylor Swift</button>
+        </div>
+        <p class="hint" id="levelHint"></p>
+      </div>
+      <div class="field">
+        <span class="label" id="lbl-count">Liczba pytań</span>
+        <div class="seg" role="group" aria-labelledby="lbl-count" id="countSeg">
+          <button type="button" data-v="20">20</button><button type="button" data-v="30">30</button>
+          <button type="button" data-v="40">40</button><button type="button" data-v="50">50</button>
+        </div>
+      </div>
+      <div class="two">
+        <div class="field">
+          <span class="label" id="lbl-time">Czas na odpowiedź</span>
+          <div class="seg" role="group" aria-labelledby="lbl-time" id="timeSeg">
+            <button type="button" data-v="5">5 s</button><button type="button" data-v="10">10 s</button>
+            <button type="button" data-v="15">15 s</button><button type="button" data-v="0">bez</button>
+          </div>
+        </div>
+        <div class="field">
+          <span class="label" id="lbl-minus">Kara za błąd</span>
+          <div class="seg c3" role="group" aria-labelledby="lbl-minus" id="minusSeg">
+            <button type="button" data-v="1">−1</button><button type="button" data-v="5">−5</button><button type="button" data-v="10">−10</button>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="btn go" id="btnHStart">Start gry</button>
+      <button type="button" class="link-btn" id="btnBack2">← Zmień rolę</button>
+    </div>
+  </section>
+
+  <!-- PROWADZĄCY: GRA -->
+  <section id="s-host" hidden>
+    <div style="display:grid;gap:10px">
+      <div class="hud">
+        <div class="hud-q"><span id="hQnum">Pytanie 1 z 30</span><span class="pill" id="hCat">Kategoria</span></div>
+        <p class="conn" id="connH"><span class="dot"></span><span>Łączenie…</span></p>
+      </div>
+      <div class="progress" aria-hidden="true"><i id="hProg" style="width:0"></i></div>
+      <div class="roster" id="hRoster"></div>
+    </div>
+    <article class="sheet" style="margin-top:14px">
+      <div class="plate">
+        <div class="left"><span class="lbl" id="plateLbl">Status</span><span class="nm" id="plateName">Czytaj pytanie</span></div>
+        <div class="stake"><span>+10</span><br><span class="m" id="stakeMinus">−10</span></div>
+      </div>
+      <div class="sheet-body">
+        <div class="timer" id="timer" hidden aria-hidden="true">
+          <div class="timer-track"><span class="timer-fill" id="timerFill"></span></div>
+          <div class="timer-num" id="timerNum">10</div>
+        </div>
+        <h2 class="qtext" id="hQtext"></h2>
+        <div class="ballot" id="hOpts"></div>
+        <label class="toggle"><input type="checkbox" id="showKey" checked> Pokazuj mi poprawną odpowiedź (gracze jej nie widzą)</label>
+        <div id="hOrderBox" hidden><p class="eyebrow" style="margin-bottom:6px">Kolejność wciśnięć</p><ul class="order" id="hOrder"></ul></div>
+        <div class="feedback" id="hFb" hidden aria-live="polite">
+          <h3 id="hFbTitle"></h3>
+          <p id="hFbExplain"></p>
+        </div>
+        <div class="host-actions" id="hActions"></div>
+        <button type="button" class="link-btn" id="btnHEnd">Zakończ grę</button>
+      </div>
+    </article>
+  </section>
+
+  <!-- WYNIKI (wspólne) -->
+  <section id="s-final" class="sheet" hidden aria-labelledby="t-final">
+    <div class="sheet-head">
+      <p class="eyebrow hot" id="fHead">Protokół teleturnieju</p>
+      <p class="eyebrow" id="fCount"></p>
+    </div>
+    <div class="sheet-body">
+      <div class="result">
+        <div class="stamp" id="stamp" role="img" aria-label="Wynik zwycięzcy">
+          <div><span class="s-label">Zwycięzca</span><span class="s-num" id="fScore">0</span><span class="s-label">pkt</span></div>
+        </div>
+        <div class="rank"><p class="eyebrow" id="fWinLbl">Wygrywa</p><h2 id="t-final">—</h2></div>
+      </div>
+      <div><h3 class="board-title">Klasyfikacja</h3><ol class="board" id="fBoard"></ol></div>
+      <div class="host-actions" id="fActions"></div>
+    </div>
+  </section>
+
+  <p class="foot" id="foot">Przyciski działają dla osób zalogowanych w Claude, którym udostępniono ten link.</p>
+</main>
+
+<script>
+/*__BANKS__*/
+
+const LEVELS = {
+  std: { label: "Umiarkowany", bank: BANK_STD, hint: "Pytania dla każdego, kto śledzi wiadomości. Polska i świat." },
+  mega: { label: "Mega", bank: BANK_MEGA, hint: "Artykuły Konstytucji, traktaty, teorie politologów. Polska i świat." },
+  pro: { label: "Ekspert PL", bank: BANK_PRO, hint: "Tylko polska polityka: wyniki wyborów, kulisy rządów III RP, PRL i II RP, ordynacja i regulamin Sejmu." },
+  pop: { label: "Popkultura PL", bank: BANK_POP, hint: "Polska popkultura 2010–2026: muzyka i Eurowizja, kino i seriale, internet, gry i sportowe gwiazdy." },
+  urz: { label: "Jaki to urząd?", bank: BANK_URZ, hint: "Opis kompetencji, a gracze rozpoznają urząd albo organ: od premiera i NIK po wojewodę, KNF i TSUE." },
+  uzw: { label: "Używki", bank: BANK_UZW, hint: "Bardzo trudne: historia, chemia, kultura i prawo alkoholu, tytoniu, kawy i narkotyków." },
+  ksh: { label: "Prawo spółek", bank: BANK_KSH, hint: "Kodeks spółek handlowych i okolice: kapitały, większości, odpowiedzialność zarządu, P.S.A., KRS." },
+  ts: { label: "Taylor Swift", bank: BANK_TS, hint: "Albumy, rekordy, Eras Tour, „Taylor's Version”, koty i Travis Kelce. Bez cytowania tekstów piosenek." }
+};
+const PLUS = 10;
+const LETTERS = ["A", "B", "C", "D"];
+const DEFAULT_NAMES = ["Adam", "Zając", "Asia", "Tomek", "Julia"];
+
+/* ---------- pomocnicze ---------- */
+const $ = (s) => document.querySelector(s);
+const SCREENS = ["s-role", "s-pjoin", "s-player", "s-hsetup", "s-host", "s-final"];
+function show(id) { SCREENS.forEach((s) => ($("#" + s).hidden = s !== id)); window.scrollTo(0, 0); }
+function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function load(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
+function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } }
+function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+const num = (n) => (n < 0 ? "−" + Math.abs(n) : String(n));
+const pts = (n) => num(n) + " pkt";
+const clip = (s, n) => (s && s.length > n ? s.slice(0, n - 1) + "…" : s || "");
+const BAD_CHARS = new RegExp("[\\u0000-\\u001f\\u007f-\\u009f\\u200b-\\u200f\\u2028-\\u202e\\u2060-\\u206f\\ufeff]", "g");
+const cleanName = (s) => String(s || "").replace(BAD_CHARS, "").trim().slice(0, 20);
+const XSVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5.4 C9.2 9.6 14 14.4 19 19.1"/><path d="M18.8 5.1 C14.3 9.6 9.9 14.2 5.2 19.2"/></svg>';
+function vibrate(p) { try { navigator.vibrate && navigator.vibrate(p); } catch (e) { } }
+
+/* ---------- pokój (room) ---------- */
+let room = null, roomState = "wait", role = null;
+function setConn(state) {
+  roomState = state;
+  const txt = state === "on" ? "Połączono" : state === "off" ? "Brak połączenia" : "Łączenie…";
+  document.querySelectorAll(".conn").forEach((el) => { el.className = "conn " + state; el.lastElementChild.textContent = txt; });
+  const note = $("#roomNote");
+  if (state === "off") {
+    note.hidden = false;
+    note.className = "notice";
+    note.textContent = "Ten telefon nie może połączyć się z grą. Przyciski działają tylko dla osób zalogowanych w Claude, którym właściciel udostępnił ten link przez menu Udostępnij.";
+  } else note.hidden = true;
+}
+async function initRoom() {
+  const hasApi = !!(window.claude && window.claude.use);
+  try { room = hasApi ? await window.claude.use("room") : null; } catch (e) { room = null; }
+  if (!room) { setConn("off"); setDiag(hasApi ? "kod: room_null (strona nie dostała połączenia; zwykle brak zalogowania, publiczny link albo aplikacja bez obsługi)" : "kod: no_api (strona otwarta poza Claude)"); return; }
+  const onErr = (e) => { setConn("off"); setDiag("kod: " + (e && e.code ? e.code : "unknown")); };
+  room.onConnection((c) => setConn(c ? "on" : "wait"), onErr);
+  room.onPeers((ch) => { if (role === "host") hostOnPeers(ch); else if (role === "player") playerOnPeers(ch); }, onErr);
+  if (role === "player" && P.name) room.presence({ role: "player", name: P.name, buzz: null, fs: null }).catch(() => { });
+  if (role === "host") publishHost();
+}
+function setDiag(t) { const f = document.querySelector("#foot"); if (f) f.textContent = "Brak połączenia z grą. Diagnostyka: " + t; }
+function setPresence(patch) { if (room) room.presence(patch).catch(() => { }); }
+
+/* ============================ GRACZ ============================ */
+const P = { name: load("pkl_name", ""), host: null, armSeen: 0, pressedArm: null, fsKey: null, lastArm: null, lastPh: null };
+
+function renderJoin() {
+  $("#pname").value = P.name;
+  $("#pnameChips").innerHTML = DEFAULT_NAMES.map((n) => `<button type="button" class="chip" data-n="${esc(n)}">${esc(n)}</button>`).join("");
+  show("s-pjoin");
+}
+$("#pnameChips").addEventListener("click", (e) => { const b = e.target.closest("[data-n]"); if (b) $("#pname").value = b.dataset.n; });
+$("#btnJoin").addEventListener("click", () => {
+  const n = cleanName($("#pname").value);
+  if (!n) { $("#pname").focus(); return; }
+  P.name = n; save("pkl_name", n); role = "player"; save("pkl_role", "player");
+  setPresence({ role: "player", name: n, buzz: null, fs: null });
+  renderPlayer(); show("s-player");
+});
+$("#btnLeave").addEventListener("click", () => { role = null; save("pkl_role", null); setPresence({ role: null, name: null, buzz: null, fs: null }); show("s-role"); });
+
+function findHost(peers) {
+  let h = null;
+  for (const p of peers) {
+    const pr = p.presence || {};
+    if (pr.role === "host" && typeof pr.g === "string" && !p.sameTab && (!h || p.updatedAt > h.updatedAt)) h = p;
+  }
+  return h ? h.presence : null;
+}
+function playerOnPeers(ch) {
+  const h = findHost(ch.peers);
+  const prev = P.host;
+  P.host = h;
+  if (h && h.ph === "armed" && h.arm !== P.lastArm) { P.armSeen = performance.now(); P.lastArm = h.arm; vibrate(60); }
+  if (h && prev && h.win && h.win !== prev.win && h.win === P.name) vibrate([80, 40, 80]);
+  renderPlayer();
+}
+function isBlocked(h) { return !!(h && Array.isArray(h.blk) && h.blk.includes(P.name)); }
+function renderPlayer() {
+  const h = P.host, b = $("#buzz"), st = $("#pStatus");
+  $("#pName").textContent = P.name || "Gracz";
+  const sc = h && Array.isArray(h.sc) ? h.sc : [];
+  const mine = sc.find((x) => x[0] === P.name);
+  $("#pScore").textContent = pts(mine ? mine[1] : 0);
+  $("#pScores").innerHTML = sc.map((x) => `<span class="sc${x[0] === P.name ? " on" : ""}">${esc(x[0])} <b class="${x[1] < 0 ? "neg" : ""}">${num(x[1])}</b></span>`).join("");
+  b.className = "buzz"; b.disabled = false;
+  const showQ = h && h.q && ["q", "q2", "armed", "locked", "reveal"].includes(h.ph);
+  $("#pQ").hidden = !showQ;
+  if (showQ) {
+    $("#pQtext").textContent = h.q.t;
+    $("#pOpts").innerHTML = (h.q.o || []).map((o, i) => `<li class="${h.ph === "reveal" && h.rev === i ? "good" : ""}"><b>${LETTERS[i]}</b><span>${esc(o)}</span></li>`).join("");
+    const ex = $("#pExplain"); ex.hidden = !(h.ph === "reveal" && h.ex); ex.textContent = h.ex || "";
+  }
+  $("#pQnum").textContent = h && h.n ? `Pytanie ${h.qn + 1} z ${h.n}${h.q && h.q.c ? " · " + h.q.c : ""}` : "Czekamy na prowadzącego";
+  if (!h) { b.innerHTML = "Czekaj<small>na prowadzącego</small>"; b.disabled = true; st.textContent = roomState === "off" ? "Brak połączenia z grą." : "Prowadzący jeszcze nie otworzył gry."; return; }
+  if (h.ph === "lobby") { b.innerHTML = "Jesteś<small>w poczekalni</small>"; b.disabled = true; st.textContent = "Czekaj na start gry."; return; }
+  if (h.ph === "final") { b.innerHTML = "Koniec<small>gry</small>"; b.disabled = true; const top = sc[0]; st.textContent = top ? `Wygrywa ${top[0]} (${pts(top[1])})` : "Koniec gry"; return; }
+  const blocked = isBlocked(h);
+  if (h.ph === "q" || h.ph === "q2") {
+    if (blocked) { b.className = "buzz blocked"; b.innerHTML = "Blokada<small>w tym pytaniu</small>"; st.textContent = h.ph === "q2" ? "Odbicie dla pozostałych." : ""; }
+    else { b.innerHTML = "Czekaj<small>na sygnał</small>"; st.textContent = h.ph === "q2" ? "Za chwilę sygnał dla pozostałych!" : "Prowadzący czyta pytanie."; }
+    return;
+  }
+  if (h.ph === "armed") {
+    if (blocked) { b.className = "buzz blocked"; b.innerHTML = "Blokada<small>w tym pytaniu</small>"; st.textContent = ""; }
+    else if (P.pressedArm === `${h.g}:${h.arm}`) { b.className = "buzz pressed"; b.innerHTML = "Wciśnięte!<small>czekaj</small>"; st.textContent = ""; }
+    else { b.className = "buzz armed"; b.innerHTML = "Teraz!"; st.textContent = "Wciskaj!"; }
+    return;
+  }
+  if (h.ph === "locked") {
+    if (h.win === P.name) { b.className = "buzz win"; b.innerHTML = "Odpowiadasz!<small>powiedz odpowiedź na głos</small>"; st.textContent = ""; }
+    else { b.innerHTML = "Odpowiada<small>" + esc(h.win || "") + "</small>"; b.disabled = true; st.textContent = `Odpowiada ${h.win || ""}`; }
+    return;
+  }
+  if (h.ph === "reveal") {
+    b.disabled = true;
+    const l = h.last;
+    if (l && l.ok) { b.className = l.name === P.name ? "buzz win" : "buzz"; b.innerHTML = l.name === P.name ? "+10!" : "Dobrze<small>" + esc(l.name) + "</small>"; st.textContent = `${l.name} odpowiada dobrze.`; }
+    else { b.innerHTML = "Odpowiedź<small>na ekranie</small>"; st.textContent = "Nikt nie trafił."; }
+  }
+}
+function pressBuzz() {
+  const h = P.host;
+  if (!h || role !== "player") return;
+  if (isBlocked(h)) return;
+  const key = `${h.g}:${h.arm}`;
+  if (h.ph === "armed") {
+    if (P.pressedArm === key) return;
+    P.pressedArm = key;
+    setPresence({ buzz: { g: h.g, a: h.arm, rt: Math.round(performance.now() - P.armSeen) } });
+    vibrate(30);
+    renderPlayer();
+  } else if (h.ph === "q" || h.ph === "q2") {
+    const fk = `${h.g}:${h.qn}:${h.arm}`;
+    if (P.fsKey === fk) return;
+    P.fsKey = fk;
+    setPresence({ fs: { g: h.g, qn: h.qn, a: h.arm } });
+    vibrate([200]);
+    $("#pStatus").textContent = "Falstart! Blokada w tym pytaniu.";
+  }
+}
+$("#buzz").addEventListener("pointerdown", (e) => { e.preventDefault(); pressBuzz(); });
+$("#buzz").addEventListener("keydown", (e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); pressBuzz(); } });
+
+/* ============================ PROWADZĄCY ============================ */
+let settings = Object.assign({ level: "pro", count: 30, time: 10, minus: 1 }, load("pkl_settings2", {}));
+if (![1, 5, 10].includes(settings.minus)) settings.minus = 1;
+if (!LEVELS[settings.level]) settings.level = "pro";
+let H = load("pkl_host", null);
+let tId = null, tEnd = 0;
+let showKey = load("pkl_showkey", true);
+
+function setSeg(id, val) { document.querySelectorAll(`#${id} button`).forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === String(val)))); }
+function bindSeg(id, key, isNum) {
+  $("#" + id).addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    settings[key] = isNum ? +b.dataset.v : b.dataset.v; save("pkl_settings2", settings); renderHostSetup();
+  });
+}
+bindSeg("levelSeg", "level", false); bindSeg("countSeg", "count", true); bindSeg("timeSeg", "time", true); bindSeg("minusSeg", "minus", true);
+
+function connectedPlayers() {
+  if (!room) return [];
+  const names = [];
+  for (const p of room.peers()) { const pr = p.presence || {}; if (pr.role === "player" && pr.name) { const n = cleanName(pr.name); if (n && !names.includes(n)) names.push(n); } }
+  return names;
+}
+function rosterHTML(names, extra) {
+  const online = connectedPlayers();
+  return names.map((n) => {
+    const s = extra ? extra.scores[n] || 0 : null;
+    const blk = extra && extra.blk.includes(n);
+    return `<span class="sc${online.includes(n) ? "" : " off"}${blk ? " blk" : ""}${extra && extra.win === n ? " on" : ""}">${esc(n)}${s !== null ? ` <b class="${s < 0 ? "neg" : ""}">${num(s)}</b>` : ""}</span>`;
+  }).join("") || '<span class="hint">Nikt jeszcze nie dołączył.</span>';
+}
+function renderHostSetup() {
+  setSeg("levelSeg", settings.level); setSeg("countSeg", settings.count); setSeg("timeSeg", settings.time); setSeg("minusSeg", settings.minus);
+  $("#levelHint").textContent = LEVELS[settings.level].hint;
+  const names = connectedPlayers();
+  $("#hsRoster").innerHTML = rosterHTML(names, null);
+  $("#btnHStart").disabled = names.length === 0;
+  $("#btnHStart").textContent = names.length ? `Start gry (${names.length} ${names.length === 1 ? "gracz" : names.length < 5 ? "graczy" : "graczy"})` : "Czekam na graczy…";
+}
+function buildDeck(level, count) {
+  const bank = LEVELS[level].bank, seen = new Set(load("pk_seen", [])), all = [];
+  bank.forEach((cat, ci) => cat.q.forEach((Q, qi) => all.push({ id: `${level}:${ci}-${qi}`, Q, cat: cat.name })));
+  let fresh = shuffle(all.filter((x) => !seen.has(x.id)));
+  if (fresh.length < count) { all.forEach((x) => seen.delete(x.id)); fresh = fresh.concat(shuffle(all.filter((x) => !fresh.includes(x)))); }
+  const pick = fresh.slice(0, Math.min(count, all.length));
+  pick.forEach((x) => seen.add(x.id)); save("pk_seen", [...seen]);
+  return pick.map(({ id, Q, cat }) => {
+    const order = Q.fix ? Q.o.map((_, i) => i) : shuffle(Q.o.map((_, i) => i));
+    return { id, cat, q: Q.q, o: order.map((i) => Q.o[i]), c: order.indexOf(Q.c), e: Q.e };
+  });
+}
+function hostScores() {
+  const s = {};
+  H.players.forEach((n) => (s[n] = 0));
+  H.log.forEach((a) => { if (!(a.name in s)) s[a.name] = 0; s[a.name] += a.ok ? PLUS : -H.minus; });
+  return s;
+}
+function sortedScores() { const s = hostScores(); return Object.keys(s).map((n) => [n, s[n]]).sort((a, b) => b[1] - a[1]); }
+function saveH() { save("pkl_host", H); }
+
+function publishHost() {
+  if (role !== "host") return;
+  if (!H || H.ph === "lobby" || !H.deck) { setPresence({ role: "host", g: "lobby", ph: "lobby", n: 0, qn: 0, arm: 0, q: null, win: null, blk: [], sc: [], rev: null, ex: null, last: null }); return; }
+  const Q = H.deck[H.i];
+  setPresence({
+    role: "host", g: H.g, ph: H.ph, n: H.deck.length, qn: H.i, arm: H.arm,
+    q: Q ? { t: clip(Q.q, 300), o: Q.o.map((o) => clip(o, 100)), c: Q.cat } : null,
+    win: H.win, blk: H.blk.slice(0, 16), sc: sortedScores().slice(0, 16),
+    rev: H.ph === "reveal" ? Q.c : null, ex: H.ph === "reveal" ? clip(Q.e, 360) : null, last: H.last
+  });
+}
+function hostOnPeers(ch) {
+  if (!H || H.ph === "lobby" || !H.deck) { if (!$("#s-hsetup").hidden) renderHostSetup(); return; }
+  let changed = false;
+  const cands = [];
+  for (const p of ch.peers) {
+    const pr = p.presence || {};
+    if (pr.role !== "player" || !pr.name) continue;
+    const name = cleanName(pr.name); if (!name) continue;
+    if (!H.players.includes(name)) { H.players.push(name); changed = true; }
+    const fs = pr.fs;
+    if (fs && fs.g === H.g && fs.qn === H.i && fs.a === H.arm && (H.ph === "q" || H.ph === "q2") && !H.blk.includes(name)) {
+      H.blk.push(name); H.fs.push(name); changed = true;
+    }
+    const bz = pr.buzz;
+    if (bz && bz.g === H.g && bz.a === H.arm && (H.ph === "armed" || H.ph === "locked") && !H.blk.includes(name) && !H.order.some((o) => o.n === name)) {
+      cands.push({ n: name, at: p.updatedAt, rt: typeof bz.rt === "number" ? bz.rt : 99999 });
+    }
+  }
+  if (cands.length) {
+    cands.sort((a, b) => a.at - b.at || a.rt - b.rt);
+    const base = H.order.length ? H.order[0].at : cands[0].at;
+    cands.forEach((c) => H.order.push({ n: c.n, at: c.at, d: Math.max(0, Math.round(c.at - base)) }));
+    if (H.ph === "armed" && !H.win) { H.win = H.order[0].n; H.ph = "locked"; startAnswerTimer(); }
+    changed = true;
+  }
+  if (changed) { saveH(); publishHost(); }
+  renderHost();
+}
+function startAnswerTimer() {
+  stopTimer();
+  const t = $("#timer");
+  if (!H.time) { t.hidden = true; return; }
+  t.hidden = false; tEnd = performance.now() + H.time * 1000;
+  const tick = () => {
+    const left = Math.max(0, tEnd - performance.now());
+    $("#timerFill").style.transform = `scaleX(${left / (H.time * 1000)})`;
+    $("#timerNum").textContent = Math.ceil(left / 1000);
+    t.classList.toggle("low", left <= 3000);
+    if (left <= 0) { stopTimer(); if (H.ph === "locked") judge(false, true); }
+  };
+  tick(); tId = setInterval(tick, 100);
+}
+function stopTimer() { if (tId) { clearInterval(tId); tId = null; } $("#timer").hidden = true; }
+
+function hostStart() {
+  const players = connectedPlayers();
+  H = { g: "g" + Date.now().toString(36), level: settings.level, minus: settings.minus, time: settings.time, deck: buildDeck(settings.level, settings.count),
+        i: 0, ph: "q", arm: 0, win: null, order: [], blk: [], fs: [], last: null, log: [], players };
+  saveH(); publishHost(); renderHost(); show("s-host");
+}
+function signal() {
+  if (!H || !(H.ph === "q" || H.ph === "q2")) return;
+  H.arm++; H.ph = "armed"; H.win = null; H.order = [];
+  saveH(); publishHost(); renderHost();
+}
+function judge(ok, timeout) {
+  if (!H || H.ph !== "locked" || !H.win) return;
+  stopTimer();
+  const name = H.win;
+  H.log.push({ qi: H.i, name, ok, to: !!timeout });
+  H.last = { name, ok };
+  if (ok) { H.ph = "reveal"; }
+  else { H.blk.push(name); H.win = null; H.ph = "q2"; }
+  saveH(); publishHost(); renderHost();
+}
+function reveal() { if (!H) return; stopTimer(); H.ph = "reveal"; if (!H.last || H.last.ok === false) H.last = H.last ? { name: H.last.name, ok: false } : null; saveH(); publishHost(); renderHost(); }
+function nextQ() {
+  if (!H) return;
+  if (H.i >= H.deck.length - 1) { endGame(); return; }
+  H.i++; H.ph = "q"; H.win = null; H.order = []; H.blk = []; H.fs = []; H.last = null;
+  saveH(); publishHost(); renderHost();
+}
+function endGame() { stopTimer(); H.ph = "final"; saveH(); publishHost(); renderFinal(sortedScores(), true); }
+
+function renderHost() {
+  if (!H || !H.deck || H.ph === "lobby") return;
+  if (H.ph === "final") { renderFinal(sortedScores(), true); return; }
+  const Q = H.deck[H.i];
+  $("#hQnum").textContent = `Pytanie ${H.i + 1} z ${H.deck.length}`;
+  $("#hCat").textContent = Q.cat;
+  $("#hProg").style.width = (H.i / H.deck.length) * 100 + "%";
+  $("#stakeMinus").textContent = "−" + H.minus;
+  const sc = hostScores();
+  $("#hRoster").innerHTML = rosterHTML(Object.keys(sc), { scores: sc, blk: H.blk, win: H.win });
+  $("#hQtext").textContent = Q.q;
+  const reveal = H.ph === "reveal";
+  $("#hOpts").innerHTML = Q.o.map((o, i) => {
+    const cls = reveal ? (i === Q.c ? " is-correct" : " is-dim") : (showKey && i === Q.c ? " host-correct" : "");
+    const tag = reveal && i === Q.c ? '<span class="vtag">Poprawna</span>' : `<span class="key">${LETTERS[i]}${!reveal && showKey && i === Q.c ? " ✓" : ""}</span>`;
+    return `<div class="row${cls}" style="cursor:default"><span class="box">${XSVG}</span><span class="txt">${esc(o)}</span>${tag}</div>`;
+  }).join("");
+  const plateLbl = $("#plateLbl"), plateName = $("#plateName");
+  const ob = $("#hOrderBox");
+  ob.hidden = !H.order.length;
+  $("#hOrder").innerHTML = H.order.map((o, k) => `<li>${k + 1}. ${esc(o.n)}${k ? ` +${o.d} ms` : ""}</li>`).join("");
+  const fb = $("#hFb");
+  fb.hidden = true;
+  let acts = "";
+  const blkTxt = H.blk.length ? ` Zablokowani: ${H.blk.join(", ")}.` : "";
+  if (H.ph === "q") {
+    plateLbl.textContent = "Przeczytaj pytanie"; plateName.textContent = "Potem sygnał";
+    acts = `<button type="button" class="btn go" data-act="signal">Sygnał!</button><button type="button" class="btn ghost" data-act="reveal">Pomiń i pokaż odpowiedź</button>`;
+    if (H.fs.length) acts = `<p class="notice">Falstart: ${esc(H.fs.join(", "))}. Blokada w tym pytaniu.</p>` + acts;
+  } else if (H.ph === "q2") {
+    plateLbl.textContent = `${H.last ? H.last.name + ": źle, −" + H.minus : "Odbicie"}`; plateName.textContent = "Odbicie?";
+    acts = `<p class="hint">${esc(blkTxt.trim())}</p><button type="button" class="btn go" data-act="signal">Sygnał dla pozostałych</button><button type="button" class="btn ghost" data-act="reveal">Pokaż odpowiedź</button>`;
+  } else if (H.ph === "armed") {
+    plateLbl.textContent = "Sygnał dany"; plateName.textContent = "Czekam…";
+    acts = `<button type="button" class="btn ghost" data-act="reveal">Nikt nie wcisnął: pokaż odpowiedź</button>`;
+  } else if (H.ph === "locked") {
+    plateLbl.textContent = "Odpowiada"; plateName.textContent = H.win;
+    acts = `<div class="btn-row"><button type="button" class="btn ok" data-act="good">Dobrze +10</button><button type="button" class="btn bad" data-act="bad">Źle −${H.minus}</button></div>`;
+  } else if (reveal) {
+    const l = H.last;
+    plateLbl.textContent = l && l.ok ? "Punkt dla" : "Odpowiedź"; plateName.textContent = l && l.ok ? l.name : "Nikt nie trafił";
+    fb.hidden = false; fb.className = "feedback " + (l && l.ok ? "good" : "bad");
+    $("#hFbTitle").textContent = l && l.ok ? `${l.name}: dobrze! +${PLUS}` : `Poprawna: ${Q.o[Q.c]}`;
+    $("#hFbExplain").textContent = Q.e;
+    acts = `<button type="button" class="btn" data-act="next">${H.i >= H.deck.length - 1 ? "Zobacz wyniki" : "Następne pytanie"}</button>`;
+  }
+  $("#hActions").innerHTML = acts;
+}
+$("#hActions").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-act]"); if (!b) return;
+  const a = b.dataset.act;
+  if (a === "signal") signal(); else if (a === "reveal") reveal(); else if (a === "good") judge(true); else if (a === "bad") judge(false); else if (a === "next") nextQ();
+});
+$("#showKey").addEventListener("change", (e) => { showKey = e.target.checked; save("pkl_showkey", showKey); renderHost(); });
+let endArmed = null;
+$("#btnHEnd").addEventListener("click", () => {
+  const b = $("#btnHEnd");
+  if (endArmed) { clearTimeout(endArmed); endArmed = null; b.textContent = "Zakończ grę"; b.classList.remove("armed"); endGame(); return; }
+  b.textContent = "Na pewno? Kliknij ponownie"; b.classList.add("armed");
+  endArmed = setTimeout(() => { endArmed = null; b.textContent = "Zakończ grę"; b.classList.remove("armed"); }, 3000);
+});
+$("#btnHStart").addEventListener("click", hostStart);
+
+document.addEventListener("keydown", (e) => {
+  if (role !== "host" || !H || e.target.matches("input, textarea")) return;
+  if (e.key === " " && (H.ph === "q" || H.ph === "q2")) { e.preventDefault(); signal(); }
+  else if ((e.key === "d" || e.key === "D") && H.ph === "locked") judge(true);
+  else if ((e.key === "z" || e.key === "Z") && H.ph === "locked") judge(false);
+  else if (e.key === "Enter" && H.ph === "reveal") nextQ();
+});
+
+/* ---------- wyniki ---------- */
+function renderFinal(st, isHost) {
+  if (!st.length) st = [["—", 0]];
+  const top = st[0][1], winners = st.filter((x) => x[1] === top).map((x) => x[0]);
+  $("#fScore").textContent = num(top);
+  $("#t-final").textContent = winners.join(", ");
+  $("#fWinLbl").textContent = winners.length > 1 ? "Remis" : "Wygrywa";
+  $("#fHead").textContent = "Protokół · " + (H ? LEVELS[H.level].label : "");
+  $("#fCount").textContent = H ? `${H.i + 1} z ${H.deck.length} pytań` : "";
+  const stats = {};
+  if (H) H.log.forEach((a) => { stats[a.name] = stats[a.name] || { ok: 0, bad: 0 }; stats[a.name][a.ok ? "ok" : "bad"]++; });
+  const maxPos = Math.max(1, ...st.map((x) => x[1]));
+  let pos = 0, prev = null;
+  $("#fBoard").innerHTML = st.map((x, k) => {
+    if (x[1] !== prev) { pos = k + 1; prev = x[1]; }
+    const s = stats[x[0]] || { ok: 0, bad: 0 };
+    return `<li class="${pos === 1 && x[1] > 0 ? "lead" : ""}"><span class="pos">${pos}.</span><span class="nm">${esc(x[0])}${pos === 1 && x[1] > 0 ? ' <span class="star">★</span>' : ""}<span class="stat">${s.ok} dobrze · ${s.bad} źle</span></span><span class="p${x[1] < 0 ? " neg" : ""}">${pts(x[1])}</span><span class="bar"><i style="width:${(Math.max(0, x[1]) / maxPos) * 100}%"></i></span></li>`;
+  }).join("");
+  $("#fActions").innerHTML = isHost ? `<button type="button" class="btn go" data-f="again">Nowa gra</button>` : "";
+  show("s-final");
+}
+$("#fActions").addEventListener("click", (e) => {
+  if (e.target.closest('[data-f="again"]')) { H = { ph: "lobby" }; saveH(); publishHost(); renderHostSetup(); show("s-hsetup"); }
+});
+
+/* ---------- role ---------- */
+$("#btnBePlayer").addEventListener("click", () => { role = null; renderJoin(); });
+$("#btnBeHost").addEventListener("click", () => {
+  role = "host"; save("pkl_role", "host");
+  if (H && H.deck && H.ph && H.ph !== "lobby" && H.ph !== "final") { publishHost(); renderHost(); show("s-host"); if (H.ph === "locked") startAnswerTimer(); }
+  else { H = { ph: "lobby" }; saveH(); publishHost(); renderHostSetup(); show("s-hsetup"); }
+});
+$("#btnBack1").addEventListener("click", () => show("s-role"));
+$("#btnBack2").addEventListener("click", () => { role = null; save("pkl_role", null); setPresence({ role: null, g: null, ph: null }); show("s-role"); });
+
+/* ---------- start ---------- */
+function boot() {
+  const r = load("pkl_role", null);
+  if (r === "player" && P.name) { role = "player"; renderPlayer(); show("s-player"); }
+  else if (r === "host") { $("#btnBeHost").click(); }
+  else show("s-role");
+  initRoom();
+}
+boot();
+</script>
