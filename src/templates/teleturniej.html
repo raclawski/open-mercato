@@ -423,6 +423,8 @@ function parsePlayers(s) {
 let settings = Object.assign({ level: "pro", players: DEFAULT_PLAYERS.slice(), starter: 0, count: 30, time: 15, minus: 1 }, load("pk_tv2", {}));
 if (![1, 5, 10].includes(settings.minus)) settings.minus = 1;
 if (!LEVELS[settings.level]) settings.level = "pro";
+/* wejście do ustawień: zawsze zaznaczona kategoria specjalna (dziś „Chajzerowie”), o ile jest */
+{ const sp = Object.keys(LEVELS).find((k) => LEVELS[k].special); if (sp) settings.level = sp; }
 const saveSettings = () => save("pk_tv2", settings);
 
 function setSeg(id, val) { document.querySelectorAll(`#${id} button`).forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === String(val)))); }
@@ -435,7 +437,7 @@ function renderStarter() {
 }
 function renderStart() {
   setSeg("levelSeg", settings.level); syncCatMode(settings.level);
-  setCount(settings.count);
+  settings.count = setCount(settings.count, countMax(settings.level, settings.mix));
   setSeg("timeSeg", settings.time);
   setSeg("minusSeg", settings.minus);
   $("#levelHint").textContent = LEVELS[settings.level].hint;
@@ -477,7 +479,7 @@ let S = null, timerId = null, tEnd = 0;
 function newGame() {
   const players = settings.players.slice();
   const starter = settings.starter === -1 ? Math.floor(Math.random() * players.length) : Math.min(settings.starter, players.length - 1);
-  S = { level: settings.level, players, minus: settings.minus, time: settings.time, deck: withX2(buildDeck(settings.level, clampCount(settings.count), settings.mix), settings.x2), i: 0, cur: starter, next: null, phase: "q", log: [], left: settings.time * 1000 };
+  S = { level: settings.level, players, minus: settings.minus, time: settings.time, deck: withX2(buildDeck(settings.level, clampCount(settings.count, countMax(settings.level, settings.mix)), settings.mix), settings.x2), i: 0, cur: starter, next: null, phase: "q", log: [], left: settings.time * 1000 };
 }
 function scores() {
   const t = S.players.map(() => 0);

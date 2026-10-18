@@ -773,6 +773,8 @@ $("#pSkip").addEventListener("click", () => {
   const h = P.host; if (!h || h.ph !== "armed") return;
   P.skipKey = `${h.g}:${h.arm}`; sendMine({ skip: { g: h.g, a: h.arm } }); renderPlayer();
 });
+/* przycisk przypięty do dołu ekranu musi być poza kartą: filtr albo animacja przodka liczyłyby pozycję od karty */
+document.body.appendChild($("#pNext"));
 $("#pNext").addEventListener("click", () => {
   const h = P.host; if (!h || h.ph !== "reveal") return;
   P.nextKey = `${h.g}:${h.qn}`; sendMine({ nx: { g: h.g, qn: h.qn } }); renderPlayer();
@@ -784,6 +786,8 @@ let settings = Object.assign({ level: "pro", count: 30, time: 10, minus: 1, mode
 if (!["online", "race", "offline"].includes(settings.mode)) settings.mode = "online";
 if (![1, 5, 10].includes(settings.minus)) settings.minus = 1;
 if (!LEVELS[settings.level]) settings.level = "pro";
+/* wejście do ustawień: zawsze zaznaczona kategoria specjalna (dziś „Chajzerowie”), o ile jest */
+{ const sp = Object.keys(LEVELS).find((k) => LEVELS[k].special); if (sp) settings.level = sp; }
 const saveSettings = () => save("pkl_settings2", settings);
 let H = load("pkl_host", null);
 let tId = null, tEnd = 0;
@@ -829,7 +833,7 @@ $("#adminName").addEventListener("input", (e) => { P.name = cleanName(e.target.v
 function renderHostSetup() {
   setSeg("modeSeg", settings.mode);
   $("#modeHint").textContent = MODE_HINT[settings.mode];
-  setSeg("levelSeg", settings.level); syncCatMode(settings.level); setCount(settings.count); setSeg("timeSeg", settings.time); setSeg("minusSeg", settings.minus);
+  setSeg("levelSeg", settings.level); syncCatMode(settings.level); settings.count = setCount(settings.count, countMax(settings.level, settings.mix)); setSeg("timeSeg", settings.time); setSeg("minusSeg", settings.minus);
   $("#levelHint").textContent = LEVELS[settings.level].hint;
   renderMix($("#mixPick"), settings.level, settings.mix);
   const online = isAuto(settings.mode), admin = adminName();
@@ -1002,7 +1006,7 @@ function hostStart() {
   if (online && !admin) { $("#adminName").focus(); return; }
   const players = online ? [admin].concat(connectedPlayers().filter((n) => n !== admin)) : connectedPlayers();
   SELF = { p: {}, at: 0 };
-  H = { g: "g" + Date.now().toString(36), level: settings.level, minus: settings.minus, time: settings.time, deck: withX2(buildDeck(settings.level, clampCount(settings.count), settings.mix), settings.x2),
+  H = { g: "g" + Date.now().toString(36), level: settings.level, minus: settings.minus, time: settings.time, deck: withX2(buildDeck(settings.level, clampCount(settings.count, countMax(settings.level, settings.mix)), settings.mix), settings.x2),
         i: 0, ph: "q", arm: 0, win: null, order: [], blk: [], fs: [], last: null, log: [], players, mode: settings.mode, seen: false, admin };
   saveH(); publishHost(); renderHost(); show(hostScreen());
 }

@@ -220,11 +220,12 @@ details.review summary { cursor: pointer; font-weight: 600; }
 .drum button[aria-pressed="true"].hotbtn .dm { color: var(--stamp); }
 .drum button:focus-visible { outline: 3px solid var(--pen); outline-offset: -3px; }
 /* liczba pytań (src/templates/shared/mix.js: initCount) */
-.countpick { display: grid; grid-template-columns: 2.6rem minmax(0, 1fr) 2.6rem 3.2rem; align-items: center; gap: 8px; }
+.countpick { display: grid; grid-template-columns: 2.6rem minmax(0, 1fr) 2.6rem 4.6rem; align-items: center; gap: 8px; }
 .countpick input[type="range"] { width: 100%; accent-color: var(--ink); height: 2.6rem; margin: 0; }
 .countpick .cstep { height: 2.6rem; border: 1px solid var(--rule-strong); border-radius: 3px; background: var(--paper); color: var(--ink); font-family: var(--f-mono); font-size: 1.2rem; cursor: pointer; }
 .countpick .cstep:active { background: var(--hover); }
-.countpick output { font-family: var(--f-mono); font-weight: 600; font-size: 1.3rem; text-align: right; font-variant-numeric: tabular-nums; }
+.countpick output { font-family: var(--f-mono); font-weight: 600; font-size: 1.3rem; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.countpick output small { font-size: .62em; opacity: .6; font-weight: 500; }
 /* „1 kategoria” albo „MIX” nad bębnem */
 .seg.catmode { grid-template-columns: 1fr 1fr; margin-bottom: 10px; }
 .seg.catmode button { padding: 14px 6px; font-family: var(--f-display); font-stretch: 85%; font-weight: 800; font-size: 1.1rem; letter-spacing: .02em; }
@@ -2919,6 +2920,8 @@ function parsePlayers(s) {
 let settings = Object.assign({ level: "pro", players: DEFAULT_PLAYERS.slice(), starter: 0, count: 30, time: 15, minus: 1 }, load("pk_tv2", {}));
 if (![1, 5, 10].includes(settings.minus)) settings.minus = 1;
 if (!LEVELS[settings.level]) settings.level = "pro";
+/* wejście do ustawień: zawsze zaznaczona kategoria specjalna (dziś „Chajzerowie”), o ile jest */
+{ const sp = Object.keys(LEVELS).find((k) => LEVELS[k].special); if (sp) settings.level = sp; }
 const saveSettings = () => save("pk_tv2", settings);
 
 function setSeg(id, val) { document.querySelectorAll(`#${id} button`).forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === String(val)))); }
@@ -2931,7 +2934,7 @@ function renderStarter() {
 }
 function renderStart() {
   setSeg("levelSeg", settings.level); syncCatMode(settings.level);
-  setCount(settings.count);
+  settings.count = setCount(settings.count, countMax(settings.level, settings.mix));
   setSeg("timeSeg", settings.time);
   setSeg("minusSeg", settings.minus);
   $("#levelHint").textContent = LEVELS[settings.level].hint;
@@ -3136,15 +3139,19 @@ function renderMix(box, level, sel) {
   box.querySelectorAll("[data-k]").forEach((b) => b.setAttribute("aria-pressed", String(on.includes(b.dataset.k))));
   box.querySelector("#mixHint").textContent = `${on.length} ${on.length === 1 ? "kategoria" : on.length < 5 ? "kategorie" : "kategorii"}, ${poolSize(MIX, on)} pytań w puli. Kliknij, żeby dodać albo usunąć.`;
 }
-/* Liczba pytań: suwak 1–100 z przyciskami −/+ (na telefonie suwakiem trudno trafić w jedną liczbę). */
-const clampCount = (n) => Math.max(1, Math.min(100, Math.round(+n) || 30));
-function setCount(n) { const r = $("#countRange"); if (!r) return; r.value = clampCount(n); $("#countOut").textContent = r.value; }
+/* Liczba pytań: suwak z przyciskami −/+ (na telefonie suwakiem trudno trafić w jedną liczbę).
+   Najwięcej 100 w jednym quizie i nie więcej, niż jest pytań w wybranych kategoriach (countMax). */
+const countMax = (level, sel) => Math.max(1, Math.min(100, poolSize(level, sel)));
+const clampCount = (n, max = 100) => Math.max(1, Math.min(max, Math.round(+n) || 30));
+function showCount(r) { $("#countOut").innerHTML = `${r.value}<small>/${r.max}</small>`; }
+/* ustawia suwak i zwraca liczbę po przycięciu do limitu (do zapisania w ustawieniach) */
+function setCount(n, max = 100) { const r = $("#countRange"); if (!r) return clampCount(n, max); r.max = max; r.value = clampCount(n, max); showCount(r); return +r.value; }
 function initCount(onInput, onDone) {
   const r = $("#countRange");
-  r.addEventListener("input", () => { $("#countOut").textContent = r.value; onInput(+r.value); });
+  r.addEventListener("input", () => { showCount(r); onInput(+r.value); });
   r.addEventListener("change", () => onDone());
   document.querySelectorAll("#countPick .cstep").forEach((b) => b.addEventListener("click", () => {
-    r.value = clampCount(+r.value + +b.dataset.d); $("#countOut").textContent = r.value; onInput(+r.value); onDone();
+    r.value = clampCount(+r.value + +b.dataset.d, +r.max); showCount(r); onInput(+r.value); onDone();
   }));
 }
 /* Pytanie ×2: jedno losowe na każde 10 pytań (gra na 7 pytań ma jedno). Punkty i kara razy dwa. */
@@ -3179,7 +3186,7 @@ let S = null, timerId = null, tEnd = 0;
 function newGame() {
   const players = settings.players.slice();
   const starter = settings.starter === -1 ? Math.floor(Math.random() * players.length) : Math.min(settings.starter, players.length - 1);
-  S = { level: settings.level, players, minus: settings.minus, time: settings.time, deck: withX2(buildDeck(settings.level, clampCount(settings.count), settings.mix), settings.x2), i: 0, cur: starter, next: null, phase: "q", log: [], left: settings.time * 1000 };
+  S = { level: settings.level, players, minus: settings.minus, time: settings.time, deck: withX2(buildDeck(settings.level, clampCount(settings.count, countMax(settings.level, settings.mix)), settings.mix), settings.x2), i: 0, cur: starter, next: null, phase: "q", log: [], left: settings.time * 1000 };
 }
 function scores() {
   const t = S.players.map(() => 0);

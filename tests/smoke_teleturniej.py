@@ -27,11 +27,13 @@ async def main():
         await pg.click('#catMode [data-v="mix"]'); await pg.fill('#countRange', '20'); await pg.click('#btnStart')
         full = await pg.evaluate('() => new Set(S.deck.map((q) => q.cat)).size')
         await pg.goto(URL); await pg.wait_for_timeout(300)
+        await pg.click('#catMode [data-v="mix"]')
         chips_visible = await pg.is_visible('#mixPick')
         special_off = await pg.evaluate('() => document.querySelector("#mixPick [data-k=chajzer]").getAttribute("aria-pressed") === "false"')
         for k in await pg.eval_on_selector_all('#mixPick [data-k][aria-pressed="true"]', 'bs => bs.map((b) => b.dataset.k)'):
             if k not in ('std', 'ts'): await pg.click(f'#mixPick [data-k="{k}"]')
         await pg.goto(URL); await pg.wait_for_timeout(300)
+        await pg.click('#catMode [data-v="mix"]')  # na wejściu zawsze „Chajzerowie”, wybór mieszanki zostaje zapamiętany
         kept = await pg.evaluate('() => [...document.querySelectorAll("#mixPick [aria-pressed=true]")].map((b) => b.dataset.k).join(",")')
         await pg.click('#btnStart')
         cats = await pg.evaluate('() => S.deck.map((q) => q.cat)')
@@ -53,6 +55,20 @@ async def main():
         m2 = [await pg.is_visible('.drum-wrap'), await pg.is_hidden('#mixPick'), await pg.evaluate('() => settings.level'), centered]
         good = m1 == [True, True, 'mix'] and m2 == [True, True, 'geo', True] and not errs
         print(('✓' if good else '✗'), '„1 kategoria” albo „MIX”, wybrana kategoria na środku koła', m1, m2, errs)
+        fail += not good
+        # na wejściu kategoria specjalna; liczba pytań najwyżej 100 i nie więcej niż w wybranych kategoriach
+        await pg.evaluate('localStorage.clear()'); await pg.goto(URL); await pg.wait_for_timeout(200)
+        lim = [await pg.evaluate('() => settings.level'), await pg.evaluate('() => document.querySelector("#countRange").max')]
+        await pg.evaluate('() => { const r = document.querySelector("#countRange"); r.value = 100; r.dispatchEvent(new Event("input")); r.dispatchEvent(new Event("change")); }')
+        lim.append(await pg.input_value('#countRange'))
+        await pg.click('#catMode [data-v="mix"]'); await pg.wait_for_timeout(100)
+        await pg.click('#countPick [data-d="1"]'); lim.append(await pg.evaluate('() => [document.querySelector("#countRange").max, settings.count]'))
+        await pg.goto(URL); await pg.wait_for_timeout(200)
+        lim.append(await pg.evaluate('() => settings.level'))
+        await pg.click('#levelSeg [data-v="ts"]'); await pg.wait_for_timeout(100)
+        lim.append(await pg.evaluate('() => [document.querySelector("#countRange").max, settings.count]'))
+        good = lim == ['chajzer', '40', '40', ['100', 41], 'chajzer', ['36', 36]] and not errs
+        print(('✓' if good else '✗'), 'na wejściu „Chajzerowie”, liczba pytań do 100 i do puli kategorii', lim, errs)
         fail += not good
         # stałe id pytań: id z treści, stara pamięć `kategoria:dział-nr` przepisana na nowe id
         await pg.evaluate('localStorage.clear()'); await pg.goto(URL); await pg.wait_for_timeout(200)

@@ -97,15 +97,19 @@ function renderMix(box, level, sel) {
   box.querySelectorAll("[data-k]").forEach((b) => b.setAttribute("aria-pressed", String(on.includes(b.dataset.k))));
   box.querySelector("#mixHint").textContent = `${on.length} ${on.length === 1 ? "kategoria" : on.length < 5 ? "kategorie" : "kategorii"}, ${poolSize(MIX, on)} pytań w puli. Kliknij, żeby dodać albo usunąć.`;
 }
-/* Liczba pytań: suwak 1–100 z przyciskami −/+ (na telefonie suwakiem trudno trafić w jedną liczbę). */
-const clampCount = (n) => Math.max(1, Math.min(100, Math.round(+n) || 30));
-function setCount(n) { const r = $("#countRange"); if (!r) return; r.value = clampCount(n); $("#countOut").textContent = r.value; }
+/* Liczba pytań: suwak z przyciskami −/+ (na telefonie suwakiem trudno trafić w jedną liczbę).
+   Najwięcej 100 w jednym quizie i nie więcej, niż jest pytań w wybranych kategoriach (countMax). */
+const countMax = (level, sel) => Math.max(1, Math.min(100, poolSize(level, sel)));
+const clampCount = (n, max = 100) => Math.max(1, Math.min(max, Math.round(+n) || 30));
+function showCount(r) { $("#countOut").innerHTML = `${r.value}<small>/${r.max}</small>`; }
+/* ustawia suwak i zwraca liczbę po przycięciu do limitu (do zapisania w ustawieniach) */
+function setCount(n, max = 100) { const r = $("#countRange"); if (!r) return clampCount(n, max); r.max = max; r.value = clampCount(n, max); showCount(r); return +r.value; }
 function initCount(onInput, onDone) {
   const r = $("#countRange");
-  r.addEventListener("input", () => { $("#countOut").textContent = r.value; onInput(+r.value); });
+  r.addEventListener("input", () => { showCount(r); onInput(+r.value); });
   r.addEventListener("change", () => onDone());
   document.querySelectorAll("#countPick .cstep").forEach((b) => b.addEventListener("click", () => {
-    r.value = clampCount(+r.value + +b.dataset.d); $("#countOut").textContent = r.value; onInput(+r.value); onDone();
+    r.value = clampCount(+r.value + +b.dataset.d, +r.max); showCount(r); onInput(+r.value); onDone();
   }));
 }
 /* Pytanie ×2: jedno losowe na każde 10 pytań (gra na 7 pytań ma jedno). Punkty i kara razy dwa. */

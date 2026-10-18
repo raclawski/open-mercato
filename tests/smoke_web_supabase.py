@@ -250,8 +250,8 @@ async def main(dburl):
         resume = await tv.is_visible('#resume')
         await tv.click('[data-go="q2"]'); await tv.click('a.ans[href="teleturniej.html"]')
         await tv.wait_for_selector('#screen-start:not([hidden])')
-        shared = await tv.evaluate('() => document.querySelector("#levelSeg [data-v=pop]").getAttribute("aria-pressed") === "true" && document.querySelector("#countRange").value === "20"')
-        check(shared and not resume, 'wybór trybu: jeden telefon, kategoria i liczba pytań przeniesione z Live')
+        shared = await tv.evaluate('() => document.querySelector("#levelSeg [data-v=chajzer]").getAttribute("aria-pressed") === "true" && document.querySelector("#countRange").value === "20"')
+        check(shared and not resume, 'wybór trybu: jeden telefon, na wejściu kategoria „Chajzerowie”, liczba pytań przeniesiona z Live')
         orig = await tv.input_value('#players')
         await tv.fill('#players', 'Ola')
         await until(tv, '() => !document.querySelector("#nickChips").hidden && document.querySelector("#nickChips [data-n=Asia]")')
@@ -376,8 +376,12 @@ async def main(dburl):
             await op[n].click('#pSkip')
         await until(op['Kuba'], '() => P.host && P.host.ph === "reveal" && document.querySelector("#pStatus").textContent === "Nikt nie wziął pytania."', timeout=5000)
         await until(op['Ewa'], '() => !document.querySelector("#pNext").hidden')
-        vis = await op['Ewa'].evaluate('() => { const r = document.querySelector("#pNext").getBoundingClientRect(); return r.bottom <= innerHeight && r.top >= 0; }')
-        check(vis, '„Następne pytanie” widoczne bez przewijania')
+        try:
+            await until(op['Ewa'], '() => { const r = document.querySelector("#pNext").getBoundingClientRect(); return r.height > 0 && r.bottom <= innerHeight && r.top >= 0; }', timeout=3000)
+            vis = True
+        except Exception:
+            vis = await op['Ewa'].evaluate('() => { const e = document.querySelector("#pNext"), r = e.getBoundingClientRect(), c = getComputedStyle(e); return [r.top, r.bottom, innerHeight, c.position, c.transform, c.animationName, e.hidden, P.host && P.host.ph]; }')
+        check(vis is True, '„Następne pytanie” widoczne bez przewijania', vis)
         await op['Ewa'].click('#pNext')
         await until(op['Kuba'], '() => /Pytanie 4 z/.test(document.querySelector("#pQnum").textContent)', timeout=5000)
         check(True, 'pytanie pominięte przez wszystkich: odkrycie od razu, „Następne pytanie” od gracza')
