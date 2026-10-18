@@ -162,7 +162,7 @@ src = cut(src, '$("#btnBeHost").addEventListener("click", () => {', '$("#btnBack
   if (!r) { const n = $("#roomNote"); n.hidden = false; n.className = "notice"; n.textContent = why === "nolib" ? "Nie udało się wczytać modułu połączeń. Sprawdź internet i odśwież stronę." : "Nie udało się utworzyć gry. Sprawdź internet i spróbuj ponownie."; return; }
   if (room && room.close && room !== r) room.close();
   save("pkw_hcode", code); role = "host"; attachRoom(r); showCode(code);
-  if (H && H.deck && H.ph && H.ph !== "lobby" && H.ph !== "final") { publishHost(); renderHost(); show("s-host"); if (H.ph === "locked") startAnswerTimer(); }
+  if (H && H.deck && H.ph && H.ph !== "lobby" && H.ph !== "final") { publishHost(); renderHost(); show(hostScreen()); if (H.ph === "locked") startAnswerTimer(); }
   else { H = { ph: "lobby" }; saveH(); publishHost(); renderHostSetup(); show("s-hsetup"); }
 });
 $("#btnCopyLink").addEventListener("click", () => {

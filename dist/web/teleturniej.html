@@ -1883,7 +1883,7 @@ async function submitTv() {
   const uid = S.uid, r = await PK.submitGame(tvGameRecord());
   if (!S || S.uid !== uid) return;
   if (r.ok) { S.saved = true; note.textContent = "Wynik zapisany na liście wyników."; }
-  else note.textContent = r.why === "noconfig" ? "Lista wyników nie jest skonfigurowana." : r.why === "rejected" ? "Lista wyników odrzuciła tę grę." : "Nie udało się zapisać wyniku. Spróbuję ponownie, gdy wróci internet.";
+  else note.textContent = r.why === "noconfig" ? "Lista wyników nie jest skonfigurowana." : r.why === "rejected" ? `Lista wyników odrzuciła tę grę${r.error && r.error.message ? ` (${r.error.message.replace(/^pk: /, "")})` : ""}.` : "Nie udało się zapisać wyniku. Spróbuję ponownie, gdy wróci internet.";
 }
 function shareString() {
   const played = S.log.filter(Boolean).length;

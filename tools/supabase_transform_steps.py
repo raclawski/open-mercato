@@ -63,7 +63,7 @@ async function submitLive() {
   const uid = H.uid, r = await PK.submitGame(liveGameRecord());
   if (!H || H.uid !== uid) return;
   if (r.ok) { H.saved = true; saveH(); note.textContent = "Wynik zapisany na liście wyników."; }
-  else note.textContent = r.why === "noconfig" ? "Lista wyników nie jest skonfigurowana." : r.why === "rejected" ? "Lista wyników odrzuciła tę grę." : "Nie udało się zapisać wyniku. Spróbuję ponownie, gdy wróci internet.";
+  else note.textContent = r.why === "noconfig" ? "Lista wyników nie jest skonfigurowana." : r.why === "rejected" ? `Lista wyników odrzuciła tę grę${r.error && r.error.message ? ` (${r.error.message.replace(/^pk: /, "")})` : ""}.` : "Nie udało się zapisać wyniku. Spróbuję ponownie, gdy wróci internet.";
 }''')
 src = rep(src, '<div class="host-actions" id="fActions"></div>',
           '<div class="host-actions" id="fActions"></div>\n      <p class="copy-note" id="fRank" aria-live="polite"></p>')

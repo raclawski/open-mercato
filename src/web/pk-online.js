@@ -206,7 +206,7 @@ window.PK = (() => {
     queue(game);
     const r = await flush();
     const left = load(OUTBOX, []).some((g) => g && g.id === game.id);
-    return left ? { ok: false, why: r.why || "network" } : r.id === game.id ? r : { ok: true };
+    return left ? { ok: false, why: r.why || "network", error: r.error } : r.id === game.id ? r : { ok: true };
   }
   async function rpc(name, args) {
     const c = sb(); if (!c) throw new Error(whyOff());

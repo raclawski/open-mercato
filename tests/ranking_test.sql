@@ -1,5 +1,5 @@
 -- Testy funkcji rankingu na czystej bazie Postgres (z rolami anon i authenticated jak w Supabase).
---   psql "$PGURL" -v ON_ERROR_STOP=1 -f supabase/migrations/20261018120000_ranking.sql -f tests/ranking_test.sql
+--   psql "$PGURL" -v ON_ERROR_STOP=1 -f supabase/migrations/20261018120000_ranking.sql -f supabase/migrations/20261019090000_ranking_accept_all.sql -f tests/ranking_test.sql
 -- Każdy błąd przerywa skrypt. Na końcu wszystko jest wycofywane (rollback).
 
 begin;
@@ -31,41 +31,46 @@ select public.pk_submit_game('{"id":"22222222-2222-4222-8222-222222222222","mode
   "questions_total":20,"questions_played":12,"penalty":5,
   "players":[{"name":"adam","score":15,"correct":2,"wrong":1},{"name":"Julia","score":15,"correct":2,"wrong":1},{"name":"Tomek","score":-10,"correct":0,"wrong":2}]}');
 
--- odrzucane zgłoszenia
+-- każda gra trafia na listę: dane są porządkowane, a nie odrzucane
 do $$
-declare bad text[] := array[
-  -- wynik niezgodny z odpowiedziami
-  '{"id":"33333333-0000-4000-8000-000000000001","mode":"live","level":"pro","questions_total":20,"questions_played":20,"penalty":1,"players":[{"name":"Oszust","score":999,"correct":1,"wrong":0}]}',
-  -- więcej dobrych odpowiedzi niż pytań
-  '{"id":"33333333-0000-4000-8000-000000000002","mode":"live","level":"pro","questions_total":20,"questions_played":5,"penalty":1,"players":[{"name":"A","score":40,"correct":4,"wrong":0},{"name":"B","score":20,"correct":2,"wrong":0}]}',
-  -- teleturniej: więcej odpowiedzi niż pytań
-  '{"id":"33333333-0000-4000-8000-000000000003","mode":"teleturniej","level":"pro","questions_total":20,"questions_played":3,"penalty":1,"players":[{"name":"A","score":19,"correct":2,"wrong":1},{"name":"B","score":-1,"correct":0,"wrong":1}]}',
-  -- powtórzone imię (po normalizacji)
-  '{"id":"33333333-0000-4000-8000-000000000004","mode":"live","level":"pro","questions_total":20,"questions_played":20,"penalty":1,"players":[{"name":"Ola","score":10,"correct":1,"wrong":0},{"name":" ola","score":0,"correct":0,"wrong":0}]}',
-  -- zła kara, zły tryb, zły poziom, za dużo pytań
-  '{"id":"33333333-0000-4000-8000-000000000005","mode":"live","level":"pro","questions_total":20,"questions_played":20,"penalty":3,"players":[{"name":"A","score":10,"correct":1,"wrong":0}]}',
-  '{"id":"33333333-0000-4000-8000-000000000006","mode":"hack","level":"pro","questions_total":20,"questions_played":20,"penalty":1,"players":[{"name":"A","score":10,"correct":1,"wrong":0}]}',
-  '{"id":"33333333-0000-4000-8000-000000000007","mode":"live","level":"PRO; drop","questions_total":20,"questions_played":20,"penalty":1,"players":[{"name":"A","score":10,"correct":1,"wrong":0}]}',
-  '{"id":"33333333-0000-4000-8000-000000000008","mode":"live","level":"pro","questions_total":20,"questions_played":21,"penalty":1,"players":[{"name":"A","score":10,"correct":1,"wrong":0}]}',
-  -- puste imię, imię z samych znaków niewidocznych, brak graczy, typy
-  '{"id":"33333333-0000-4000-8000-000000000009","mode":"live","level":"pro","questions_total":20,"questions_played":20,"penalty":1,"players":[{"name":"   ","score":10,"correct":1,"wrong":0}]}',
-  '{"id":"33333333-0000-4000-8000-00000000000a","mode":"live","level":"pro","questions_total":20,"questions_played":20,"penalty":1,"players":[{"name":"​​","score":10,"correct":1,"wrong":0}]}',
-  '{"id":"33333333-0000-4000-8000-00000000000b","mode":"live","level":"pro","questions_total":20,"questions_played":20,"penalty":1,"players":[]}',
-  '{"id":"33333333-0000-4000-8000-00000000000c","mode":"live","level":"pro","questions_total":20,"questions_played":20,"penalty":1,"players":[{"name":"A","score":"dużo","correct":1,"wrong":0}]}',
-  '{"id":"nie-uuid","mode":"live","level":"pro","questions_total":20,"questions_played":20,"penalty":1,"players":[{"name":"A","score":10,"correct":1,"wrong":0}]}',
-  -- gra bez żadnej odpowiedzi
-  '{"id":"33333333-0000-4000-8000-00000000000d","mode":"live","level":"pro","questions_total":20,"questions_played":20,"penalty":1,"players":[{"name":"A","score":0,"correct":0,"wrong":0}]}'
-];
-b text;
+declare r jsonb; g record; n int;
 begin
-  foreach b in array bad loop
-    begin
-      perform public.pk_submit_game(b::jsonb);
-      raise exception 'FAIL: przyjęto %', b;
-    exception when invalid_parameter_value then null;
-    end;
-  end loop;
+  -- wynik niezgodny z odpowiedziami: liczony od nowa (10 × 1 − 5 × 2 = 0)
+  r := public.pk_submit_game('{"id":"33333333-0000-4000-8000-000000000001","mode":"live","level":"pro","questions_total":20,"questions_played":20,"penalty":5,"players":[{"name":"Oszust","score":999,"correct":1,"wrong":2}]}');
+  if (r->>'ok')::bool is not true then raise exception 'FAIL: wynik niezgodny nie przyjęty %', r; end if;
+  -- powtórzone imię (po normalizacji) łączy się w jednego gracza, zła kara → 1, zły tryb i poziom → live/mix, typy → 0
+  r := public.pk_submit_game('{"id":"33333333-0000-4000-8000-000000000002","mode":"hack","level":"PRO; drop","questions_total":500,"questions_played":900,"penalty":3,
+    "players":[{"name":"Ola","score":10,"correct":1,"wrong":0},{"name":" ola","score":0,"correct":"2","wrong":1},{"name":"Bez","score":"dużo","correct":"dużo","wrong":-4},{"name":"   ","correct":5},{"name":"​"}]}');
+  if (r->>'ok')::bool is not true or r ? 'skipped' then raise exception 'FAIL: gra z bałaganem nie przyjęta %', r; end if;
+  -- nieprawidłowe id: nowe id, gra przyjęta
+  r := public.pk_submit_game('{"id":"nie-uuid","mode":"live","level":"pro","questions_total":20,"questions_played":20,"penalty":1,"players":[{"name":"Ktoś","correct":0,"wrong":0}]}');
+  if (r->>'ok')::bool is not true or (r->>'id') is null then raise exception 'FAIL: gra bez id %', r; end if;
+  -- gra bez graczy z imieniem jest pomijana, ale bez błędu
+  r := public.pk_submit_game('{"id":"33333333-0000-4000-8000-000000000003","players":[]}');
+  if (r->>'skipped')::bool is not true then raise exception 'FAIL: pusta gra %', r; end if;
+  -- tylko coś, co nie jest obiektem JSON, to błąd
+  begin perform public.pk_submit_game('[1,2]'); raise exception 'FAIL: przyjęto tablicę';
+  exception when invalid_parameter_value then null; end;
 end $$;
+
+reset role;
+do $$
+declare g record; n int;
+begin
+  select score, correct, wrong into g from public.pk_game_players where game_id = '33333333-0000-4000-8000-000000000001';
+  if g.score <> 0 or g.correct <> 1 or g.wrong <> 2 then raise exception 'FAIL: przeliczony wynik %', row_to_json(g); end if;
+  select mode, level, penalty, questions_total, questions_played, players_count into g from public.pk_games where id = '33333333-0000-4000-8000-000000000002';
+  if g.mode <> 'live' or g.level <> 'mix' or g.penalty <> 1 or g.questions_total <> 100 or g.questions_played <> 100 or g.players_count <> 2 then raise exception 'FAIL: porządkowanie gry %', row_to_json(g); end if;
+  select score, correct, wrong into g from public.pk_game_players where game_id = '33333333-0000-4000-8000-000000000002' and name_key = 'ola';
+  if g.correct <> 3 or g.wrong <> 1 or g.score <> 29 then raise exception 'FAIL: łączenie imion %', row_to_json(g); end if;
+  select score, correct, wrong into g from public.pk_game_players where game_id = '33333333-0000-4000-8000-000000000002' and name_key = 'bez';
+  if g.correct <> 0 or g.wrong <> 0 or g.score <> 0 then raise exception 'FAIL: złe typy %', row_to_json(g); end if;
+  select count(*) into n from public.pk_games where id = '33333333-0000-4000-8000-000000000003';
+  if n <> 0 then raise exception 'FAIL: zapisano pustą grę'; end if;
+  -- sprzątanie, żeby dalsze sprawdzenia rankingu liczyły tylko dwie główne gry
+  delete from public.pk_games where id::text like '33333333-%' or id in (select game_id from public.pk_game_players where name = 'Ktoś');
+end $$;
+set local role anon;
 
 -- ranking: Adam (2 gry, nick bez względu na wielkość liter; w jednej transakcji obie gry mają ten sam czas, więc pisownia jest dowolna), wygrane tylko w grach z ≥2 graczami i wynikiem > 0
 do $$
