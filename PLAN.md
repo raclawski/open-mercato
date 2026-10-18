@@ -43,7 +43,7 @@ Kolejność do Twojej decyzji (propozycja: od góry).
 | C3 | Kategoria o małżeństwie Chajzerów na podstawie 3 odcinków ich podcastu | M | wstrzymane |
 | A3 | Kontrola wersji bazy: gra ostrzega, gdy migracja nie jest wgrana | S, SQL | — |
 | C2 | Zgłaszanie błędnego pytania z poziomu gry | M, SQL | — |
-| D1 | Komunikaty i dopracowanie interfejsu | M | — |
+| D1 | Wygląd teleturnieju (studio, szyld, kapsuły odpowiedzi). Krok 1 ✓: ekran startowy „Jak dziś gramy?” (sam / ze znajomymi → ile telefonów). Dalej: ustawienia, ekran pytania, gracz, wyniki | M | w toku |
 | C1 | Baza 5000 pytań, kolejne partie po 500 | L, cyklicznie | wstrzymane |
 
 ---

@@ -38,7 +38,12 @@ $("#nickChips").addEventListener("click", (e) => {
   const inp = $("#players"); inp.value = settings.players.concat(b.dataset.n).join(", ");
   inp.dispatchEvent(new Event("input"));
 });
-if (window.PK && PK.ready()) PK.nicks().then((l) => { knownNicks = l; renderNickChips(); });
+if (SOLO) {
+  $("#lblPlayers").textContent = "Twój nick"; $("#playersHint").textContent = "Pod tym imieniem wynik trafi na listę wyników.";
+  $("#players").maxLength = 20; $("#starterChips").closest(".field").hidden = true;
+  $("#topicEyebrow").textContent = "Tryb: gram sam";
+}
+if (window.PK && PK.ready()) PK.nicks().then((l) => { knownNicks = SOLO ? [] : l; renderNickChips(); });
 /* dobór pytań: historia graczy z listy (z bazy) pobiera się przy zmianie listy, przed startem gry */
 let histKey = null, histT = null;
 function prefetchHist() {
@@ -59,7 +64,17 @@ $("#players").addEventListener("input", prefetchHist); prefetchHist();''')
     s = rep(s, '$("#topicEyebrow").textContent = settings.level === "pop" ? "Teleturniej · Popkultura" : "Teleturniej · Polityka";', '')
     s = rep(s, 'count: 30, time: 15, minus: 1 }, load("pk_tv2", {}));', 'count: 30, time: 15, minus: 1 }, load("pk_tv2", {}), load("pk_common", {}));')
     s = rep(s, 'const saveSettings = () => save("pk_tv2", settings);',
-            'const saveSettings = () => { save("pk_tv2", settings); save("pk_common", { level: settings.level, count: settings.count, minus: settings.minus, mix: settings.mix, x2: settings.x2 }); };')
+            '''/* teleturniej.html?tryb=sam: gra w pojedynkę pod własnym nickiem; lista graczy dla gry ze znajomymi zostaje w pk_tv2 */
+const SOLO = new URLSearchParams(location.search).get("tryb") === "sam";
+if (SOLO) { settings.players = [String(load("pkl_name", "") || "").trim().slice(0, 20) || "Gracz"]; settings.starter = 0; }
+const saveSettings = () => {
+  save("pk_tv2", SOLO ? Object.assign({}, settings, { players: load("pk_tv2", {}).players || DEFAULT_PLAYERS.slice() }) : settings);
+  if (SOLO) save("pkl_name", settings.players[0]);
+  save("pk_common", { level: settings.level, count: settings.count, minus: settings.minus, mix: settings.mix, x2: settings.x2 });
+};''')
+    s = rep(s, '<label for="players">Gracze</label>', '<label for="players" id="lblPlayers">Gracze</label>')
+    s = rep(s, '<p class="hint">Imiona oddzielone przecinkami, w kolejności siedzenia.</p>', '<p class="hint" id="playersHint">Imiona oddzielone przecinkami, w kolejności siedzenia.</p>')
+    s = rep(s, '<span class="label" id="lbl-starter">Kto zaczyna?</span>', '<span class="label" id="lbl-starter">Kto zaczyna?</span>')
     s = rep(s, '<p class="foot" id="foot"></p>',
             '<p class="sitenav"><a href="index.html">Strona główna</a><a href="wyniki.html">Lista wyników</a></p>\n  <p class="foot" id="foot"></p>')
     s = rep(s, '.foot {', '''.sitenav { display: flex; justify-content: center; gap: 18px; margin: 0; font-family: var(--f-mono); font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; }

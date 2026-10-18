@@ -84,7 +84,7 @@ async def main(dburl):
         hc = await ctx()
         await hc.clock.install()  # czas płynie normalnie, ale test może go przewinąć (koniec czasu na odpowiedź)
         host = await page(hc, 'index.html')
-        await host.click('a.mode[href^="live"]')
+        await host.click('[data-go="q2"]'); await host.click('a.ans[href="live.html?tryb=prowadzacy"]')
         await host.wait_for_selector('#s-role:not([hidden]) .rules')
         await host.wait_for_timeout(1500)
         stays = await host.evaluate('() => !document.querySelector("#s-role").hidden && document.querySelector("#s-hsetup").hidden && document.querySelector("#btnBePlayer").hidden')
@@ -102,7 +102,7 @@ async def main(dburl):
         for n in ['Asia', 'Tomek']:
             if n == 'Asia':  # przez stronę startową: „Mam kod gry”
                 pg = await page(await ctx(), 'index.html')
-                await pg.click('a[href="live.html?tryb=gracz"]')
+                await pg.click('[data-go="q2"]'); await pg.click('a.ans[href="live.html?tryb=gracz"]')
                 await pg.wait_for_selector('#s-pjoin:not([hidden])')
                 await pg.fill('#pcode', code.lower())
             else:  # z linku od prowadzącego
@@ -122,7 +122,7 @@ async def main(dburl):
         # --- lobby: każde odświeżenie daje nowy kod (zapamiętany kod nie wraca, gdy gra nie trwa) ---
         h2 = await page(await ctx(), 'index.html')
         await h2.evaluate('c => localStorage.setItem("pkw_hcode", JSON.stringify(c))', code)
-        await h2.click('a.mode[href^="live"]')
+        await h2.click('[data-go="q2"]'); await h2.click('a.ans[href="live.html?tryb=prowadzacy"]')
         await h2.click('#btnBeHost')
         await h2.wait_for_selector('#s-hsetup:not([hidden])', timeout=15000)
         codes = [(await h2.inner_text('#hsCode')).strip()]
@@ -248,7 +248,7 @@ async def main(dburl):
         await bare.close()
         tv = await page(hc, 'index.html')  # przeglądarka prowadzącego: ustawienia z Live są w jej localStorage
         resume = await tv.is_visible('#resume')
-        await tv.click('a.mode[href="teleturniej.html"]')
+        await tv.click('[data-go="q2"]'); await tv.click('a.ans[href="teleturniej.html"]')
         await tv.wait_for_selector('#screen-start:not([hidden])')
         shared = await tv.evaluate('() => document.querySelector("#levelSeg [data-v=pop]").getAttribute("aria-pressed") === "true" && document.querySelector("#countRange").value === "20"')
         check(shared and not resume, 'wybór trybu: jeden telefon, kategoria i liczba pytań przeniesione z Live')
@@ -271,16 +271,31 @@ async def main(dburl):
         await tv.wait_for_selector('#screen-final:not([hidden])')
         await until(tv, '() => document.querySelector("#rankNote").textContent.includes("zapisany")')
         check(True, 'teleturniej: wynik zapisany', await tv.inner_text('#rankNote'))
+        # --- gram sam: jeden gracz pod własnym nickiem, bez wskazywania następnego ---
+        sp = await page(await ctx(), 'index.html')
+        await sp.evaluate('() => localStorage.setItem("pkl_name", JSON.stringify("Solista"))')
+        await sp.click('a.ans[href="teleturniej.html?tryb=sam"]')
+        await sp.wait_for_selector('#screen-start:not([hidden])')
+        solo = [await sp.input_value('#players'), await sp.is_hidden('#starterChips'), (await sp.inner_text('#lblPlayers')).strip()]
+        await sp.fill('#countRange', '3'); await sp.uncheck('#optX2'); await sp.click('#btnStart')
+        for i in range(3):
+            await sp.click('#options .row >> nth=0')
+            assert await sp.is_hidden('#nextpick') and not await sp.is_disabled('#btnNext')
+            await sp.click('#btnNext')
+        await sp.wait_for_selector('#screen-final:not([hidden])')
+        await until(sp, '() => document.querySelector("#rankNote").textContent.includes("zapisany")')
+        friends = await sp.evaluate('() => (JSON.parse(localStorage.getItem("pk_tv2")) || {}).players')
+        check(solo == ['Solista', True, 'Twój nick'] and friends != ['Solista'], 'gram sam: jeden gracz, bez wskazywania następnego, wynik zapisany', solo)
 
         # --- lista wyników: filtry i historia gracza ---
         await res.reload()
-        await until(res, '() => document.querySelectorAll("#board li").length === 5')
+        await until(res, '() => document.querySelectorAll("#board li").length === 6')
         await res.select_option('#modeSel', 'live')
         await until(res, '() => document.querySelectorAll("#board li").length === 2')
         await res.select_option('#modeSel', 'teleturniej')
-        await until(res, '() => document.querySelectorAll("#board li").length === 5')
+        await until(res, '() => document.querySelectorAll("#board li").length === 6')
         await res.select_option('#modeSel', '')
-        await until(res, '() => document.querySelectorAll("#games .game").length === 2')
+        await until(res, '() => document.querySelectorAll("#games .game").length === 3')
         await res.click('#board [data-who="Asia"]')
         await until(res, '() => document.querySelector("#t-games").textContent === "Asia" && document.querySelectorAll("#games .game").length === 2')
         await res.click('#sortSeg [data-v="wins"]')
@@ -294,7 +309,7 @@ async def main(dburl):
         octx = await ctx(); await octx.clock.install()
         oh = await page(octx, 'index.html')  # admin „Ola”
         oh.on('dialog', lambda d: asyncio.ensure_future(d.accept()))
-        await oh.click('a.mode[href^="live"]'); await oh.click('#btnBeHost'); await oh.wait_for_selector('#s-hsetup:not([hidden])', timeout=15000)
+        await oh.click('[data-go="q2"]'); await oh.click('a.ans[href="live.html?tryb=prowadzacy"]'); await oh.click('#btnBeHost'); await oh.wait_for_selector('#s-hsetup:not([hidden])', timeout=15000)
         await oh.click('#modeSeg [data-v="online"]'); await oh.fill('#countRange', '20')
         await oh.fill('#adminName', 'Ola')
         ocode = (await oh.inner_text('#hsCode')).strip()
@@ -378,7 +393,7 @@ async def main(dburl):
         rctx = await ctx()
         rh = await page(rctx, 'index.html')  # admin „Zosia”
         rh.on('dialog', lambda d: asyncio.ensure_future(d.accept()))
-        await rh.click('a.mode[href^="live"]'); await rh.click('#btnBeHost'); await rh.wait_for_selector('#s-hsetup:not([hidden])', timeout=15000)
+        await rh.click('[data-go="q2"]'); await rh.click('a.ans[href="live.html?tryb=prowadzacy"]'); await rh.click('#btnBeHost'); await rh.wait_for_selector('#s-hsetup:not([hidden])', timeout=15000)
         await rh.click('#modeSeg [data-v="race"]'); await rh.fill('#countRange', '5'); await rh.uncheck('#optX2')
         await rh.fill('#adminName', 'Zosia')
         rcode = (await rh.inner_text('#hsCode')).strip()

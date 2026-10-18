@@ -4,53 +4,49 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>TELETURNIEJ</title>
-<meta name="description" content="Teleturniej na telefon: polityka, prawo i popkultura. Gra z przyciskami na telefonach graczy i lista wyników.">
+<meta name="description" content="TELETURNIEJ: gra na telefony. Sam albo ze znajomymi, z przyciskami na telefonach graczy i listą wyników.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="site.css">
 </head>
-<body>
+<body class="stage">
 <main class="app">
-  <section class="sheet" aria-labelledby="t-top">
-    <div class="sheet-head">
-      <p class="eyebrow hot">Teleturniej</p>
-      <p class="eyebrow">944 pytań · 14 kategorii</p>
+  <header class="marquee" aria-labelledby="t-top">
+    <div class="marquee-in">
+      <p class="mq-kicker">Gra na telefony</p>
+      <h1 id="t-top">TELETURNIEJ</h1>
+      <p class="mq-meta">944 pytań · 14 kategorii</p>
     </div>
-    <div class="sheet-body">
-      <div class="masthead">
-        <div class="bigbox" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.6 4.9 C9 9.4 14.2 14.6 19.4 19.3"/><path d="M19.1 4.6 C14.4 9.3 9.8 14.1 4.8 19.5"/></svg></div>
-        <h1 id="t-top">TELE<wbr>TURNIEJ</h1>
-      </div>
-      <p class="lede">Polityka, historia, sport, kultura i nie tylko. Wybierz tryb gry, a w następnym kroku ustawisz kategorię, liczbę pytań i graczy.</p>
-      <p class="notice soft" id="resume" hidden></p>
-      <fieldset class="modes">
-        <legend class="board-title">Tryb gry</legend>
-        <a class="mode" href="teleturniej.html">
-          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5.4 C9.2 9.6 14 14.4 19 19.1"/><path d="M18.8 5.1 C14.3 9.6 9.9 14.2 5.2 19.2"/></svg></span>
-          <span class="txt"><b>Jeden telefon</b><span>Prowadzący czyta pytania i zaznacza odpowiedzi. Odpowiada wskazana osoba, a kto trafi, wskazuje następnego.</span></span>
-        </a>
-        <a class="mode" href="live.html?tryb=prowadzacy">
-          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5.4 C9.2 9.6 14 14.4 19 19.1"/><path d="M18.8 5.1 C14.3 9.6 9.9 14.2 5.2 19.2"/></svg></span>
-          <span class="txt"><b>Przyciski na telefonach</b><span>Ty prowadzisz, gracze dołączają kodem. Kto pierwszy wciśnie przycisk, klika odpowiedź na swoim telefonie. Wersję online albo offline wybierzesz w następnym kroku.</span></span>
-        </a>
-      </fieldset>
-      <a class="btn ghost" href="live.html?tryb=gracz">Mam kod gry<small>dołączam jako gracz</small></a>
-      <p class="sitenav"><a href="wyniki.html">Lista wyników</a></p>
+  </header>
+
+  <p class="cue" id="resume" hidden></p>
+
+  <section class="round" id="q1" aria-labelledby="q1t">
+    <h2 class="qplate" id="q1t"><span class="qn">Pytanie 1</span><span class="qt">Jak dziś gramy?</span></h2>
+    <div class="answers">
+      <a class="ans" href="teleturniej.html?tryb=sam"><span class="in"><b class="key">A</b><span class="at"><strong>Gram sam</strong><small>Ty kontra pytania. Wynik trafia na listę.</small></span></span></a>
+      <button type="button" class="ans" data-go="q2"><span class="in"><b class="key">B</b><span class="at"><strong>Ze znajomymi</strong><small>Na jednym telefonie albo każdy na swoim.</small></span></span></button>
     </div>
   </section>
 
-  <section class="sheet" aria-labelledby="t-top5" id="topBox" hidden>
-    <div class="sheet-head">
-      <p class="eyebrow">Ostatnie 30 dni</p>
-      <a class="eyebrow" href="wyniki.html">Cały ranking →</a>
+  <section class="round" id="q2" aria-labelledby="q2t" hidden>
+    <h2 class="qplate" id="q2t"><span class="qn">Pytanie 2</span><span class="qt">Ile macie telefonów?</span></h2>
+    <div class="answers">
+      <a class="ans" href="teleturniej.html"><span class="in"><b class="key">A</b><span class="at"><strong>Jeden na wszystkich</strong><small>Prowadzący czyta i zaznacza. Kto trafi, wskazuje następnego.</small></span></span></a>
+      <a class="ans" href="live.html?tryb=prowadzacy"><span class="in"><b class="key">B</b><span class="at"><strong>Każdy swój · zakładam pokój</strong><small>Przyciski na telefonach. Online, „Kto pierwszy” albo offline.</small></span></span></a>
+      <a class="ans" href="live.html?tryb=gracz"><span class="in"><b class="key">C</b><span class="at"><strong>Mam kod gry</strong><small>Dołączam do pokoju znajomego.</small></span></span></a>
     </div>
-    <div class="sheet-body">
-      <h2 class="board-title" id="t-top5" style="margin:0">Czołówka</h2>
-      <ol class="board" id="top"></ol>
-    </div>
+    <button type="button" class="back" data-go="q1">← Wróć do pytania 1</button>
   </section>
 
+  <section class="scoreboard" aria-labelledby="t-top5" id="topBox" hidden>
+    <div class="sb-head"><h2 id="t-top5">Czołówka</h2><span>ostatnie 30 dni</span></div>
+    <ol class="board" id="top"></ol>
+    <a class="sb-more" href="wyniki.html">Cały ranking →</a>
+  </section>
+
+  <nav class="stage-nav"><a href="wyniki.html">Lista wyników</a></nav>
   <p class="foot">Bez logowania. Wyniki zapisują się pod imieniem wpisanym w grze.</p>
 </main>
 
@@ -58,13 +54,28 @@
 <script src="config.js"></script>
 <script src="pk-online.js"></script>
 <script>
+// pytania 1 i 2: wybrana odpowiedź podświetla się jak w teleturnieju, potem przejście
+(() => {
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  document.querySelectorAll(".round .ans").forEach((el) => el.addEventListener("click", (e) => {
+    if (el.classList.contains("picked")) { e.preventDefault(); return; }
+    const go = () => {
+      if (el.dataset.go) { document.querySelectorAll(".round").forEach((r) => (r.hidden = r.id !== el.dataset.go)); document.querySelectorAll(".ans.picked").forEach((x) => x.classList.remove("picked")); document.querySelector("#" + el.dataset.go + " .ans").focus({ preventScroll: true }); }
+      else location.assign(el.href);
+    };
+    if (still) return el.dataset.go ? go() : undefined;
+    e.preventDefault(); el.classList.add("picked"); setTimeout(go, 420);
+  }));
+  document.querySelectorAll(".back").forEach((b) => b.addEventListener("click", () => document.querySelectorAll(".round").forEach((r) => (r.hidden = r.id !== b.dataset.go))));
+  addEventListener("pageshow", () => document.querySelectorAll(".ans.picked").forEach((x) => x.classList.remove("picked")));
+})();
 (() => {
   // trwająca gra prowadzącego na tym urządzeniu: pozwól do niej wrócić
   try {
     const H = JSON.parse(localStorage.getItem("pkl_host") || "null"), code = JSON.parse(localStorage.getItem("pkw_hcode") || "null");
     if (H && H.deck && H.ph && H.ph !== "lobby" && H.ph !== "final" && code) {
       const r = document.querySelector("#resume");
-      r.innerHTML = `Trwa Twoja gra z przyciskami (kod <b>${String(code).replace(/[^A-Z0-9]/g, "")}</b>, pytanie ${H.i + 1} z ${H.deck.length}). <a href="live.html?tryb=prowadzacy">Wróć do gry</a>`;
+      r.innerHTML = `<span>Trwa Twoja gra · kod <b>${String(code).replace(/[^A-Z0-9]/g, "")}</b> · pytanie ${H.i + 1} z ${H.deck.length}</span><a href="live.html?tryb=prowadzacy">Wróć do gry</a>`;
       r.hidden = false;
     }
   } catch (e) { }

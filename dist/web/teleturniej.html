@@ -313,9 +313,9 @@ a.btn { text-align: center; text-decoration: none; }
       </div>
 
       <div class="field">
-        <label for="players">Gracze</label>
+        <label for="players" id="lblPlayers">Gracze</label>
         <input type="text" id="players" value="Adam, Zając, Asia, Tomek, Julia" autocomplete="off">
-        <p class="hint">Imiona oddzielone przecinkami, w kolejności siedzenia.</p>
+        <p class="hint" id="playersHint">Imiona oddzielone przecinkami, w kolejności siedzenia.</p>
         <div class="chips nickchips" id="nickChips" aria-label="Gracze z listy wyników" hidden></div>
       </div>
 
@@ -2652,7 +2652,14 @@ function parsePlayers(s) {
 let settings = Object.assign({ level: "pro", players: DEFAULT_PLAYERS.slice(), starter: 0, count: 30, time: 15, minus: 1 }, load("pk_tv2", {}), load("pk_common", {}));
 if (![1, 5, 10].includes(settings.minus)) settings.minus = 1;
 if (!LEVELS[settings.level]) settings.level = "pro";
-const saveSettings = () => { save("pk_tv2", settings); save("pk_common", { level: settings.level, count: settings.count, minus: settings.minus, mix: settings.mix, x2: settings.x2 }); };
+/* teleturniej.html?tryb=sam: gra w pojedynkę pod własnym nickiem; lista graczy dla gry ze znajomymi zostaje w pk_tv2 */
+const SOLO = new URLSearchParams(location.search).get("tryb") === "sam";
+if (SOLO) { settings.players = [String(load("pkl_name", "") || "").trim().slice(0, 20) || "Gracz"]; settings.starter = 0; }
+const saveSettings = () => {
+  save("pk_tv2", SOLO ? Object.assign({}, settings, { players: load("pk_tv2", {}).players || DEFAULT_PLAYERS.slice() }) : settings);
+  if (SOLO) save("pkl_name", settings.players[0]);
+  save("pk_common", { level: settings.level, count: settings.count, minus: settings.minus, mix: settings.mix, x2: settings.x2 });
+};
 
 function setSeg(id, val) { document.querySelectorAll(`#${id} button`).forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === String(val)))); }
 
@@ -2912,7 +2919,12 @@ $("#nickChips").addEventListener("click", (e) => {
   const inp = $("#players"); inp.value = settings.players.concat(b.dataset.n).join(", ");
   inp.dispatchEvent(new Event("input"));
 });
-if (window.PK && PK.ready()) PK.nicks().then((l) => { knownNicks = l; renderNickChips(); });
+if (SOLO) {
+  $("#lblPlayers").textContent = "Twój nick"; $("#playersHint").textContent = "Pod tym imieniem wynik trafi na listę wyników.";
+  $("#players").maxLength = 20; $("#starterChips").closest(".field").hidden = true;
+  $("#topicEyebrow").textContent = "Tryb: gram sam";
+}
+if (window.PK && PK.ready()) PK.nicks().then((l) => { knownNicks = SOLO ? [] : l; renderNickChips(); });
 /* dobór pytań: historia graczy z listy (z bazy) pobiera się przy zmianie listy, przed startem gry */
 let histKey = null, histT = null;
 function prefetchHist() {
@@ -3015,7 +3027,7 @@ function answer(i) {
   const ok = i === cur().c;
   S.log[S.i] = { p: S.cur, pick: i, ok };
   S.phase = "reveal";
-  S.next = ok ? null : (S.cur + 1) % S.players.length;
+  S.next = S.players.length === 1 ? 0 : ok ? null : (S.cur + 1) % S.players.length;  // sam gracz: zawsze on
   renderReveal(false);
 }
 function renderReveal(instant) {
@@ -3042,7 +3054,7 @@ function renderReveal(instant) {
 
   const last = S.i >= S.deck.length - 1;
   const np = $("#nextpick");
-  if (last) {
+  if (last || S.players.length === 1) {
     np.hidden = true;
   } else {
     $("#npTitle").textContent = a.ok ? `${name} wskazuje, kto odpowiada następny` : "Pytanie przechodzi dalej";

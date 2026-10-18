@@ -126,3 +126,114 @@ select { width: 100%; background: var(--paper); border: 1px solid var(--rule-str
   .btn:active:not(:disabled), .mode:active, .chip:active, .seg button:active { transform: scale(.98); }
   #board li { animation: pk-rise .3s ease-out both; }
 }
+
+/* ===================== STUDIO (strona startowa) =====================
+   Estetyka teleturnieju: ciemne studio z reflektorami, szyld z żarówkami, pytanie na tablicy
+   i odpowiedzi A/B/C w sześciokątnych kapsułach. Studio jest ciemne w obu motywach (tak wygląda plan zdjęciowy),
+   kontrast tekstu ≥ 7:1. */
+.stage {
+  --st-bg: #070B24; --st-bg2: #111A4A; --st-panel: #121C52; --st-panel2: #0B1238; --st-line: #3C4DA8;
+  --st-ink: #F4F6FF; --st-muted: #AEB6DE; --gold: #FFC93C; --gold2: #FFE9A6; --gold-deep: #B8860B; --st-hot: #FF7A1A;
+  --st-ok: #3BE08A; --st-shadow: rgba(0, 0, 0, .55);
+  color-scheme: dark; color: var(--st-ink);
+  background:
+    radial-gradient(60% 45% at 18% -8%, rgba(120, 150, 255, .30), transparent 70%),
+    radial-gradient(55% 40% at 86% -6%, rgba(255, 201, 60, .20), transparent 70%),
+    radial-gradient(90% 60% at 50% 115%, rgba(60, 90, 255, .28), transparent 70%),
+    linear-gradient(180deg, var(--st-bg2), var(--st-bg) 60%);
+  background-color: var(--st-bg); min-height: 100vh;
+}
+html:has(body.stage) { background: #070B24; }
+.stage :focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+.stage .app { gap: 18px; padding-top: max(26px, env(safe-area-inset-top, 0px)); }
+
+/* szyld z żarówkami: kropki w ramie to tło, środek przykrywa panel */
+.marquee {
+  position: relative; padding: 11px; border-radius: 22px;
+  background: radial-gradient(circle, var(--gold2) 0 2.3px, rgba(255, 233, 166, .25) 3.2px, transparent 4px) 0 0 / 15px 15px, linear-gradient(#2A1E00, #1A1200);
+  box-shadow: 0 0 0 2px var(--gold-deep), 0 0 34px rgba(255, 201, 60, .35), 0 22px 40px -18px var(--st-shadow);
+}
+.marquee-in {
+  border-radius: 13px; padding: 18px 14px 16px; text-align: center;
+  background: radial-gradient(120% 90% at 50% 0%, #1C2A78, var(--st-panel2) 70%);
+  box-shadow: inset 0 0 0 2px var(--gold-deep), inset 0 10px 30px rgba(120, 150, 255, .18);
+}
+.marquee h1 {
+  font-size: clamp(2.6rem, 14.5vw, 4.6rem); font-weight: 900; font-stretch: 68%; line-height: .9; letter-spacing: .01em;
+  background: linear-gradient(180deg, #FFF6D6 0%, var(--gold) 48%, #E39A00 52%, var(--gold2) 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 3px 0 #5A3A00) drop-shadow(0 0 18px rgba(255, 201, 60, .45));
+}
+.mq-kicker, .mq-meta { margin: 0; font-family: var(--f-mono); font-size: .72rem; letter-spacing: .16em; text-transform: uppercase; color: var(--st-muted); }
+.mq-kicker { color: var(--gold2); margin-bottom: 8px; }
+.mq-meta { margin-top: 10px; }
+
+/* tablica z pytaniem i kapsuły odpowiedzi */
+.round { display: grid; gap: 14px; }
+.qplate {
+  --cut: 18px; position: relative; display: grid; gap: 4px; text-align: center; padding: 16px 30px 18px;
+  clip-path: polygon(var(--cut) 0, calc(100% - var(--cut)) 0, 100% 50%, calc(100% - var(--cut)) 100%, var(--cut) 100%, 0 50%);
+  background: linear-gradient(180deg, #2B3C9E, var(--st-panel) 55%, var(--st-panel2));
+  box-shadow: inset 0 0 0 2px var(--st-line);
+}
+.qplate .qn { font-family: var(--f-mono); font-size: .7rem; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); }
+.qplate .qt { font-family: var(--f-display); font-stretch: 80%; font-weight: 850; font-size: clamp(1.45rem, 6.6vw, 1.9rem); line-height: 1.1; color: var(--st-ink); }
+.answers { position: relative; display: grid; gap: 12px; }
+.answers::before { content: ""; position: absolute; left: -16px; right: -16px; top: 0; bottom: 0; margin: auto; height: 2px; background: linear-gradient(90deg, transparent, var(--st-line) 12%, var(--st-line) 88%, transparent); z-index: 0; }
+.ans {
+  --cut: 16px; --edge: var(--st-line); --fill1: #1A2766; --fill2: var(--st-panel2);
+  position: relative; z-index: 1; display: block; width: 100%; padding: 2px; border: 0; margin: 0; cursor: pointer;
+  text-decoration: none; color: var(--st-ink); font: inherit; text-align: left; background: var(--edge);
+  clip-path: polygon(var(--cut) 0, calc(100% - var(--cut)) 0, 100% 50%, calc(100% - var(--cut)) 100%, var(--cut) 100%, 0 50%);
+  transition: transform .12s ease-out, filter .2s;
+}
+.ans .in {
+  display: grid; grid-template-columns: 2.2rem minmax(0, 1fr); align-items: center; gap: 12px; min-height: 76px; padding: 12px 28px 12px 26px;
+  clip-path: inherit; background: linear-gradient(180deg, var(--fill1), var(--fill2));
+}
+.ans .key { font-family: var(--f-display); font-stretch: 80%; font-weight: 900; font-size: 1.5rem; color: var(--gold); text-align: center; }
+.ans .at { display: grid; gap: 2px; }
+.ans strong { font-family: var(--f-display); font-stretch: 85%; font-weight: 800; font-size: 1.3rem; line-height: 1.1; }
+.ans small { font-size: .86rem; line-height: 1.35; color: var(--st-muted); }
+.ans:hover, .ans:focus-visible { --edge: var(--gold); }
+.ans:active { transform: scale(.985); }
+/* zaznaczona odpowiedź: pomarańcz jak w teleturniejach, chwilę przed przejściem */
+.ans.picked { --edge: var(--gold2); --fill1: #FF9A2E; --fill2: #D35400; }
+.ans.picked .key, .ans.picked small { color: #2A1300; }
+.ans.picked strong { color: #1A0B00; }
+.back { justify-self: center; border: 0; background: none; color: var(--st-muted); font-family: var(--f-mono); font-size: .74rem; letter-spacing: .08em; text-transform: uppercase; padding: 8px 4px; cursor: pointer; }
+.back:hover { color: var(--gold2); }
+
+/* komunikat o trwającej grze */
+.cue { margin: 0; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 14px; padding: 12px 16px; border-radius: 12px; background: rgba(255, 201, 60, .1); border: 1.5px solid var(--gold); color: var(--gold2); font-size: .92rem; }
+.cue a { color: var(--st-bg); background: var(--gold); border-radius: 99px; padding: 6px 14px; font-weight: 700; text-decoration: none; }
+
+/* tablica wyników jak na planie: cyfry „LED” */
+.scoreboard { border-radius: 16px; padding: 14px 16px 12px; background: linear-gradient(180deg, #0D1442, #070B26); box-shadow: inset 0 0 0 1.5px var(--st-line), 0 18px 34px -20px var(--st-shadow); display: grid; gap: 10px; }
+.sb-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.sb-head h2 { font-size: 1.25rem; font-stretch: 80%; font-weight: 850; color: var(--gold); letter-spacing: .02em; text-transform: uppercase; }
+.sb-head span { font-family: var(--f-mono); font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; color: var(--st-muted); }
+.stage .board li { border-color: rgba(60, 77, 168, .5); }
+.stage .board .pos, .stage .board .p { color: var(--gold2); font-family: var(--f-mono); text-shadow: 0 0 10px rgba(255, 201, 60, .35); }
+.stage .board .nm a { color: var(--st-ink); }
+.stage .board .stat { color: var(--st-muted); }
+.stage .board .bar { background: rgba(60, 77, 168, .35); }
+.stage .board .bar i { background: linear-gradient(90deg, var(--gold-deep), var(--gold)); }
+.stage .board li.lead .nm a, .stage .board li.lead .pos, .stage .board li.lead .p { color: var(--gold); }
+.stage .board li.lead .bar i { background: linear-gradient(90deg, var(--gold), var(--gold2)); box-shadow: 0 0 10px rgba(255, 201, 60, .6); }
+.sb-more { justify-self: end; color: var(--gold2); font-family: var(--f-mono); font-size: .74rem; letter-spacing: .06em; text-transform: uppercase; text-decoration: none; }
+.stage-nav { display: flex; justify-content: center; }
+.stage-nav a { color: var(--st-ink); border: 1.5px solid var(--st-line); border-radius: 99px; padding: 9px 20px; font-family: var(--f-mono); font-size: .76rem; letter-spacing: .1em; text-transform: uppercase; text-decoration: none; }
+.stage-nav a:hover { border-color: var(--gold); color: var(--gold2); }
+.stage .foot { color: var(--st-muted); }
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes bulbs { 50% { background-position: 7.5px 0, 0 0; } }
+  .marquee { animation: bulbs 1.6s steps(1) infinite; }
+  @keyframes ans-in { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: none; } }
+  .round:not([hidden]) .ans { animation: ans-in .38s cubic-bezier(.2, .7, .2, 1) both; }
+  .round:not([hidden]) .ans:nth-child(2) { animation-delay: .08s; }
+  .round:not([hidden]) .ans:nth-child(3) { animation-delay: .16s; }
+  @keyframes picked { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.25); } }
+  .ans.picked { animation: picked .2s ease-in-out 2; }
+}

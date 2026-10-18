@@ -2979,7 +2979,7 @@ function answer(i) {
   const ok = i === cur().c;
   S.log[S.i] = { p: S.cur, pick: i, ok };
   S.phase = "reveal";
-  S.next = ok ? null : (S.cur + 1) % S.players.length;
+  S.next = S.players.length === 1 ? 0 : ok ? null : (S.cur + 1) % S.players.length;  // sam gracz: zawsze on
   renderReveal(false);
 }
 function renderReveal(instant) {
@@ -3006,7 +3006,7 @@ function renderReveal(instant) {
 
   const last = S.i >= S.deck.length - 1;
   const np = $("#nextpick");
-  if (last) {
+  if (last || S.players.length === 1) {
     np.hidden = true;
   } else {
     $("#npTitle").textContent = a.ok ? `${name} wskazuje, kto odpowiada następny` : "Pytanie przechodzi dalej";
