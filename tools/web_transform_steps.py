@@ -153,7 +153,9 @@ src = rep(src, '.toggle { display: flex;', '''.codebox { display: grid; gap: 8px
 # host role handler
 src = cut(src, '$("#btnBeHost").addEventListener("click", () => {', '$("#btnBack1")', r'''$("#btnBeHost").addEventListener("click", async () => {
   const b = $("#btnBeHost"); b.disabled = true; b.textContent = "Tworzę grę…";
-  let code = load("pkw_hcode", null), r = null, why = null;
+  /* Trwająca gra wraca do swojego kodu (gracze są w tym pokoju). Nowe lobby zawsze dostaje nowy kod. */
+  const running = H && H.deck && H.ph && H.ph !== "lobby" && H.ph !== "final";
+  let code = running ? load("pkw_hcode", null) : null, r = null, why = null;
   for (let k = 0; k < 4 && !r; k++) {
     if (!code || k > 0) code = newCode();
     try { r = await makeHostRoom(code); } catch (e) { why = e; if (e === "nolib") break; }

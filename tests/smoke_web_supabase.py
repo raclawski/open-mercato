@@ -114,13 +114,17 @@ async def main(dburl):
         await bad.wait_for_selector('#joinErr:not([hidden])', timeout=12000)
         check('Nie ma gry o kodzie ZZZZ' in await bad.inner_text('#joinErr'), 'zły kod: komunikat')
 
-        # --- zajęty kod: drugi prowadzący z tym samym zapamiętanym kodem dostaje inny ---
+        # --- lobby: każde odświeżenie daje nowy kod (zapamiętany kod nie wraca, gdy gra nie trwa) ---
         h2 = await page(await ctx(), 'index.html')
         await h2.evaluate('c => localStorage.setItem("pkw_hcode", JSON.stringify(c))', code)
         await h2.click('a.mode[href^="live"]')
         await h2.wait_for_selector('#s-hsetup:not([hidden])', timeout=15000)
-        code2 = (await h2.inner_text('#hsCode')).strip()
-        check(code2 != code and len(code2) == 4, 'zajęty kod: nowy kod dla drugiego prowadzącego', code2)
+        codes = [(await h2.inner_text('#hsCode')).strip()]
+        for _ in range(2):
+            await h2.reload()
+            await h2.wait_for_selector('#s-hsetup:not([hidden])', timeout=15000)
+            codes.append((await h2.inner_text('#hsCode')).strip())
+        check(code not in codes and len(set(codes)) == 3 and all(len(c) == 4 for c in codes), 'lobby: nowy kod po każdym odświeżeniu', codes)
         await h2.close()
 
         # --- pytanie 1: sygnał, Tomek pierwszy, dobrze ---
