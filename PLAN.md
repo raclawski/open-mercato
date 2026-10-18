@@ -36,17 +36,15 @@ Zmiana bazy (**SQL**) oznacza, że po wdrożeniu musisz wgrać nowy plik w Supab
 
 ## Do zrobienia
 
-B0, B1 i B2 zrobione. Dalej kolejność do Twojej decyzji (propozycja: od góry).
+Kolejność do Twojej decyzji (propozycja: od góry).
 
 | ID | Usprawnienie | Wielkość | Status |
 |---|---|---|---|
-| C3 | Kategoria o małżeństwie Chajzerów na podstawie 3 odcinków ich podcastu | M | — |
+| C3 | Kategoria o małżeństwie Chajzerów na podstawie 3 odcinków ich podcastu | M | wstrzymane |
 | A3 | Kontrola wersji bazy: gra ostrzega, gdy migracja nie jest wgrana | S, SQL | — |
 | C2 | Zgłaszanie błędnego pytania z poziomu gry | M, SQL | — |
 | D1 | Komunikaty i dopracowanie interfejsu | M | — |
 | C1 | Baza 5000 pytań, kolejne partie po 500 | L, cyklicznie | wstrzymane |
-
-A6 i B3 zmieniają sposób liczenia punktów, a baza dziś sama przelicza wynik jako 10 × dobre − kara × złe. Obie pozycje warto więc zrobić z jedną wspólną zmianą bazy.
 
 ---
 
