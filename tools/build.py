@@ -30,6 +30,9 @@ def fill(tpl):
     t = rd('src/templates/' + tpl)
     assert t.count('/*__BANKS__*/') == 1, tpl
     out = t.replace('/*__BANKS__*/', banks)
+    for mark, part in (('/*__DRUM_CSS__*/', 'drum.css'), ('/*__DRUM_JS__*/', 'drum.js')):
+        assert out.count(mark) == 1, (tpl, mark)
+        out = out.replace(mark, rd('src/templates/shared/' + part).strip())
     for n in names:
         assert re.search(r'bank:\s*' + n + r'\b', out), f'{tpl}: brak wpisu w LEVELS dla {n}'
     return out

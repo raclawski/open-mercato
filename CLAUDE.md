@@ -9,6 +9,7 @@ src/questions/*.js        pule pytań, każdy plik definiuje jedną stałą `con
 src/questions/ORDER.txt   kolejność wklejania plików do szablonów
 src/templates/teleturniej.html   gra na jednym telefonie (bez zależności)
 src/templates/live-claude.html   gra z przyciskami przez capability `room` artefaktów Claude
+src/templates/shared/     wspólne części obu szablonów, wklejane przez build (bęben wyboru kategorii: drum.js, drum.css)
 tools/build.py            składa dist/ z src/
 tools/web_transform*.py   zamienia live-claude w wersję bez logowania (PeerJS albo Supabase)
 tools/supabase_transform_steps.py  kroki tylko dla wersji Supabase (transport, zapis wyniku)
@@ -21,7 +22,7 @@ vercel.json               hosting: katalog dist/web, cleanUrls
 dist/                     wynik buildu, nie edytuj ręcznie
 ```
 
-Szablony to pojedyncze pliki HTML+CSS+JS bez frameworka. Miejsce na pytania to znacznik `/*__BANKS__*/`. Szablony nie mają `<!doctype>`, `<html>`, `<head>` ani `<body>`, bo publikacja jako artefakt Claude sama dokłada szkielet. `build.py` robi z nich też pełne strony do hostingu.
+Szablony to pojedyncze pliki HTML+CSS+JS bez frameworka. Miejsce na pytania to znacznik `/*__BANKS__*/`. Znaczniki `/*__DRUM_CSS__*/` i `/*__DRUM_JS__*/` to miejsce na bęben z `src/templates/shared/`. Szablony nie mają `<!doctype>`, `<html>`, `<head>` ani `<body>`, bo publikacja jako artefakt Claude sama dokłada szkielet. `build.py` robi z nich też pełne strony do hostingu.
 
 ## Polecenia
 
@@ -54,7 +55,7 @@ Testy wymagają Pythona z pakietem `playwright` (`pip install playwright && play
 1. Utwórz `src/questions/nazwa.js` z `const BANK_NAZWA = [...]` i dopisz plik na końcu `ORDER.txt`.
 2. W **obu** szablonach (`teleturniej.html` i `live-claude.html`):
    - dopisz wpis w obiekcie `LEVELS`: `klucz: { label: "Etykieta", bank: BANK_NAZWA, hint: "Opis pod przyciskami." }`,
-   - dopisz przycisk w `#levelSeg`: `<button type="button" data-v="klucz" class="hotbtn">Etykieta</button>`. Siatka ma 2 kolumny. Przy nieparzystej liczbie przycisków ostatni dostaje klasę `wide` (pełna szerokość).
+   - dopisz przycisk w `#levelSeg`: `<button type="button" data-v="klucz" class="hotbtn">Etykieta</button>`. Przyciski to wiersze bębna wyboru kategorii, w kolejności z szablonu; liczbę pytań bęben dopisuje sam.
 3. `node tests/validate_questions.js && python3 tools/build.py && python3 tests/smoke_teleturniej.py`.
 
 `build.py` przerywa, jeśli w szablonie brakuje wpisu `LEVELS` dla któregoś `BANK_*`. Lista wyników bierze etykiety kategorii z `LEVELS`, więc nic więcej nie trzeba dopisywać. Klucz kategorii musi pasować do `^[a-z]{2,12}$` (sprawdza to baza).
@@ -84,4 +85,5 @@ Testy wymagają Pythona z pakietem `playwright` (`pip install playwright && play
 - Wersja Supabase (`src/web/pk-online.js`) emuluje to samo API na kanale Realtime `pk-live-v1-<KOD>`. Presence mówi tylko, kto jest online (klucze `h-…` prowadzący, `p-…` gracze). Stan płynie broadcastem: `host` (pełny stan prowadzącego, po zmianie i co 10 s), `pres` (presence gracza), `hello` (prośba o stan). Kolejność wciśnięć: czas odebrania `pres` u prowadzącego. Identyfikator prowadzącego `pkw_hid` jest stały na urządzeniu, więc po odświeżeniu wraca do tego samego kodu. Kod zajęty przez innego prowadzącego jest losowany od nowa.
 - Jedna gra w serwisie: tryb wybiera się na stronie startowej (`index.html`): „Jeden telefon” → `teleturniej.html`, „Przyciski na telefonach” → `live.html?tryb=prowadzacy` (od razu ustawienia prowadzącego albo powrót do trwającej gry), „Mam kod gry” → `live.html?tryb=gracz`. Link dla graczy to nadal `live.html?kod=XXXX`, a `live.html` bez parametrów wraca do wyboru trybu. Poziom, liczba pytań i kara są wspólne dla obu trybów (`pk_common` w `localStorage`).
 - Lista wyników: każda gra ma `uid`. Po końcu gry prowadzący (Live) albo telefon (teleturniej) wysyła ją przez `PK.submitGame`: najpierw kolejka `pk_outbox` w `localStorage`, potem RPC `pk_submit_game`. Nieudany zapis ponawia się przy następnym wejściu na dowolną stronę serwisu. Zapis jest idempotentny po `uid`. Ranking łączy gry po nicku bez względu na wielkość liter.
+- Bęben kategorii (`initDrum`): wiersze to przyciski `#levelSeg` z `aria-pressed`, a wybór idzie przez ich kliknięcie, więc `bindSeg`/`setSeg` działają bez zmian. Bęben klika wiersz, który po przewinięciu stanął na środku, i centruje wybrany. Ukryty bęben (np. po starcie gry) ignoruje zdarzenia przewijania, bo inaczej przeglądarka „wybierałaby” pierwszą kategorię.
 - Motyw: tokeny CSS w `:root` z wariantem ciemnym (`prefers-color-scheme` i `[data-theme]`). Fonty Archivo, IBM Plex Sans i IBM Plex Mono z Google Fonts.

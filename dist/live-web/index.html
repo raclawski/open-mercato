@@ -252,6 +252,23 @@ details.review summary { cursor: pointer; font-weight: 600; }
 .joinurl { word-break: break-all; font-size: .82rem; margin: 0; font-family: var(--f-mono); }
 .toggle { display: flex; align-items: center; gap: 8px; font-size: .88rem; color: var(--muted); }
 @media (prefers-reduced-motion: reduce) { .buzz.armed { animation: none; } }
+/* bęben wyboru kategorii (src/templates/shared/drum.js): 5 widocznych wierszy, środkowy to wybór */
+.drum-wrap { --drum-row: 58px; position: relative; border: 1px solid var(--rule-strong); border-radius: 3px; background: var(--paper); overflow: hidden; }
+.drum-wrap::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: var(--drum-row); transform: translateY(-50%); background: var(--hover); border-block: 2px solid var(--ink); pointer-events: none; }
+.drum-wrap::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(var(--paper), transparent 34%, transparent 66%, var(--paper)); }
+.drum { position: relative; height: calc(var(--drum-row) * 5); overflow-y: auto; overscroll-behavior: contain; scroll-snap-type: y mandatory; padding-block: calc(var(--drum-row) * 2); scrollbar-width: none; outline-offset: -3px; }
+.drum::-webkit-scrollbar { display: none; }
+.drum button { display: grid; grid-template-columns: 1.9rem minmax(0, 1fr) auto; align-items: center; gap: 14px; width: 100%; height: var(--drum-row); padding: 0 16px; border: 0; background: none; scroll-snap-align: center; cursor: pointer; color: var(--muted); text-align: left; font-family: var(--f-display); font-stretch: 85%; font-weight: 800; font-size: 1.35rem; line-height: 1.1; backface-visibility: hidden; transform-origin: 50% 50%; will-change: transform; }
+.drum .dl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.drum .dm { font-family: var(--f-mono); font-stretch: 100%; font-size: .72rem; font-weight: 500; letter-spacing: .04em; color: var(--muted); }
+.drum .dbox { width: 1.9rem; aspect-ratio: 1; border: 2px solid var(--rule-strong); display: grid; place-items: center; }
+.drum .dbox svg { width: 82%; height: 82%; }
+.drum .dbox path { stroke: var(--pen); stroke-width: 2.6; stroke-linecap: round; fill: none; opacity: 0; transition: opacity .15s; }
+.drum button[aria-pressed="true"] { color: var(--ink); }
+.drum button[aria-pressed="true"] .dbox { border-color: var(--ink); }
+.drum button[aria-pressed="true"] .dbox path { opacity: 1; }
+.drum button[aria-pressed="true"].hotbtn .dm { color: var(--stamp); }
+.drum button:focus-visible { outline: 3px solid var(--pen); outline-offset: -3px; }
 </style>
 </head>
 <body>
@@ -355,16 +372,18 @@ details.review summary { cursor: pointer; font-weight: 600; }
         <p class="hint" id="hsRosterHint">Gracze otwierają ten sam link na swoich telefonach i wybierają „Jestem graczem”.</p>
       </div>
       <div class="field">
-        <span class="label" id="lbl-level">Poziom pytań</span>
-        <div class="seg g2" role="group" aria-labelledby="lbl-level" id="levelSeg">
-          <button type="button" data-v="std">Umiarkowany</button>
-          <button type="button" data-v="mega">Mega</button>
-          <button type="button" data-v="pro" class="hotbtn">Ekspert PL</button>
-          <button type="button" data-v="pop" class="hotbtn">Popkultura PL</button>
-          <button type="button" data-v="urz" class="hotbtn">Jaki to urząd?</button>
-          <button type="button" data-v="uzw" class="hotbtn">Używki</button>
-          <button type="button" data-v="ksh" class="hotbtn">Prawo spółek</button>
-          <button type="button" data-v="ts" class="hotbtn">Taylor Swift</button>
+        <span class="label" id="lbl-level">Kategoria pytań</span>
+        <div class="drum-wrap">
+          <div class="drum" role="group" aria-labelledby="lbl-level" id="levelSeg">
+            <button type="button" data-v="std">Umiarkowany</button>
+            <button type="button" data-v="mega">Mega</button>
+            <button type="button" data-v="pro" class="hotbtn">Ekspert PL</button>
+            <button type="button" data-v="pop" class="hotbtn">Popkultura PL</button>
+            <button type="button" data-v="urz" class="hotbtn">Jaki to urząd?</button>
+            <button type="button" data-v="uzw" class="hotbtn">Używki</button>
+            <button type="button" data-v="ksh" class="hotbtn">Prawo spółek</button>
+            <button type="button" data-v="ts" class="hotbtn">Taylor Swift</button>
+          </div>
         </div>
         <p class="hint" id="levelHint"></p>
       </div>
@@ -1652,13 +1671,71 @@ let tId = null, tEnd = 0;
 let showKey = load("pkl_showkey", true);
 
 function setSeg(id, val) { document.querySelectorAll(`#${id} button`).forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === String(val)))); }
+/* Bęben wyboru kategorii: przewijana lista, wybrany jest wiersz na środku (podświetlony pas z krzyżykiem).
+   Wiersze to zwykłe przyciski z data-v i aria-pressed. Wybór idzie przez kliknięcie przycisku,
+   więc istniejąca obsługa (bindSeg, setSeg) działa bez zmian. Bęben tylko:
+   - po zatrzymaniu przewijania klika wiersz, który stanął na środku,
+   - po zmianie wyboru (kliknięcie, strzałki, ustawienia z pamięci) przewija go na środek,
+   - wygina wiersze jak na walcu (im dalej od środka, tym bardziej obrócone i bledsze). */
+function initDrum(el, meta) {
+  const rows = [...el.querySelectorAll("button[data-v]")];
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const BOX = '<span class="dbox" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5.4 C9.2 9.6 14 14.4 19 19.1"/><path d="M18.8 5.1 C14.3 9.6 9.9 14.2 5.2 19.2"/></svg></span>';
+  rows.forEach((b) => { b.innerHTML = BOX + `<span class="dl">${b.innerHTML}</span>` + (meta ? `<span class="dm">${meta(b.dataset.v)}</span>` : ""); });
+  let cur = null, auto = false, endT = null, frame = 0;
+  const mid = () => el.scrollTop + el.clientHeight / 2;
+  const at = (b) => b.offsetTop + b.offsetHeight / 2;
+  function paint() {
+    frame = 0;
+    const m = mid(), h = rows[0].offsetHeight || 1;
+    for (const b of rows) {
+      const d = (at(b) - m) / h;
+      b.style.transform = `perspective(560px) rotateX(${Math.max(-70, Math.min(70, -d * 21))}deg)`;
+      b.style.opacity = String(Math.max(0.22, 1 - Math.abs(d) * 0.27));
+    }
+  }
+  const nearest = () => { const m = mid(); return rows.reduce((a, b) => (Math.abs(at(b) - m) < Math.abs(at(a) - m) ? b : a)); };
+  function center(b, smooth) {
+    const top = at(b) - el.clientHeight / 2;
+    if (Math.abs(el.scrollTop - top) < 1) return;
+    auto = true;
+    el.scrollTo({ top, behavior: smooth && !still ? "smooth" : "auto" });
+  }
+  function settle() {
+    if (auto) { auto = false; return; }
+    // ukrycie ekranu (np. start gry) też zmienia przewinięcie; to nie jest wybór gracza
+    if (!el.clientHeight) return;
+    const b = nearest();
+    if (b.getAttribute("aria-pressed") !== "true") b.click();
+    else center(b, true);
+  }
+  function sync(smooth) {
+    const p = rows.find((b) => b.getAttribute("aria-pressed") === "true");
+    if (p && p !== cur) { cur = p; if (el.clientHeight) center(p, smooth); }
+  }
+  el.addEventListener("scroll", () => {
+    if (!el.clientHeight) { auto = false; clearTimeout(endT); return; }
+    if (!frame) frame = requestAnimationFrame(paint);
+    clearTimeout(endT); endT = setTimeout(settle, 140);
+  }, { passive: true });
+  el.addEventListener("keydown", (e) => {
+    if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+    e.preventDefault();
+    const i = rows.indexOf(cur || nearest()), b = rows[Math.max(0, Math.min(rows.length - 1, i + (e.key === "ArrowDown" ? 1 : -1)))];
+    b.click(); b.focus({ preventScroll: true });
+  });
+  new MutationObserver(() => sync(true)).observe(el, { subtree: true, attributes: true, attributeFilter: ["aria-pressed"] });
+  // ukryty ekran nie ma wymiarów: wycentruj wybór, gdy bęben pojawi się na ekranie
+  new ResizeObserver(() => { if (!el.clientHeight) return; if (cur) center(cur, false); paint(); }).observe(el);
+  sync(false);
+}
 function bindSeg(id, key, isNum) {
   $("#" + id).addEventListener("click", (e) => {
     const b = e.target.closest("button"); if (!b) return;
     settings[key] = isNum ? +b.dataset.v : b.dataset.v; save("pkl_settings2", settings); renderHostSetup();
   });
 }
-bindSeg("levelSeg", "level", false); bindSeg("countSeg", "count", true); bindSeg("timeSeg", "time", true); bindSeg("minusSeg", "minus", true);
+bindSeg("levelSeg", "level", false); initDrum($("#levelSeg"), (v) => LEVELS[v].bank.reduce((s, c) => s + c.q.length, 0) + " pyt."); bindSeg("countSeg", "count", true); bindSeg("timeSeg", "time", true); bindSeg("minusSeg", "minus", true);
 
 function connectedPlayers() {
   if (!room) return [];

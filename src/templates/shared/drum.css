@@ -1,0 +1,17 @@
+/* bęben wyboru kategorii (src/templates/shared/drum.js): 5 widocznych wierszy, środkowy to wybór */
+.drum-wrap { --drum-row: 58px; position: relative; border: 1px solid var(--rule-strong); border-radius: 3px; background: var(--paper); overflow: hidden; }
+.drum-wrap::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: var(--drum-row); transform: translateY(-50%); background: var(--hover); border-block: 2px solid var(--ink); pointer-events: none; }
+.drum-wrap::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(var(--paper), transparent 34%, transparent 66%, var(--paper)); }
+.drum { position: relative; height: calc(var(--drum-row) * 5); overflow-y: auto; overscroll-behavior: contain; scroll-snap-type: y mandatory; padding-block: calc(var(--drum-row) * 2); scrollbar-width: none; outline-offset: -3px; }
+.drum::-webkit-scrollbar { display: none; }
+.drum button { display: grid; grid-template-columns: 1.9rem minmax(0, 1fr) auto; align-items: center; gap: 14px; width: 100%; height: var(--drum-row); padding: 0 16px; border: 0; background: none; scroll-snap-align: center; cursor: pointer; color: var(--muted); text-align: left; font-family: var(--f-display); font-stretch: 85%; font-weight: 800; font-size: 1.35rem; line-height: 1.1; backface-visibility: hidden; transform-origin: 50% 50%; will-change: transform; }
+.drum .dl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.drum .dm { font-family: var(--f-mono); font-stretch: 100%; font-size: .72rem; font-weight: 500; letter-spacing: .04em; color: var(--muted); }
+.drum .dbox { width: 1.9rem; aspect-ratio: 1; border: 2px solid var(--rule-strong); display: grid; place-items: center; }
+.drum .dbox svg { width: 82%; height: 82%; }
+.drum .dbox path { stroke: var(--pen); stroke-width: 2.6; stroke-linecap: round; fill: none; opacity: 0; transition: opacity .15s; }
+.drum button[aria-pressed="true"] { color: var(--ink); }
+.drum button[aria-pressed="true"] .dbox { border-color: var(--ink); }
+.drum button[aria-pressed="true"] .dbox path { opacity: 1; }
+.drum button[aria-pressed="true"].hotbtn .dm { color: var(--stamp); }
+.drum button:focus-visible { outline: 3px solid var(--pen); outline-offset: -3px; }

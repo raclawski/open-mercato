@@ -196,6 +196,7 @@ details.review summary { cursor: pointer; font-weight: 600; }
 @media (max-width: 440px) { .stamp { width: 7.6rem; } .stamp .s-num { font-size: 2.1rem; } .result { gap: 14px; } }
 @media (max-width: 360px) { .result { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; } .btn-row { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { .stamp { animation: none; } .row.marked .box path, .row { transition: none; } }
+/*__DRUM_CSS__*/
 </style>
 
 <main class="app">
@@ -218,16 +219,18 @@ details.review summary { cursor: pointer; font-weight: 600; }
       </ul>
 
       <div class="field">
-        <span class="label" id="lbl-level">Poziom pytań</span>
-        <div class="seg g2" role="group" aria-labelledby="lbl-level" id="levelSeg">
-          <button type="button" data-v="std">Umiarkowany</button>
-          <button type="button" data-v="mega">Mega</button>
-          <button type="button" data-v="pro" class="hotbtn">Ekspert PL</button>
-          <button type="button" data-v="pop" class="hotbtn">Popkultura PL</button>
-          <button type="button" data-v="urz" class="hotbtn">Jaki to urząd?</button>
-          <button type="button" data-v="uzw" class="hotbtn">Używki</button>
-          <button type="button" data-v="ksh" class="hotbtn">Prawo spółek</button>
-          <button type="button" data-v="ts" class="hotbtn">Taylor Swift</button>
+        <span class="label" id="lbl-level">Kategoria pytań</span>
+        <div class="drum-wrap">
+          <div class="drum" role="group" aria-labelledby="lbl-level" id="levelSeg">
+            <button type="button" data-v="std">Umiarkowany</button>
+            <button type="button" data-v="mega">Mega</button>
+            <button type="button" data-v="pro" class="hotbtn">Ekspert PL</button>
+            <button type="button" data-v="pop" class="hotbtn">Popkultura PL</button>
+            <button type="button" data-v="urz" class="hotbtn">Jaki to urząd?</button>
+            <button type="button" data-v="uzw" class="hotbtn">Używki</button>
+            <button type="button" data-v="ksh" class="hotbtn">Prawo spółek</button>
+            <button type="button" data-v="ts" class="hotbtn">Taylor Swift</button>
+          </div>
         </div>
         <p class="hint" id="levelHint"></p>
       </div>
@@ -416,6 +419,7 @@ function renderStart() {
   $("#foot").textContent = `Pula na tym poziomie: ${poolSize(settings.level)} pytań. Każda gra najpierw losuje pytania, których jeszcze nie było.`;
   show("start");
 }
+/*__DRUM_JS__*/
 function bindSeg(id, key, num) {
   $("#" + id).addEventListener("click", (e) => {
     const b = e.target.closest("button"); if (!b) return;
@@ -423,7 +427,7 @@ function bindSeg(id, key, num) {
     const nb = document.querySelector(`#${id} [data-v="${b.dataset.v}"]`); if (nb) nb.focus();
   });
 }
-bindSeg("levelSeg", "level", false);
+bindSeg("levelSeg", "level", false); initDrum($("#levelSeg"), (v) => poolSize(v) + " pyt.");
 bindSeg("countSeg", "count", true);
 bindSeg("timeSeg", "time", true);
 bindSeg("minusSeg", "minus", true);
