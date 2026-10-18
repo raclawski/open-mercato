@@ -1,6 +1,6 @@
 # CLAUDE.md: wskazówki do pracy nad projektem
 
-Projekt: teleturniej „Postaw Krzyżyk” po polsku, w kilku wersjach z jednego źródła. Główny cel to serwis na Vercel + Supabase (`dist/web`): gra Live przez serwer i lista wyników. Pełny opis gry, historia i znane ograniczenia: `PODSUMOWANIE.md`. Komunikacja z użytkownikiem po polsku.
+Projekt: teleturniej „Postaw Krzyżyk” po polsku, w kilku wersjach z jednego źródła. Główny cel to serwis na Vercel + Supabase (`dist/web`): gra Live przez serwer i lista wyników. Pełny opis gry, historia i znane ograniczenia: `PODSUMOWANIE.md`. Lista usprawnień do wyboru w kolejnych cyklach: `PLAN.md` (po każdym cyklu zaktualizuj statusy). Komunikacja z użytkownikiem po polsku.
 
 ## Struktura
 
