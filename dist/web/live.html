@@ -334,6 +334,23 @@ body.ans-other #s-player .sheet { filter: grayscale(1); opacity: .82; }
 .opt { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; font-size: .9rem; color: var(--muted); cursor: pointer; }
 .opt input { width: 1.2rem; height: 1.2rem; margin: 2px 0 0; accent-color: var(--stamp); }
 .opt b { color: var(--ink); }
+/* delikatne animacje: wejście ekranu, nowe pytanie (klasa qfresh z markFresh w drum.js), kliknięcia; bez nich przy prefers-reduced-motion */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes pk-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes pk-pop { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: none; } }
+  .app > section:not([hidden]) { animation: pk-rise .32s cubic-bezier(.2, .7, .2, 1) both; }
+  .feedback:not([hidden]), .x2banner:not([hidden]), .notice:not([hidden]), #pExplain:not([hidden]) { animation: pk-pop .26s ease-out both; }
+  .qfresh .qtext, .qfresh .pq, .qfresh .ballot .row, .qfresh .popts li { animation: pk-rise .34s cubic-bezier(.2, .7, .2, 1) both; }
+  .qfresh .ballot .row:nth-child(1), .qfresh .popts li:nth-child(1) { animation-delay: .05s; }
+  .qfresh .ballot .row:nth-child(2), .qfresh .popts li:nth-child(2) { animation-delay: .1s; }
+  .qfresh .ballot .row:nth-child(3), .qfresh .popts li:nth-child(3) { animation-delay: .15s; }
+  .qfresh .ballot .row:nth-child(4), .qfresh .popts li:nth-child(4) { animation-delay: .2s; }
+  .btn, .chip, .seg button, .row, .popts button, .popts li, .cstep, .sc, .link-btn {
+    transition: transform .12s ease-out, background-color .2s, color .2s, border-color .2s, box-shadow .2s, opacity .2s;
+  }
+  .btn:active:not(:disabled), .chip:active, .seg button:active, .row:active:not(:disabled), .popts button:active, .cstep:active { transform: scale(.97); }
+  body, .sheet { transition: background-color .35s, border-color .35s, filter .35s, opacity .35s; }
+}
 </style>
 </head>
 <body>
@@ -2918,6 +2935,7 @@ function renderPlayer() {
   const myTurn = h && ((h.ph === "locked" && h.win === P.name) || h.ph === "race"), akey = h ? `${h.g}:${h.arm}` : "", sent = P.ansKey === akey;
   if (showQ) {
     $("#pQtext").textContent = h.q.t;
+    markFresh($("#pQ"), `${h.g}:${h.qn}`);
     $("#pOpts").innerHTML = (h.q.o || []).map((o, i) => myTurn
       ? `<li class="pick"><button type="button" data-i="${i}" aria-pressed="${sent && P.ansPick === i}"${sent ? " disabled" : ""}><b>${LETTERS[i]}</b><span>${esc(o)}</span></button></li>`
       : (() => {
@@ -3089,7 +3107,12 @@ function initDrum(el, meta) {
   });
   new MutationObserver(() => sync(true)).observe(el, { subtree: true, attributes: true, attributeFilter: ["aria-pressed"] });
   // ukryty ekran nie ma wymiarów: wycentruj wybór, gdy bęben pojawi się na ekranie
-  new ResizeObserver(() => { if (!el.clientHeight) return; if (cur) center(cur, false); paint(); }).observe(el);
+  // (przewijanie przerwane schowaniem bębna potrafi dokończyć się po pokazaniu, więc centrujemy jeszcze raz)
+  new ResizeObserver(() => {
+    if (!el.clientHeight) return;
+    const again = () => { if (cur && el.clientHeight) center(cur, false); paint(); };
+    again(); requestAnimationFrame(again); setTimeout(again, 300);
+  }).observe(el);
   sync(false);
 }
 /* Rodzaj gry nad bębnem: „1 kategoria” (bęben) albo „MIX” (lista kategorii do zaznaczenia).
@@ -3106,6 +3129,14 @@ function initCatMode(setLevel) {
     const last = load("pk_cat1", null);
     setLevel(b.dataset.v === "mix" ? MIX : LEVELS[last] && LEVELS[last].bank ? last : realLevels()[0]);
   });
+}
+/* Nowe pytanie na ekranie: klasa qfresh na chwilę (animacja w drum.css). Ten sam klucz nie odpala jej ponownie,
+   bo widoki przerysowują się przy każdej zmianie stanu gry. */
+function markFresh(el, key) {
+  if (!el || el.dataset.qkey === key) return;
+  el.dataset.qkey = key;
+  el.classList.remove("qfresh"); void el.offsetWidth; el.classList.add("qfresh");
+  clearTimeout(el.qfT); el.qfT = setTimeout(() => el.classList.remove("qfresh"), 800);
 }
 /* Losowanie pytań i tryb mieszany („Mieszane”, klucz `mix`): pytania z kilku kategorii w jednej grze.
    Kategorie z mieszanki dostają po równo pytań i przeplatają się (w każdej rundzie w losowej kolejności).
@@ -3522,6 +3553,7 @@ function renderHost() {
   const sc = hostScores();
   $("#hRoster").innerHTML = rosterHTML(Object.keys(sc), { scores: sc, blk: H.blk, win: H.win });
   $("#hQtext").textContent = Q.q;
+  markFresh($("#hQtext").closest(".sheet"), `${H.g}:${H.i}`);
   const reveal = H.ph === "reveal";
   $("#hOpts").innerHTML = Q.o.map((o, i) => {
     const cls = reveal ? (i === Q.c ? " is-correct" : " is-dim") : (showKey && i === Q.c ? " host-correct" : "");

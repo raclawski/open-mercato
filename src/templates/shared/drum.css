@@ -30,3 +30,20 @@
 .opt { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; font-size: .9rem; color: var(--muted); cursor: pointer; }
 .opt input { width: 1.2rem; height: 1.2rem; margin: 2px 0 0; accent-color: var(--stamp); }
 .opt b { color: var(--ink); }
+/* delikatne animacje: wejście ekranu, nowe pytanie (klasa qfresh z markFresh w drum.js), kliknięcia; bez nich przy prefers-reduced-motion */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes pk-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes pk-pop { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: none; } }
+  .app > section:not([hidden]) { animation: pk-rise .32s cubic-bezier(.2, .7, .2, 1) both; }
+  .feedback:not([hidden]), .x2banner:not([hidden]), .notice:not([hidden]), #pExplain:not([hidden]) { animation: pk-pop .26s ease-out both; }
+  .qfresh .qtext, .qfresh .pq, .qfresh .ballot .row, .qfresh .popts li { animation: pk-rise .34s cubic-bezier(.2, .7, .2, 1) both; }
+  .qfresh .ballot .row:nth-child(1), .qfresh .popts li:nth-child(1) { animation-delay: .05s; }
+  .qfresh .ballot .row:nth-child(2), .qfresh .popts li:nth-child(2) { animation-delay: .1s; }
+  .qfresh .ballot .row:nth-child(3), .qfresh .popts li:nth-child(3) { animation-delay: .15s; }
+  .qfresh .ballot .row:nth-child(4), .qfresh .popts li:nth-child(4) { animation-delay: .2s; }
+  .btn, .chip, .seg button, .row, .popts button, .popts li, .cstep, .sc, .link-btn {
+    transition: transform .12s ease-out, background-color .2s, color .2s, border-color .2s, box-shadow .2s, opacity .2s;
+  }
+  .btn:active:not(:disabled), .chip:active, .seg button:active, .row:active:not(:disabled), .popts button:active, .cstep:active { transform: scale(.97); }
+  body, .sheet { transition: background-color .35s, border-color .35s, filter .35s, opacity .35s; }
+}

@@ -674,6 +674,7 @@ function renderPlayer() {
   const myTurn = h && ((h.ph === "locked" && h.win === P.name) || h.ph === "race"), akey = h ? `${h.g}:${h.arm}` : "", sent = P.ansKey === akey;
   if (showQ) {
     $("#pQtext").textContent = h.q.t;
+    markFresh($("#pQ"), `${h.g}:${h.qn}`);
     $("#pOpts").innerHTML = (h.q.o || []).map((o, i) => myTurn
       ? `<li class="pick"><button type="button" data-i="${i}" aria-pressed="${sent && P.ansPick === i}"${sent ? " disabled" : ""}><b>${LETTERS[i]}</b><span>${esc(o)}</span></button></li>`
       : (() => {
@@ -1057,6 +1058,7 @@ function renderHost() {
   const sc = hostScores();
   $("#hRoster").innerHTML = rosterHTML(Object.keys(sc), { scores: sc, blk: H.blk, win: H.win });
   $("#hQtext").textContent = Q.q;
+  markFresh($("#hQtext").closest(".sheet"), `${H.g}:${H.i}`);
   const reveal = H.ph === "reveal";
   $("#hOpts").innerHTML = Q.o.map((o, i) => {
     const cls = reveal ? (i === Q.c ? " is-correct" : " is-dim") : (showKey && i === Q.c ? " host-correct" : "");

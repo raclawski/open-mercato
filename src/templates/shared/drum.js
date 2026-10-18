@@ -57,7 +57,12 @@ function initDrum(el, meta) {
   });
   new MutationObserver(() => sync(true)).observe(el, { subtree: true, attributes: true, attributeFilter: ["aria-pressed"] });
   // ukryty ekran nie ma wymiarów: wycentruj wybór, gdy bęben pojawi się na ekranie
-  new ResizeObserver(() => { if (!el.clientHeight) return; if (cur) center(cur, false); paint(); }).observe(el);
+  // (przewijanie przerwane schowaniem bębna potrafi dokończyć się po pokazaniu, więc centrujemy jeszcze raz)
+  new ResizeObserver(() => {
+    if (!el.clientHeight) return;
+    const again = () => { if (cur && el.clientHeight) center(cur, false); paint(); };
+    again(); requestAnimationFrame(again); setTimeout(again, 300);
+  }).observe(el);
   sync(false);
 }
 /* Rodzaj gry nad bębnem: „1 kategoria” (bęben) albo „MIX” (lista kategorii do zaznaczenia).
@@ -74,4 +79,12 @@ function initCatMode(setLevel) {
     const last = load("pk_cat1", null);
     setLevel(b.dataset.v === "mix" ? MIX : LEVELS[last] && LEVELS[last].bank ? last : realLevels()[0]);
   });
+}
+/* Nowe pytanie na ekranie: klasa qfresh na chwilę (animacja w drum.css). Ten sam klucz nie odpala jej ponownie,
+   bo widoki przerysowują się przy każdej zmianie stanu gry. */
+function markFresh(el, key) {
+  if (!el || el.dataset.qkey === key) return;
+  el.dataset.qkey = key;
+  el.classList.remove("qfresh"); void el.offsetWidth; el.classList.add("qfresh");
+  clearTimeout(el.qfT); el.qfT = setTimeout(() => el.classList.remove("qfresh"), 800);
 }

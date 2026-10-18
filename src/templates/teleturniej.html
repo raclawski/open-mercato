@@ -505,6 +505,7 @@ function renderQ(resume) {
   $("#x2Q").hidden = !Q.x2;
   renderScores();
   $("#qText").textContent = Q.q;
+  markFresh($("#qText").closest(".sheet"), S.i + ":" + Q.q);
   $("#options").innerHTML = Q.o.map((o, i) => `
     <button type="button" class="row" data-i="${i}">
       <span class="box">${XSVG}</span><span class="txt">${esc(o)}</span><span class="key">${LETTERS[i]}</span>

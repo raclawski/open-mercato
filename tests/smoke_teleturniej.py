@@ -43,9 +43,13 @@ async def main():
         await pg.evaluate('localStorage.clear()'); await pg.goto(URL); await pg.wait_for_timeout(200)
         await pg.click('#levelSeg [data-v="geo"]'); await pg.click('#catMode [data-v="mix"]')
         m1 = [await pg.is_hidden('.drum-wrap'), await pg.is_visible('#mixPick'), await pg.evaluate('() => settings.level')]
-        await pg.click('#catMode [data-v="one"]'); await pg.wait_for_timeout(400)
-        m2 = [await pg.is_visible('.drum-wrap'), await pg.is_hidden('#mixPick'), await pg.evaluate('() => settings.level'),
-              await pg.evaluate('() => { const d = document.querySelector("#levelSeg"), b = d.querySelector("[data-v=geo]"), r = d.getBoundingClientRect(), q = b.getBoundingClientRect(); return Math.abs((q.top + q.bottom) / 2 - (r.top + r.bottom) / 2) < 6 && parseFloat(b.style.opacity) > 0.99; }')]
+        await pg.click('#catMode [data-v="one"]')
+        try:
+            await pg.wait_for_function('() => { const d = document.querySelector("#levelSeg"), b = d.querySelector("[data-v=geo]"), r = d.getBoundingClientRect(), q = b.getBoundingClientRect(); return Math.abs((q.top + q.bottom) / 2 - (r.top + r.bottom) / 2) < 6 && parseFloat(b.style.opacity) > 0.99; }', timeout=3000)
+            centered = True
+        except Exception:
+            centered = await pg.evaluate('() => { const d = document.querySelector("#levelSeg"), b = d.querySelector("[data-v=geo]"), r = d.getBoundingClientRect(), q = b.getBoundingClientRect(); return [(q.top + q.bottom) / 2 - (r.top + r.bottom) / 2, b.style.opacity, d.scrollTop, d.clientHeight, scrollY]; }')
+        m2 = [await pg.is_visible('.drum-wrap'), await pg.is_hidden('#mixPick'), await pg.evaluate('() => settings.level'), centered]
         good = m1 == [True, True, 'mix'] and m2 == [True, True, 'geo', True] and not errs
         print(('✓' if good else '✗'), '„1 kategoria” albo „MIX”, wybrana kategoria na środku koła', m1, m2, errs)
         fail += not good
