@@ -5,6 +5,10 @@ Lista usprawnień do wyboru. Działa w cyklach: wybierasz pozycje i kolejność,
 Wielkość: **S** to krótka zmiana, **M** to kilka godzin pracy z testami, **L** to kilka sesji albo zmiana bazy.
 Zmiana bazy (**SQL**) oznacza, że po wdrożeniu musisz wgrać nowy plik w Supabase → SQL Editor.
 
+## Do zrobienia przez Ciebie
+
+- [ ] Wgraj `supabase/migrations/20261020090000_question_history.sql` w Supabase (SQL Editor, plik z widoku **Raw**). Bez niego gra działa, ale pamięta pytania tylko na telefonie, nie dla nicku.
+
 ## Wdrożone
 
 | ID | Usprawnienie | Kiedy |
@@ -15,17 +19,20 @@ Zmiana bazy (**SQL**) oznacza, że po wdrożeniu musisz wgrać nowy plik w Supab
 | A5 | Liczba pytań: suwak 1–100 z przyciskami −/+ | 18.10.2026 |
 | B0 | Stałe identyfikatory pytań: id z treści, stara pamięć telefonu przepisana | 18.10.2026 |
 | B1 | Rejestr nicków: podpowiedzi znanych nicków przy imieniu (gracz, admin, jeden telefon), lista wyników domyślnie „Zawsze” (do 500 nicków). Punkty sumują się po nicku jak dotąd. | 18.10.2026 |
+| B2 | Dobór pytań według wag (jak Spotify): ograne pytania rzadziej, nigdy zablokowane; historia nicków w bazie; działy nie idą po sobie | 18.10.2026 |
 | A8 | Instrukcja gry z przyciskami zostaje na ekranie, dopóki prowadzący nie kliknie „Zaczynamy!” | 18.10.2026 |
 | C1 | Partia 1 bazy pytań: 5 nowych kategorii po 100 pytań (razem 944) | 18.10.2026 |
 | — | Naprawa listy wyników (funkcja czyszcząca nicki) | 18.10.2026 |
 
 ## Do zrobienia
 
-Kolejność ustalona przez Ciebie: B0 (✓), B1 (✓), B2. Pozycje dopisane później stoją za nimi, chyba że zdecydujesz inaczej.
+B0, B1 i B2 zrobione. Dalej kolejność do Twojej decyzji (propozycja: od góry).
 
 | ID | Usprawnienie | Wielkość | Status |
 |---|---|---|---|
-| B2 | Dobór pytań sterujący częstotliwością powtórek dla nicku | M, SQL | następne |
+| A10 | Pytanie, którego nikt nie wziął, jest pomijane | S | — |
+| A11 | Kolor ekranu: lekko zielony, gdy odpowiadasz; lekko szary, gdy odpowiada ktoś inny | S | — |
+| A12 | Pozostali gracze widzą, którą odpowiedź klika odpowiadający | S | — |
 | A9 | Wybór kategorii: najpierw „1 kategoria” albo „MIX”, potem bęben jako wielkie koło | M | — |
 | A7 | Przycisk „Następne pytanie”, żeby nie czekać na automatyczne przejście | S | — |
 | A6 | Pytanie za podwójne punkty (×2), z komunikatem dla graczy, włączane w lobby | M, SQL | — |
