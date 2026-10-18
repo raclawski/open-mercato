@@ -95,5 +95,5 @@ src = rep(src, '''<p class="eyebrow hot">Prowadzący</p>
 # poziom, liczba pytań i kara są wspólne dla obu trybów (pk_common), czas na odpowiedź nie
 src = rep(src, 'let settings = Object.assign({ level: "pro", count: 30, time: 10, minus: 1, mode: "online" }, load("pkl_settings2", {}));',
           'let settings = Object.assign({ level: "pro", count: 30, time: 10, minus: 1, mode: "online" }, load("pkl_settings2", {}), load("pk_common", {}));')
-src = rep(src, 'save("pkl_settings2", settings); renderHostSetup();',
-          'save("pkl_settings2", settings); save("pk_common", { level: settings.level, count: settings.count, minus: settings.minus }); renderHostSetup();')
+src = rep(src, 'const saveSettings = () => save("pkl_settings2", settings);',
+          'const saveSettings = () => { save("pkl_settings2", settings); save("pk_common", { level: settings.level, count: settings.count, minus: settings.minus, mix: settings.mix }); };')

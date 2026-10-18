@@ -9,7 +9,7 @@ src/questions/*.js        pule pytań, każdy plik definiuje jedną stałą `con
 src/questions/ORDER.txt   kolejność wklejania plików do szablonów
 src/templates/teleturniej.html   gra na jednym telefonie (bez zależności)
 src/templates/live-claude.html   gra z przyciskami przez capability `room` artefaktów Claude
-src/templates/shared/     wspólne części obu szablonów, wklejane przez build (bęben wyboru kategorii: drum.js, drum.css)
+src/templates/shared/     wspólne części obu szablonów, wklejane przez build: bęben kategorii (drum.js, drum.css), losowanie pytań i tryb mieszany (mix.js)
 tools/build.py            składa dist/ z src/
 tools/web_transform*.py   zamienia live-claude w wersję bez logowania (PeerJS albo Supabase)
 tools/supabase_transform_steps.py  kroki tylko dla wersji Supabase (transport, zapis wyniku)
@@ -22,7 +22,7 @@ vercel.json               hosting: katalog dist/web, cleanUrls
 dist/                     wynik buildu, nie edytuj ręcznie
 ```
 
-Szablony to pojedyncze pliki HTML+CSS+JS bez frameworka. Miejsce na pytania to znacznik `/*__BANKS__*/`. Znaczniki `/*__DRUM_CSS__*/` i `/*__DRUM_JS__*/` to miejsce na bęben z `src/templates/shared/`. Szablony nie mają `<!doctype>`, `<html>`, `<head>` ani `<body>`, bo publikacja jako artefakt Claude sama dokłada szkielet. `build.py` robi z nich też pełne strony do hostingu.
+Szablony to pojedyncze pliki HTML+CSS+JS bez frameworka. Miejsce na pytania to znacznik `/*__BANKS__*/`. Znaczniki `/*__DRUM_CSS__*/`, `/*__DRUM_JS__*/` i `/*__MIX_JS__*/` to miejsce na części z `src/templates/shared/`. Szablony nie mają `<!doctype>`, `<html>`, `<head>` ani `<body>`, bo publikacja jako artefakt Claude sama dokłada szkielet. `build.py` robi z nich też pełne strony do hostingu.
 
 ## Polecenia
 
@@ -86,5 +86,6 @@ Testy wymagają Pythona z pakietem `playwright` (`pip install playwright && play
 - Gra z przyciskami ma dwie wersje (`settings.mode`, `H.mode`): **online** (sygnał = faza `count`, 3 s odliczania na telefonach, potem `armed` i pytanie u wszystkich, bez falstartów) i **offline** (prowadzący czyta pytanie, sygnał od razu daje `armed`, falstart blokuje; gracze widzą pytanie dopiero po wciśnięciu). Prowadzący wysyła pytanie graczom tylko gdy `H.seen`. W obu wersjach odpowiadający klika odpowiedź u siebie (`presence.ans = {g, a, i}`), a prowadzący ocenia ją automatycznie (`judge(ok, pick)`); „Dobrze/Źle” u prowadzącego zostaje jako ocena awaryjna.
 - Jedna gra w serwisie: tryb wybiera się na stronie startowej (`index.html`): „Jeden telefon” → `teleturniej.html`, „Przyciski na telefonach” → `live.html?tryb=prowadzacy` (od razu ustawienia prowadzącego albo powrót do trwającej gry), „Mam kod gry” → `live.html?tryb=gracz`. Link dla graczy to nadal `live.html?kod=XXXX`, a `live.html` bez parametrów wraca do wyboru trybu. Poziom, liczba pytań i kara są wspólne dla obu trybów (`pk_common` w `localStorage`).
 - Lista wyników: każda gra ma `uid`. Po końcu gry prowadzący (Live) albo telefon (teleturniej) wysyła ją przez `PK.submitGame`: najpierw kolejka `pk_outbox` w `localStorage`, potem RPC `pk_submit_game`. Nieudany zapis ponawia się przy następnym wejściu na dowolną stronę serwisu. Zapis jest idempotentny po `uid`. Ranking łączy gry po nicku bez względu na wielkość liter.
+- Tryb mieszany: w `LEVELS` jest wpis `mix` („Mieszane”, `bank: null`) i pierwszy wiersz bębna. `settings.mix` to lista kluczy kategorii (pusta = wszystkie). `buildDeck` z `mix.js` dzieli pytania po równo między wybrane kategorie i przeplata je; `cat` pytania to wtedy nazwa kategorii. Nowa kategoria trafia do mieszanki sama. Kod, który używa `LEVELS[k].bank`, musi pomijać `mix` (`realLevels()`).
 - Bęben kategorii (`initDrum`): wiersze to przyciski `#levelSeg` z `aria-pressed`, a wybór idzie przez ich kliknięcie, więc `bindSeg`/`setSeg` działają bez zmian. Bęben klika wiersz, który po przewinięciu stanął na środku, i centruje wybrany. Ukryty bęben (np. po starcie gry) ignoruje zdarzenia przewijania, bo inaczej przeglądarka „wybierałaby” pierwszą kategorię.
 - Motyw: tokeny CSS w `:root` z wariantem ciemnym (`prefers-color-scheme` i `[data-theme]`). Fonty Archivo, IBM Plex Sans i IBM Plex Mono z Google Fonts.

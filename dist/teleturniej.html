@@ -96,6 +96,9 @@ input[type="text"] { font: inherit; color: var(--ink); background: var(--paper);
 .chip:hover { background: var(--hover); }
 .chip[aria-pressed="true"] { background: var(--pen); border-color: var(--pen); color: var(--paper); }
 .chip[aria-pressed="true"]::before { content: "→ "; }
+.mixpick { display: grid; gap: 8px; }
+.mixpick .label { font-weight: 600; font-size: .95rem; }
+.mixpick .chip[aria-pressed="true"]::before { content: "✓ "; }
 .chip .self { font-weight: 400; font-size: .8rem; opacity: .8; }
 
 /* play */
@@ -240,6 +243,7 @@ details.review summary { cursor: pointer; font-weight: 600; }
         <span class="label" id="lbl-level">Kategoria pytań</span>
         <div class="drum-wrap">
           <div class="drum" role="group" aria-labelledby="lbl-level" id="levelSeg">
+            <button type="button" data-v="mix" class="hotbtn">Mieszane</button>
             <button type="button" data-v="std">Umiarkowany</button>
             <button type="button" data-v="mega">Mega</button>
             <button type="button" data-v="pro" class="hotbtn">Ekspert PL</button>
@@ -251,6 +255,7 @@ details.review summary { cursor: pointer; font-weight: 600; }
           </div>
         </div>
         <p class="hint" id="levelHint"></p>
+        <div class="mixpick" id="mixPick" hidden></div>
       </div>
 
       <div class="field">
@@ -1334,6 +1339,7 @@ const BANK_TS = [
 
 /* ===================== POZIOMY ===================== */
 const LEVELS = {
+  mix: { label: "Mieszane", bank: null, hint: "Pytania z kilku kategorii w jednej grze, na zmianę. Zaznacz poniżej, które wchodzą do gry." },
   std: { label: "Umiarkowany", bank: BANK_STD, hint: "Pytania dla każdego, kto śledzi wiadomości. Polska i świat." },
   mega: { label: "Mega", bank: BANK_MEGA, hint: "Artykuły Konstytucji, traktaty, teorie politologów. Polska i świat." },
   pro: { label: "Ekspert PL", bank: BANK_PRO, hint: "Tylko polska polityka: wyniki wyborów, kulisy rządów III RP, PRL i II RP, ordynacja i regulamin Sejmu." },
@@ -1370,7 +1376,6 @@ if (!LEVELS[settings.level]) settings.level = "pro";
 const saveSettings = () => save("pk_tv2", settings);
 
 function setSeg(id, val) { document.querySelectorAll(`#${id} button`).forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === String(val)))); }
-function poolSize(l) { return LEVELS[l].bank.reduce((s, c) => s + c.q.length, 0); }
 
 function renderStarter() {
   const ps = settings.players;
@@ -1384,6 +1389,7 @@ function renderStart() {
   setSeg("timeSeg", settings.time);
   setSeg("minusSeg", settings.minus);
   $("#levelHint").textContent = LEVELS[settings.level].hint;
+  renderMix($("#mixPick"), settings.level, settings.mix);
   const le = $("#levelEyebrow");
   le.textContent = "Poziom: " + LEVELS[settings.level].label.toLowerCase();
   le.classList.toggle("hot", settings.level === "pro" || settings.level === "pop");
@@ -1392,7 +1398,7 @@ function renderStart() {
   $("#rulePlus").textContent = "+" + PLUS;
   $("#ruleMinus").textContent = "−" + settings.minus;
   renderStarter();
-  $("#foot").textContent = `Pula na tym poziomie: ${poolSize(settings.level)} pytań. Każda gra najpierw losuje pytania, których jeszcze nie było.`;
+  $("#foot").textContent = `Pula na tym poziomie: ${poolSize(settings.level, settings.mix)} pytań. Każda gra najpierw losuje pytania, których jeszcze nie było.`;
   show("start");
 }
 /* Bęben wyboru kategorii: przewijana lista, wybrany jest wiersz na środku (podświetlony pas z krzyżykiem).
@@ -1453,6 +1459,61 @@ function initDrum(el, meta) {
   new ResizeObserver(() => { if (!el.clientHeight) return; if (cur) center(cur, false); paint(); }).observe(el);
   sync(false);
 }
+/* Losowanie pytań i tryb mieszany („Mieszane”, klucz `mix`): pytania z kilku kategorii w jednej grze.
+   Kategorie z mieszanki dostają po równo pytań i przeplatają się (w każdej rundzie w losowej kolejności).
+   Najpierw idą pytania, których jeszcze nie było (pk_seen); id pytania to zawsze `kategoria:dział-nr`,
+   więc pamięć wylosowanych pytań jest wspólna dla gry z jedną kategorią i mieszanej. */
+const MIX = "mix";
+const realLevels = () => Object.keys(LEVELS).filter((k) => LEVELS[k].bank);
+const mixKeys = (sel) => { const ok = (Array.isArray(sel) ? sel : []).filter((k) => LEVELS[k] && LEVELS[k].bank); return ok.length ? ok : realLevels(); };
+const levelSize = (k) => LEVELS[k].bank.reduce((s, c) => s + c.q.length, 0);
+function poolSize(level, sel) { return level === MIX ? mixKeys(sel).reduce((s, k) => s + levelSize(k), 0) : levelSize(level); }
+function pickLevel(level, need, seen) {
+  const all = [];
+  LEVELS[level].bank.forEach((cat, ci) => cat.q.forEach((Q, qi) => all.push({ id: `${level}:${ci}-${qi}`, Q, cat: cat.name, lv: level })));
+  let fresh = shuffle(all.filter((x) => !seen.has(x.id)));
+  if (fresh.length < need) { all.forEach((x) => seen.delete(x.id)); fresh = fresh.concat(shuffle(all.filter((x) => !fresh.includes(x)))); }
+  return fresh.slice(0, Math.min(need, all.length));
+}
+function buildDeck(level, count, sel) {
+  const seen = new Set(load("pk_seen", []));
+  let pick;
+  if (level !== MIX) pick = pickLevel(level, count, seen);
+  else {
+    const keys = mixKeys(sel), need = {};
+    keys.forEach((k) => (need[k] = 0));
+    let left = Math.min(count, keys.reduce((s, k) => s + levelSize(k), 0));
+    while (left > 0) for (const k of shuffle(keys)) if (left > 0 && need[k] < levelSize(k)) { need[k]++; left--; }
+    const lists = keys.map((k) => pickLevel(k, need[k], seen));
+    pick = [];
+    while (lists.some((l) => l.length)) for (const l of shuffle(lists)) if (l.length) pick.push(l.shift());
+    pick.forEach((x) => (x.cat = LEVELS[x.lv].label));
+  }
+  pick.forEach((x) => seen.add(x.id)); save("pk_seen", [...seen]);
+  return pick.map(({ id, Q, cat }) => {
+    const order = Q.fix ? Q.o.map((_, i) => i) : shuffle(Q.o.map((_, i) => i));
+    return { id, cat, q: Q.q, o: order.map((i) => Q.o[i]), c: order.indexOf(Q.c), e: Q.e };
+  });
+}
+/* Wybór kategorii do mieszanki: chipy pod bębnem, widoczne tylko przy „Mieszane”. Zawsze zostaje co najmniej jedna. */
+function initMix(box, getSel, setSel) {
+  box.innerHTML = `<span class="label" id="lbl-mix">Kategorie w mieszance</span>
+    <div class="chips" role="group" aria-labelledby="lbl-mix">${realLevels().map((k) => `<button type="button" class="chip" data-k="${k}">${esc(LEVELS[k].label)}</button>`).join("")}</div>
+    <p class="hint" id="mixHint"></p>`;
+  box.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-k]"); if (!b) return;
+    const cur = mixKeys(getSel()), k = b.dataset.k;
+    const next = cur.includes(k) ? cur.filter((x) => x !== k) : realLevels().filter((x) => x === k || cur.includes(x));
+    if (next.length) setSel(next);
+  });
+}
+function renderMix(box, level, sel) {
+  box.hidden = level !== MIX;
+  if (box.hidden) return;
+  const on = mixKeys(sel);
+  box.querySelectorAll("[data-k]").forEach((b) => b.setAttribute("aria-pressed", String(on.includes(b.dataset.k))));
+  box.querySelector("#mixHint").textContent = `${on.length} ${on.length === 1 ? "kategoria" : on.length < 5 ? "kategorie" : "kategorii"}, ${poolSize(MIX, on)} pytań w puli. Kliknij, żeby dodać albo usunąć.`;
+}
 function bindSeg(id, key, num) {
   $("#" + id).addEventListener("click", (e) => {
     const b = e.target.closest("button"); if (!b) return;
@@ -1460,7 +1521,8 @@ function bindSeg(id, key, num) {
     const nb = document.querySelector(`#${id} [data-v="${b.dataset.v}"]`); if (nb) nb.focus();
   });
 }
-bindSeg("levelSeg", "level", false); initDrum($("#levelSeg"), (v) => poolSize(v) + " pyt.");
+bindSeg("levelSeg", "level", false); initDrum($("#levelSeg"), (v) => (v === MIX ? "kilka kat." : poolSize(v) + " pyt."));
+initMix($("#mixPick"), () => settings.mix, (sel) => { settings.mix = sel; saveSettings(); renderStart(); });
 bindSeg("countSeg", "count", true);
 bindSeg("timeSeg", "time", true);
 bindSeg("minusSeg", "minus", true);
@@ -1473,29 +1535,10 @@ $("#starterChips").addEventListener("click", (e) => {
 /* ===================== GRA ===================== */
 let S = null, timerId = null, tEnd = 0;
 
-function buildDeck(level, count) {
-  const bank = LEVELS[level].bank;
-  const seen = new Set(load("pk_seen", []));
-  const all = [];
-  bank.forEach((cat, ci) => cat.q.forEach((Q, qi) => all.push({ id: `${level}:${ci}-${qi}`, Q, cat: cat.name })));
-  let fresh = shuffle(all.filter((x) => !seen.has(x.id)));
-  if (fresh.length < count) {
-    all.forEach((x) => seen.delete(x.id));
-    const rest = shuffle(all.filter((x) => !fresh.includes(x)));
-    fresh = fresh.concat(rest);
-  }
-  const pick = fresh.slice(0, Math.min(count, all.length));
-  pick.forEach((x) => seen.add(x.id));
-  save("pk_seen", [...seen]);
-  return pick.map(({ id, Q, cat }) => {
-    const order = Q.fix ? Q.o.map((_, i) => i) : shuffle(Q.o.map((_, i) => i));
-    return { id, cat, q: Q.q, o: order.map((i) => Q.o[i]), c: order.indexOf(Q.c), e: Q.e };
-  });
-}
 function newGame() {
   const players = settings.players.slice();
   const starter = settings.starter === -1 ? Math.floor(Math.random() * players.length) : Math.min(settings.starter, players.length - 1);
-  S = { level: settings.level, players, minus: settings.minus, time: settings.time, deck: buildDeck(settings.level, settings.count), i: 0, cur: starter, next: null, phase: "q", log: [], left: settings.time * 1000 };
+  S = { level: settings.level, players, minus: settings.minus, time: settings.time, deck: buildDeck(settings.level, settings.count, settings.mix), i: 0, cur: starter, next: null, phase: "q", log: [], left: settings.time * 1000 };
 }
 function scores() {
   const t = S.players.map(() => 0);

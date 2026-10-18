@@ -97,6 +97,9 @@ input[type="text"] { font: inherit; color: var(--ink); background: var(--paper);
 .chip:hover { background: var(--hover); }
 .chip[aria-pressed="true"] { background: var(--pen); border-color: var(--pen); color: var(--paper); }
 .chip[aria-pressed="true"]::before { content: "→ "; }
+.mixpick { display: grid; gap: 8px; }
+.mixpick .label { font-weight: 600; font-size: .95rem; }
+.mixpick .chip[aria-pressed="true"]::before { content: "✓ "; }
 .chip .self { font-weight: 400; font-size: .8rem; opacity: .8; }
 
 /* play */
@@ -352,6 +355,7 @@ details.review summary { cursor: pointer; font-weight: 600; }
         <span class="label" id="lbl-level">Kategoria pytań</span>
         <div class="drum-wrap">
           <div class="drum" role="group" aria-labelledby="lbl-level" id="levelSeg">
+            <button type="button" data-v="mix" class="hotbtn">Mieszane</button>
             <button type="button" data-v="std">Umiarkowany</button>
             <button type="button" data-v="mega">Mega</button>
             <button type="button" data-v="pro" class="hotbtn">Ekspert PL</button>
@@ -363,6 +367,7 @@ details.review summary { cursor: pointer; font-weight: 600; }
           </div>
         </div>
         <p class="hint" id="levelHint"></p>
+        <div class="mixpick" id="mixPick" hidden></div>
       </div>
       <div class="field">
         <span class="label" id="lbl-count">Liczba pytań</span>
@@ -450,6 +455,7 @@ details.review summary { cursor: pointer; font-weight: 600; }
 /*__BANKS__*/
 
 const LEVELS = {
+  mix: { label: "Mieszane", bank: null, hint: "Pytania z kilku kategorii w jednej grze, na zmianę. Zaznacz poniżej, które wchodzą do gry." },
   std: { label: "Umiarkowany", bank: BANK_STD, hint: "Pytania dla każdego, kto śledzi wiadomości. Polska i świat." },
   mega: { label: "Mega", bank: BANK_MEGA, hint: "Artykuły Konstytucji, traktaty, teorie politologów. Polska i świat." },
   pro: { label: "Ekspert PL", bank: BANK_PRO, hint: "Tylko polska polityka: wyniki wyborów, kulisy rządów III RP, PRL i II RP, ordynacja i regulamin Sejmu." },
@@ -635,19 +641,22 @@ let settings = Object.assign({ level: "pro", count: 30, time: 10, minus: 1, mode
 if (!["online", "offline"].includes(settings.mode)) settings.mode = "online";
 if (![1, 5, 10].includes(settings.minus)) settings.minus = 1;
 if (!LEVELS[settings.level]) settings.level = "pro";
+const saveSettings = () => save("pkl_settings2", settings);
 let H = load("pkl_host", null);
 let tId = null, tEnd = 0;
 let showKey = load("pkl_showkey", true);
 
 function setSeg(id, val) { document.querySelectorAll(`#${id} button`).forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === String(val)))); }
 /*__DRUM_JS__*/
+/*__MIX_JS__*/
 function bindSeg(id, key, isNum) {
   $("#" + id).addEventListener("click", (e) => {
     const b = e.target.closest("button"); if (!b) return;
-    settings[key] = isNum ? +b.dataset.v : b.dataset.v; save("pkl_settings2", settings); renderHostSetup();
+    settings[key] = isNum ? +b.dataset.v : b.dataset.v; saveSettings(); renderHostSetup();
   });
 }
-bindSeg("modeSeg", "mode", false); bindSeg("levelSeg", "level", false); initDrum($("#levelSeg"), (v) => LEVELS[v].bank.reduce((s, c) => s + c.q.length, 0) + " pyt."); bindSeg("countSeg", "count", true); bindSeg("timeSeg", "time", true); bindSeg("minusSeg", "minus", true);
+bindSeg("modeSeg", "mode", false); bindSeg("levelSeg", "level", false); initDrum($("#levelSeg"), (v) => (v === MIX ? "kilka kat." : poolSize(v) + " pyt."));
+initMix($("#mixPick"), () => settings.mix, (sel) => { settings.mix = sel; saveSettings(); renderHostSetup(); }); bindSeg("countSeg", "count", true); bindSeg("timeSeg", "time", true); bindSeg("minusSeg", "minus", true);
 
 function connectedPlayers() {
   if (!room) return [];
@@ -673,22 +682,11 @@ function renderHostSetup() {
   $("#modeHint").textContent = MODE_HINT[settings.mode];
   setSeg("levelSeg", settings.level); setSeg("countSeg", settings.count); setSeg("timeSeg", settings.time); setSeg("minusSeg", settings.minus);
   $("#levelHint").textContent = LEVELS[settings.level].hint;
+  renderMix($("#mixPick"), settings.level, settings.mix);
   const names = connectedPlayers();
   $("#hsRoster").innerHTML = rosterHTML(names, null);
   $("#btnHStart").disabled = names.length === 0;
   $("#btnHStart").textContent = names.length ? `Start gry (${names.length} ${names.length === 1 ? "gracz" : names.length < 5 ? "graczy" : "graczy"})` : "Czekam na graczy…";
-}
-function buildDeck(level, count) {
-  const bank = LEVELS[level].bank, seen = new Set(load("pk_seen", [])), all = [];
-  bank.forEach((cat, ci) => cat.q.forEach((Q, qi) => all.push({ id: `${level}:${ci}-${qi}`, Q, cat: cat.name })));
-  let fresh = shuffle(all.filter((x) => !seen.has(x.id)));
-  if (fresh.length < count) { all.forEach((x) => seen.delete(x.id)); fresh = fresh.concat(shuffle(all.filter((x) => !fresh.includes(x)))); }
-  const pick = fresh.slice(0, Math.min(count, all.length));
-  pick.forEach((x) => seen.add(x.id)); save("pk_seen", [...seen]);
-  return pick.map(({ id, Q, cat }) => {
-    const order = Q.fix ? Q.o.map((_, i) => i) : shuffle(Q.o.map((_, i) => i));
-    return { id, cat, q: Q.q, o: order.map((i) => Q.o[i]), c: order.indexOf(Q.c), e: Q.e };
-  });
 }
 function hostScores() {
   const s = {};
@@ -763,7 +761,7 @@ function stopTimer() { if (tId) { clearInterval(tId); tId = null; } $("#timer").
 
 function hostStart() {
   const players = connectedPlayers();
-  H = { g: "g" + Date.now().toString(36), level: settings.level, minus: settings.minus, time: settings.time, deck: buildDeck(settings.level, settings.count),
+  H = { g: "g" + Date.now().toString(36), level: settings.level, minus: settings.minus, time: settings.time, deck: buildDeck(settings.level, settings.count, settings.mix),
         i: 0, ph: "q", arm: 0, win: null, order: [], blk: [], fs: [], last: null, log: [], players, mode: settings.mode, seen: false };
   saveH(); publishHost(); renderHost(); show("s-host");
 }

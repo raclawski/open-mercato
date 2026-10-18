@@ -30,7 +30,7 @@ def fill(tpl):
     t = rd('src/templates/' + tpl)
     assert t.count('/*__BANKS__*/') == 1, tpl
     out = t.replace('/*__BANKS__*/', banks)
-    for mark, part in (('/*__DRUM_CSS__*/', 'drum.css'), ('/*__DRUM_JS__*/', 'drum.js')):
+    for mark, part in (('/*__DRUM_CSS__*/', 'drum.css'), ('/*__DRUM_JS__*/', 'drum.js'), ('/*__MIX_JS__*/', 'mix.js')):
         assert out.count(mark) == 1, (tpl, mark)
         out = out.replace(mark, rd('src/templates/shared/' + part).strip())
     for n in names:
