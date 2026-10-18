@@ -20,6 +20,14 @@ def make_tv_web(doc):
             '<p class="copy-note" id="copyNote" aria-live="polite"></p>\n'
             '      <p class="copy-note" id="rankNote" aria-live="polite"></p>\n'
             '      <a class="btn ghost" href="wyniki.html">Lista wyników</a>')
+    # jedna gra: tryb wybiera się na stronie startowej; ustawienia wspólne z Live (pk_common)
+    s = rep(s, '<button type="button" class="btn" id="btnStart">Zaczynamy</button>',
+            '<button type="button" class="btn" id="btnStart">Zaczynamy</button>\n      <a class="link-btn" href="index.html">← Zmień tryb</a>')
+    s = rep(s, '<p class="eyebrow" id="topicEyebrow">Teleturniej · Polityka</p>', '<p class="eyebrow hot" id="topicEyebrow">Tryb: jeden telefon</p>')
+    s = rep(s, '$("#topicEyebrow").textContent = settings.level === "pop" ? "Teleturniej · Popkultura" : "Teleturniej · Polityka";', '')
+    s = rep(s, 'count: 30, time: 15, minus: 1 }, load("pk_tv2", {}));', 'count: 30, time: 15, minus: 1 }, load("pk_tv2", {}), load("pk_common", {}));')
+    s = rep(s, 'const saveSettings = () => save("pk_tv2", settings);',
+            'const saveSettings = () => { save("pk_tv2", settings); save("pk_common", { level: settings.level, count: settings.count, minus: settings.minus }); };')
     s = rep(s, '<p class="foot" id="foot"></p>',
             '<p class="sitenav"><a href="index.html">Strona główna</a><a href="wyniki.html">Lista wyników</a></p>\n  <p class="foot" id="foot"></p>')
     s = rep(s, '.foot {', '''.sitenav { display: flex; justify-content: center; gap: 18px; margin: 0; font-family: var(--f-mono); font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; }

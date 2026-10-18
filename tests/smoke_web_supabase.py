@@ -82,16 +82,24 @@ async def main(dburl):
 
         # --- prowadzący tworzy grę ---
         hc = await ctx()
-        host = await page(hc, 'live.html')
-        await host.click('#btnBeHost')
+        host = await page(hc, 'index.html')
+        await host.click('a.mode[href^="live"]')
         await host.wait_for_selector('#s-hsetup:not([hidden])', timeout=15000)
+        check('tryb=prowadzacy' in host.url, 'wybór trybu: przyciski na telefonach → ustawienia prowadzącego')
+        await host.click('#levelSeg [data-v="pop"]'); await host.click('#countSeg [data-v="20"]')
         code = (await host.inner_text('#hsCode')).strip()
         check(len(code) == 4 and (await host.inner_text('#joinUrl')).endswith('?kod=' + code), 'gra utworzona, kod i link', code)
 
         # --- gracze dołączają z linku ---
         players = {}
         for n in ['Asia', 'Tomek']:
-            pg = await page(await ctx(), 'live.html?kod=' + code)
+            if n == 'Asia':  # przez stronę startową: „Mam kod gry”
+                pg = await page(await ctx(), 'index.html')
+                await pg.click('a[href="live.html?tryb=gracz"]')
+                await pg.wait_for_selector('#s-pjoin:not([hidden])')
+                await pg.fill('#pcode', code.lower())
+            else:  # z linku od prowadzącego
+                pg = await page(await ctx(), 'live.html?kod=' + code)
             await pg.fill('#pname', n); await pg.click('#btnJoin')
             await pg.wait_for_selector('#s-player:not([hidden])', timeout=15000)
             players[n] = pg
@@ -105,9 +113,9 @@ async def main(dburl):
         check('Nie ma gry o kodzie ZZZZ' in await bad.inner_text('#joinErr'), 'zły kod: komunikat')
 
         # --- zajęty kod: drugi prowadzący z tym samym zapamiętanym kodem dostaje inny ---
-        h2 = await page(await ctx(), 'live.html')
+        h2 = await page(await ctx(), 'index.html')
         await h2.evaluate('c => localStorage.setItem("pkw_hcode", JSON.stringify(c))', code)
-        await h2.click('#btnBeHost')
+        await h2.click('a.mode[href^="live"]')
         await h2.wait_for_selector('#s-hsetup:not([hidden])', timeout=15000)
         code2 = (await h2.inner_text('#hsCode')).strip()
         check(code2 != code and len(code2) == 4, 'zajęty kod: nowy kod dla drugiego prowadzącego', code2)
@@ -159,12 +167,15 @@ async def main(dburl):
 
         # --- prowadzący odświeża stronę w trakcie gry ---
         await host.reload()
-        await host.click('#btnBeHost')
         await host.wait_for_selector('#s-host:not([hidden])', timeout=15000)
         same = await host.evaluate('() => [...document.querySelectorAll(".gamecode")].every((e) => e.textContent === %s)' % repr(code))
         await host.click('[data-act="next"]')
         await until(players['Tomek'], '() => /Pytanie 4 z/.test(document.querySelector("#pQnum").textContent)')
         check(same, 'odświeżenie prowadzącego: ten sam kod, gra trwa dalej')
+        start = await page(hc, 'index.html')
+        await start.wait_for_selector('#resume:not([hidden])')
+        check(code in await start.inner_text('#resume'), 'strona startowa w trakcie gry: „Wróć do gry”', await start.inner_text('#resume'))
+        await start.close()
 
         # --- zerwane połączenie: klienci łączą się ponownie i gra działa ---
         n_before = len(rt.log)
@@ -206,8 +217,17 @@ async def main(dburl):
 
         # --- teleturniej na jednym telefonie ---
         tc = await ctx()
-        tv = await page(tc, 'teleturniej.html')
-        await tv.click('#countSeg [data-v="20"]'); await tv.click('#btnStart')
+        bare = await page(tc, 'live.html')
+        await bare.wait_for_url('**/index.html', timeout=5000)
+        check(True, 'live.html bez trybu wraca do wyboru trybu')
+        await bare.close()
+        tv = await page(hc, 'index.html')  # przeglądarka prowadzącego: ustawienia z Live są w jej localStorage
+        resume = await tv.is_visible('#resume')
+        await tv.click('a.mode[href="teleturniej.html"]')
+        await tv.wait_for_selector('#screen-start:not([hidden])')
+        shared = await tv.evaluate('() => document.querySelector("#levelSeg [data-v=pop]").getAttribute("aria-pressed") === "true" && document.querySelector("#countSeg [data-v=\'20\']").getAttribute("aria-pressed") === "true"')
+        check(shared and not resume, 'wybór trybu: jeden telefon, kategoria i liczba pytań przeniesione z Live')
+        await tv.click('#btnStart')
         for i in range(20):
             await tv.click('#options .row >> nth=0')
             if await tv.is_disabled('#btnNext'): await tv.click('#nextChips [data-p="0"]')

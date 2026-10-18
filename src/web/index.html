@@ -22,12 +22,21 @@
         <div class="bigbox" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.6 4.9 C9 9.4 14.2 14.6 19.4 19.3"/><path d="M19.1 4.6 C14.4 9.3 9.8 14.1 4.8 19.5"/></svg></div>
         <h1 id="t-top">Postaw<br>krzyżyk</h1>
       </div>
-      <p class="lede">Polityka, prawo i popkultura. Prowadzący czyta pytanie, a gracze walczą o punkty na swoich telefonach.</p>
-      <div class="stack">
-        <a class="btn go" href="live.html">Gra Live<small>przyciski na telefonach graczy, kod gry</small></a>
-        <a class="btn ghost" href="teleturniej.html">Teleturniej<small>jeden telefon, odpowiada wskazana osoba</small></a>
-        <a class="btn ghost" href="wyniki.html">Lista wyników<small>ranking graczy i ostatnie gry</small></a>
-      </div>
+      <p class="lede">Polityka, prawo i popkultura. Postaw krzyżyk przy trybie gry, a w następnym kroku ustawisz kategorię, liczbę pytań i graczy.</p>
+      <p class="notice soft" id="resume" hidden></p>
+      <fieldset class="modes">
+        <legend class="board-title">Tryb gry</legend>
+        <a class="mode" href="teleturniej.html">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5.4 C9.2 9.6 14 14.4 19 19.1"/><path d="M18.8 5.1 C14.3 9.6 9.9 14.2 5.2 19.2"/></svg></span>
+          <span class="txt"><b>Jeden telefon</b><span>Prowadzący czyta pytania i zaznacza odpowiedzi. Odpowiada wskazana osoba, a kto trafi, wskazuje następnego.</span></span>
+        </a>
+        <a class="mode" href="live.html?tryb=prowadzacy">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5.4 C9.2 9.6 14 14.4 19 19.1"/><path d="M18.8 5.1 C14.3 9.6 9.9 14.2 5.2 19.2"/></svg></span>
+          <span class="txt"><b>Przyciski na telefonach</b><span>Ty prowadzisz, gracze dołączają kodem i wciskają przyciski na swoich telefonach. Kto pierwszy, ten odpowiada.</span></span>
+        </a>
+      </fieldset>
+      <a class="btn ghost" href="live.html?tryb=gracz">Mam kod gry<small>dołączam jako gracz</small></a>
+      <p class="sitenav"><a href="wyniki.html">Lista wyników</a></p>
     </div>
   </section>
 
@@ -49,6 +58,17 @@
 <script src="config.js"></script>
 <script src="pk-online.js"></script>
 <script>
+(() => {
+  // trwająca gra prowadzącego na tym urządzeniu: pozwól do niej wrócić
+  try {
+    const H = JSON.parse(localStorage.getItem("pkl_host") || "null"), code = JSON.parse(localStorage.getItem("pkw_hcode") || "null");
+    if (H && H.deck && H.ph && H.ph !== "lobby" && H.ph !== "final" && code) {
+      const r = document.querySelector("#resume");
+      r.innerHTML = `Trwa Twoja gra z przyciskami (kod <b>${String(code).replace(/[^A-Z0-9]/g, "")}</b>, pytanie ${H.i + 1} z ${H.deck.length}). <a href="live.html?tryb=prowadzacy">Wróć do gry</a>`;
+      r.hidden = false;
+    }
+  } catch (e) { }
+})();
 (async () => {
   if (!window.PK || !PK.ready()) return;
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));

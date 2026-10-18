@@ -103,3 +103,17 @@ select { width: 100%; background: var(--paper); border: 1px solid var(--rule-str
 .foot a { color: var(--muted); }
 .sitenav { display: flex; justify-content: center; gap: 18px; margin: 0; font-family: var(--f-mono); font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; }
 .sitenav a { color: var(--muted); }
+
+/* wybór trybu: wiersze jak na karcie do głosowania, krzyżyk pojawia się po najechaniu */
+.modes { border: 0; margin: 0; padding: 0; display: grid; gap: 10px; min-width: 0; }
+.modes legend { padding: 0; }
+.mode { display: grid; grid-template-columns: 2.6rem minmax(0, 1fr); gap: 14px; align-items: start; padding: 14px; border: 1.5px solid var(--rule-strong); border-radius: 3px; color: var(--ink); text-decoration: none; background: var(--paper); }
+.mode:hover, .mode:focus-visible { border-color: var(--pen); background: var(--hover); }
+.mode .box { width: 2.6rem; aspect-ratio: 1; border: 2.5px solid var(--ink); display: grid; place-items: center; }
+.mode .box svg { width: 80%; height: 80%; opacity: 0; transition: opacity .15s; }
+.mode .box path { stroke: var(--pen); stroke-width: 2.6; stroke-linecap: round; fill: none; }
+.mode:hover .box svg, .mode:focus-visible .box svg { opacity: 1; }
+.mode .txt { display: grid; gap: 2px; }
+.mode b { font-family: var(--f-display); font-stretch: 85%; font-weight: 800; font-size: 1.25rem; line-height: 1.15; }
+.mode .txt span { font-size: .9rem; color: var(--muted); }
+.notice a { color: var(--pen); font-weight: 600; }

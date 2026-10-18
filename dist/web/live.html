@@ -307,7 +307,7 @@ a.btn { text-align: center; text-decoration: none; box-sizing: border-box; }
       <div class="chips" id="pnameChips" aria-label="Szybki wybór"></div>
       <p class="notice" id="joinErr" hidden></p>
       <button type="button" class="btn" id="btnJoin">Dołącz do gry</button>
-      <button type="button" class="link-btn" id="btnBack1">← Zmień rolę</button>
+      <button type="button" class="link-btn" id="btnBack1">← Zmień tryb</button>
     </div>
   </section>
 
@@ -340,7 +340,7 @@ a.btn { text-align: center; text-decoration: none; box-sizing: border-box; }
   <!-- PROWADZĄCY: USTAWIENIA -->
   <section id="s-hsetup" class="sheet" hidden aria-labelledby="t-hsetup">
     <div class="sheet-head">
-      <p class="eyebrow hot">Prowadzący</p>
+      <p class="eyebrow hot">Przyciski na telefonach · prowadzący</p>
       <p class="conn" id="connHS"><span class="dot"></span><span>Łączenie…</span></p>
     </div>
     <div class="sheet-body">
@@ -395,7 +395,7 @@ a.btn { text-align: center; text-decoration: none; box-sizing: border-box; }
         </div>
       </div>
       <button type="button" class="btn go" id="btnHStart">Start gry</button>
-      <button type="button" class="link-btn" id="btnBack2">← Zmień rolę</button>
+      <button type="button" class="link-btn" id="btnBack2">← Zmień tryb</button>
     </div>
   </section>
 
@@ -1505,7 +1505,7 @@ $("#btnJoin").addEventListener("click", async () => {
     err.textContent = e === "nogame" ? `Nie ma gry o kodzie ${code}. Sprawdź kod u prowadzącego.` : e === "nolib" || e === "noconfig" ? libErrText(e) : "Nie udało się połączyć. Sprawdź internet i spróbuj ponownie.";
   } finally { btn.disabled = false; btn.textContent = "Dołącz do gry"; }
 });
-$("#btnLeave").addEventListener("click", () => { if (room && room.close) room.close(); room = null; role = null; save("pkl_role", null); setPresence({ role: null, name: null, buzz: null, fs: null }); show("s-role"); });
+$("#btnLeave").addEventListener("click", () => { if (room && room.close) room.close(); room = null; role = null; save("pkl_role", null); setPresence({ role: null, name: null, buzz: null, fs: null }); location.assign("index.html"); });
 
 function findHost(peers) {
   let h = null;
@@ -1591,7 +1591,7 @@ $("#buzz").addEventListener("pointerdown", (e) => { e.preventDefault(); pressBuz
 $("#buzz").addEventListener("keydown", (e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); pressBuzz(); } });
 
 /* ============================ PROWADZĄCY ============================ */
-let settings = Object.assign({ level: "pro", count: 30, time: 10, minus: 1 }, load("pkl_settings2", {}));
+let settings = Object.assign({ level: "pro", count: 30, time: 10, minus: 1 }, load("pkl_settings2", {}), load("pk_common", {}));
 if (![1, 5, 10].includes(settings.minus)) settings.minus = 1;
 if (!LEVELS[settings.level]) settings.level = "pro";
 let H = load("pkl_host", null);
@@ -1602,7 +1602,7 @@ function setSeg(id, val) { document.querySelectorAll(`#${id} button`).forEach((b
 function bindSeg(id, key, isNum) {
   $("#" + id).addEventListener("click", (e) => {
     const b = e.target.closest("button"); if (!b) return;
-    settings[key] = isNum ? +b.dataset.v : b.dataset.v; save("pkl_settings2", settings); renderHostSetup();
+    settings[key] = isNum ? +b.dataset.v : b.dataset.v; save("pkl_settings2", settings); save("pk_common", { level: settings.level, count: settings.count, minus: settings.minus }); renderHostSetup();
   });
 }
 bindSeg("levelSeg", "level", false); bindSeg("countSeg", "count", true); bindSeg("timeSeg", "time", true); bindSeg("minusSeg", "minus", true);
@@ -1868,15 +1868,18 @@ $("#btnCopyLink").addEventListener("click", () => {
   const code = load("pkw_hcode", ""), t = joinUrl(code), note = $("#copyLinkNote");
   try { navigator.clipboard.writeText(t).then(() => (note.textContent = "Skopiowano link."), () => (note.textContent = "Zaznacz link powyżej i skopiuj go ręcznie.")); } catch (e) { note.textContent = "Zaznacz link powyżej i skopiuj go ręcznie."; }
 });
-$("#btnBack1").addEventListener("click", () => show("s-role"));
-$("#btnBack2").addEventListener("click", () => { if (room && room.close) room.close(); room = null; role = null; save("pkl_role", null); setPresence({ role: null, g: null, ph: null }); show("s-role"); });
+$("#btnBack1").addEventListener("click", () => location.assign("index.html"));
+$("#btnBack2").addEventListener("click", () => { if (room && room.close) room.close(); room = null; role = null; save("pkl_role", null); setPresence({ role: null, g: null, ph: null }); location.assign("index.html"); });
 
 /* ---------- start ---------- */
 function boot() {
   const q = new URLSearchParams(location.search).get("kod");
   if (q) save("pkw_code", q.toUpperCase().replace(/[^A-Z0-9]/g, ""));
+  const tryb = new URLSearchParams(location.search).get("tryb");
   setConn("idle");
-  if (q) renderJoin(); else show("s-role");
+  if (q || tryb === "gracz") renderJoin();
+  else if (tryb === "prowadzacy") { show("s-role"); $("#btnBeHost").click(); }
+  else { location.replace("index.html"); return; }
   if (!window.PK || !PK.ready()) { setConn("off"); const n = $("#roomNote"); n.hidden = false; n.className = "notice"; n.textContent = libErrText(window.PK ? PK.whyOff() : "nolib"); }
 }
 boot();

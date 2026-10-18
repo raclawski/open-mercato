@@ -70,3 +70,30 @@ src = rep(src, '<div class="host-actions" id="fActions"></div>',
 src = rep(src, '''$("#fActions").innerHTML = isHost ? `<button type="button" class="btn go" data-f="again">Nowa gra</button>` : "";''',
           '''$("#fActions").innerHTML = (isHost ? `<button type="button" class="btn go" data-f="again">Nowa gra</button>` : "") + `<a class="btn ghost" href="wyniki.html">Lista wyników</a>`;''')
 src = rep(src, '''if (e.target.closest('[data-f="again"]')) { H = { ph: "lobby" };''', '''if (e.target.closest('[data-f="again"]')) { $("#fRank").textContent = ""; H = { ph: "lobby" };''')
+
+# --- jedna gra: tryb wybiera się na stronie startowej (index.html), tu przychodzi w adresie ---
+#   live.html?tryb=prowadzacy  od razu ustawienia prowadzącego (albo powrót do trwającej gry)
+#   live.html?tryb=gracz       ekran dołączania;  live.html?kod=XXXX  link od prowadzącego
+#   bez parametrów             powrót do wyboru trybu
+src = rep(src, '''  setConn("idle");
+  if (q) renderJoin(); else show("s-role");
+  if (!window.PK || !PK.ready()) {''', '''  const tryb = new URLSearchParams(location.search).get("tryb");
+  setConn("idle");
+  if (q || tryb === "gracz") renderJoin();
+  else if (tryb === "prowadzacy") { show("s-role"); $("#btnBeHost").click(); }
+  else { location.replace("index.html"); return; }
+  if (!window.PK || !PK.ready()) {''')
+src = rep(src, '$("#btnBack1").addEventListener("click", () => show("s-role"));', '$("#btnBack1").addEventListener("click", () => location.assign("index.html"));')
+src = rep(src, 'setPresence({ role: null, g: null, ph: null }); show("s-role"); });', 'setPresence({ role: null, g: null, ph: null }); location.assign("index.html"); });')
+src = rep(src, 'setPresence({ role: null, name: null, buzz: null, fs: null }); show("s-role"); });', 'setPresence({ role: null, name: null, buzz: null, fs: null }); location.assign("index.html"); });')
+src = rep(src, '<button type="button" class="link-btn" id="btnBack1">← Zmień rolę</button>', '<button type="button" class="link-btn" id="btnBack1">← Zmień tryb</button>')
+src = rep(src, '<button type="button" class="link-btn" id="btnBack2">← Zmień rolę</button>', '<button type="button" class="link-btn" id="btnBack2">← Zmień tryb</button>')
+src = rep(src, '''<p class="eyebrow hot">Prowadzący</p>
+      <p class="conn" id="connHS">''', '''<p class="eyebrow hot">Przyciski na telefonach · prowadzący</p>
+      <p class="conn" id="connHS">''')
+
+# poziom, liczba pytań i kara są wspólne dla obu trybów (pk_common), czas na odpowiedź nie
+src = rep(src, 'let settings = Object.assign({ level: "pro", count: 30, time: 10, minus: 1 }, load("pkl_settings2", {}));',
+          'let settings = Object.assign({ level: "pro", count: 30, time: 10, minus: 1 }, load("pkl_settings2", {}), load("pk_common", {}));')
+src = rep(src, 'save("pkl_settings2", settings); renderHostSetup();',
+          'save("pkl_settings2", settings); save("pk_common", { level: settings.level, count: settings.count, minus: settings.minus }); renderHostSetup();')

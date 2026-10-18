@@ -215,7 +215,7 @@ a.btn { text-align: center; text-decoration: none; }
   <!-- START -->
   <section id="screen-start" class="sheet" aria-labelledby="t-start">
     <div class="sheet-head">
-      <p class="eyebrow" id="topicEyebrow">Teleturniej · Polityka</p>
+      <p class="eyebrow hot" id="topicEyebrow">Tryb: jeden telefon</p>
       <p class="eyebrow" id="levelEyebrow">Poziom: ekspert</p>
     </div>
     <div class="sheet-body">
@@ -286,6 +286,7 @@ a.btn { text-align: center; text-decoration: none; }
       </div>
 
       <button type="button" class="btn" id="btnStart">Zaczynamy</button>
+      <a class="link-btn" href="index.html">← Zmień tryb</a>
     </div>
   </section>
 
@@ -1357,10 +1358,10 @@ function parsePlayers(s) {
 }
 
 /* ===================== USTAWIENIA ===================== */
-let settings = Object.assign({ level: "pro", players: DEFAULT_PLAYERS.slice(), starter: 0, count: 30, time: 15, minus: 1 }, load("pk_tv2", {}));
+let settings = Object.assign({ level: "pro", players: DEFAULT_PLAYERS.slice(), starter: 0, count: 30, time: 15, minus: 1 }, load("pk_tv2", {}), load("pk_common", {}));
 if (![1, 5, 10].includes(settings.minus)) settings.minus = 1;
 if (!LEVELS[settings.level]) settings.level = "pro";
-const saveSettings = () => save("pk_tv2", settings);
+const saveSettings = () => { save("pk_tv2", settings); save("pk_common", { level: settings.level, count: settings.count, minus: settings.minus }); };
 
 function setSeg(id, val) { document.querySelectorAll(`#${id} button`).forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === String(val)))); }
 function poolSize(l) { return LEVELS[l].bank.reduce((s, c) => s + c.q.length, 0); }
@@ -1380,7 +1381,7 @@ function renderStart() {
   const le = $("#levelEyebrow");
   le.textContent = "Poziom: " + LEVELS[settings.level].label.toLowerCase();
   le.classList.toggle("hot", settings.level === "pro" || settings.level === "pop");
-  $("#topicEyebrow").textContent = settings.level === "pop" ? "Teleturniej · Popkultura" : "Teleturniej · Polityka";
+  
   $("#players").value = settings.players.join(", ");
   $("#rulePlus").textContent = "+" + PLUS;
   $("#ruleMinus").textContent = "−" + settings.minus;
