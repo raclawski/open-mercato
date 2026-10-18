@@ -15,3 +15,9 @@
 .drum button[aria-pressed="true"] .dbox path { opacity: 1; }
 .drum button[aria-pressed="true"].hotbtn .dm { color: var(--stamp); }
 .drum button:focus-visible { outline: 3px solid var(--pen); outline-offset: -3px; }
+/* liczba pytań (src/templates/shared/mix.js: initCount) */
+.countpick { display: grid; grid-template-columns: 2.6rem minmax(0, 1fr) 2.6rem 3.2rem; align-items: center; gap: 8px; }
+.countpick input[type="range"] { width: 100%; accent-color: var(--ink); height: 2.6rem; margin: 0; }
+.countpick .cstep { height: 2.6rem; border: 1px solid var(--rule-strong); border-radius: 3px; background: var(--paper); color: var(--ink); font-family: var(--f-mono); font-size: 1.2rem; cursor: pointer; }
+.countpick .cstep:active { background: var(--hover); }
+.countpick output { font-family: var(--f-mono); font-weight: 600; font-size: 1.3rem; text-align: right; font-variant-numeric: tabular-nums; }

@@ -261,11 +261,11 @@ details.review summary { cursor: pointer; font-weight: 600; }
 
       <div class="field">
         <span class="label" id="lbl-count">Liczba pytań</span>
-        <div class="seg" role="group" aria-labelledby="lbl-count" id="countSeg">
-          <button type="button" data-v="20">20</button>
-          <button type="button" data-v="30">30</button>
-          <button type="button" data-v="40">40</button>
-          <button type="button" data-v="50">50</button>
+        <div class="countpick" id="countPick">
+          <button type="button" class="cstep" data-d="-1" aria-label="Mniej pytań">−</button>
+          <input type="range" id="countRange" min="1" max="100" step="1" value="30" aria-labelledby="lbl-count">
+          <button type="button" class="cstep" data-d="1" aria-label="Więcej pytań">+</button>
+          <output id="countOut" for="countRange">30</output>
         </div>
       </div>
 
@@ -427,7 +427,7 @@ function renderStarter() {
 }
 function renderStart() {
   setSeg("levelSeg", settings.level);
-  setSeg("countSeg", settings.count);
+  setCount(settings.count);
   setSeg("timeSeg", settings.time);
   setSeg("minusSeg", settings.minus);
   $("#levelHint").textContent = LEVELS[settings.level].hint;
@@ -454,7 +454,7 @@ function bindSeg(id, key, num) {
 }
 bindSeg("levelSeg", "level", false); initDrum($("#levelSeg"), (v) => (v === MIX ? "kilka kat." : poolSize(v) + " pyt."));
 initMix($("#mixPick"), () => settings.mix, (sel) => { settings.mix = sel; saveSettings(); renderStart(); });
-bindSeg("countSeg", "count", true);
+initCount((n) => { settings.count = n; saveSettings(); }, renderStart);
 bindSeg("timeSeg", "time", true);
 bindSeg("minusSeg", "minus", true);
 $("#players").addEventListener("input", (e) => { settings.players = parsePlayers(e.target.value); saveSettings(); renderStarter(); });
@@ -469,7 +469,7 @@ let S = null, timerId = null, tEnd = 0;
 function newGame() {
   const players = settings.players.slice();
   const starter = settings.starter === -1 ? Math.floor(Math.random() * players.length) : Math.min(settings.starter, players.length - 1);
-  S = { level: settings.level, players, minus: settings.minus, time: settings.time, deck: buildDeck(settings.level, settings.count, settings.mix), i: 0, cur: starter, next: null, phase: "q", log: [], left: settings.time * 1000 };
+  S = { level: settings.level, players, minus: settings.minus, time: settings.time, deck: buildDeck(settings.level, clampCount(settings.count), settings.mix), i: 0, cur: starter, next: null, phase: "q", log: [], left: settings.time * 1000 };
 }
 function scores() {
   const t = S.players.map(() => 0);

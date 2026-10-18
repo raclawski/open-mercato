@@ -87,7 +87,7 @@ async def main(dburl):
         await host.click('a.mode[href^="live"]')
         await host.wait_for_selector('#s-hsetup:not([hidden])', timeout=15000)
         check('tryb=prowadzacy' in host.url, 'wybór trybu: przyciski na telefonach → ustawienia prowadzącego')
-        await host.click('#levelSeg [data-v="pop"]'); await host.click('#countSeg [data-v="20"]'); await host.click('#timeSeg [data-v="5"]')
+        await host.click('#levelSeg [data-v="pop"]'); await host.fill('#countRange', '20'); await host.click('#timeSeg [data-v="5"]')
         await host.click('#modeSeg [data-v="offline"]')  # główny scenariusz: offline; online na końcu testu
         code = (await host.inner_text('#hsCode')).strip()
         check(len(code) == 4 and (await host.inner_text('#joinUrl')).endswith('?kod=' + code), 'gra utworzona, kod i link', code)
@@ -242,7 +242,7 @@ async def main(dburl):
         resume = await tv.is_visible('#resume')
         await tv.click('a.mode[href="teleturniej.html"]')
         await tv.wait_for_selector('#screen-start:not([hidden])')
-        shared = await tv.evaluate('() => document.querySelector("#levelSeg [data-v=pop]").getAttribute("aria-pressed") === "true" && document.querySelector("#countSeg [data-v=\'20\']").getAttribute("aria-pressed") === "true"')
+        shared = await tv.evaluate('() => document.querySelector("#levelSeg [data-v=pop]").getAttribute("aria-pressed") === "true" && document.querySelector("#countRange").value === "20"')
         check(shared and not resume, 'wybór trybu: jeden telefon, kategoria i liczba pytań przeniesione z Live')
         await tv.click('#btnStart')
         for i in range(20):
@@ -276,7 +276,7 @@ async def main(dburl):
         oh = await page(octx, 'index.html')  # admin „Ola”
         oh.on('dialog', lambda d: asyncio.ensure_future(d.accept()))
         await oh.click('a.mode[href^="live"]'); await oh.wait_for_selector('#s-hsetup:not([hidden])', timeout=15000)
-        await oh.click('#modeSeg [data-v="online"]'); await oh.click('#countSeg [data-v="20"]')
+        await oh.click('#modeSeg [data-v="online"]'); await oh.fill('#countRange', '20')
         await oh.fill('#adminName', 'Ola')
         ocode = (await oh.inner_text('#hsCode')).strip()
         op = {'Ola': oh}

@@ -53,3 +53,14 @@ function renderMix(box, level, sel) {
   box.querySelectorAll("[data-k]").forEach((b) => b.setAttribute("aria-pressed", String(on.includes(b.dataset.k))));
   box.querySelector("#mixHint").textContent = `${on.length} ${on.length === 1 ? "kategoria" : on.length < 5 ? "kategorie" : "kategorii"}, ${poolSize(MIX, on)} pytań w puli. Kliknij, żeby dodać albo usunąć.`;
 }
+/* Liczba pytań: suwak 1–100 z przyciskami −/+ (na telefonie suwakiem trudno trafić w jedną liczbę). */
+const clampCount = (n) => Math.max(1, Math.min(100, Math.round(+n) || 30));
+function setCount(n) { const r = $("#countRange"); if (!r) return; r.value = clampCount(n); $("#countOut").textContent = r.value; }
+function initCount(onInput, onDone) {
+  const r = $("#countRange");
+  r.addEventListener("input", () => { $("#countOut").textContent = r.value; onInput(+r.value); });
+  r.addEventListener("change", () => onDone());
+  document.querySelectorAll("#countPick .cstep").forEach((b) => b.addEventListener("click", () => {
+    r.value = clampCount(+r.value + +b.dataset.d); $("#countOut").textContent = r.value; onInput(+r.value); onDone();
+  }));
+}

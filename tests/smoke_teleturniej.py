@@ -14,7 +14,7 @@ async def main():
         levels = await pg.eval_on_selector_all('#levelSeg button', 'bs => bs.map(b => b.dataset.v)')
         for lv in levels:
             await pg.evaluate('localStorage.clear()'); await pg.goto(URL); await pg.wait_for_timeout(200)
-            await pg.click(f'#levelSeg [data-v="{lv}"]'); await pg.click('#countSeg [data-v="20"]'); await pg.click('#btnStart')
+            await pg.click(f'#levelSeg [data-v="{lv}"]'); await pg.fill('#countRange', '20'); await pg.click('#btnStart')
             for i in range(20):
                 await pg.click('#options .row >> nth=0')
                 if await pg.is_disabled('#btnNext'): await pg.click('#nextChips [data-p="0"]')
@@ -24,7 +24,7 @@ async def main():
             fail += (not done) or bool(errs); errs.clear()
         # tryb mieszany: pełna mieszanka i wybrane dwie kategorie (po równo, na zmianę), wybór zapamiętany
         await pg.evaluate('localStorage.clear()'); await pg.goto(URL); await pg.wait_for_timeout(200)
-        await pg.click('#levelSeg [data-v="mix"]'); await pg.click('#countSeg [data-v="20"]'); await pg.click('#btnStart')
+        await pg.click('#levelSeg [data-v="mix"]'); await pg.fill('#countRange', '20'); await pg.click('#btnStart')
         full = await pg.evaluate('() => new Set(S.deck.map((q) => q.cat)).size')
         await pg.goto(URL); await pg.wait_for_timeout(300)
         chips_visible = await pg.is_visible('#mixPick')

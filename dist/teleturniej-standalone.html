@@ -224,6 +224,12 @@ details.review summary { cursor: pointer; font-weight: 600; }
 .drum button[aria-pressed="true"] .dbox path { opacity: 1; }
 .drum button[aria-pressed="true"].hotbtn .dm { color: var(--stamp); }
 .drum button:focus-visible { outline: 3px solid var(--pen); outline-offset: -3px; }
+/* liczba pytań (src/templates/shared/mix.js: initCount) */
+.countpick { display: grid; grid-template-columns: 2.6rem minmax(0, 1fr) 2.6rem 3.2rem; align-items: center; gap: 8px; }
+.countpick input[type="range"] { width: 100%; accent-color: var(--ink); height: 2.6rem; margin: 0; }
+.countpick .cstep { height: 2.6rem; border: 1px solid var(--rule-strong); border-radius: 3px; background: var(--paper); color: var(--ink); font-family: var(--f-mono); font-size: 1.2rem; cursor: pointer; }
+.countpick .cstep:active { background: var(--hover); }
+.countpick output { font-family: var(--f-mono); font-weight: 600; font-size: 1.3rem; text-align: right; font-variant-numeric: tabular-nums; }
 </style>
 </head>
 <body>
@@ -286,11 +292,11 @@ details.review summary { cursor: pointer; font-weight: 600; }
 
       <div class="field">
         <span class="label" id="lbl-count">Liczba pytań</span>
-        <div class="seg" role="group" aria-labelledby="lbl-count" id="countSeg">
-          <button type="button" data-v="20">20</button>
-          <button type="button" data-v="30">30</button>
-          <button type="button" data-v="40">40</button>
-          <button type="button" data-v="50">50</button>
+        <div class="countpick" id="countPick">
+          <button type="button" class="cstep" data-d="-1" aria-label="Mniej pytań">−</button>
+          <input type="range" id="countRange" min="1" max="100" step="1" value="30" aria-labelledby="lbl-count">
+          <button type="button" class="cstep" data-d="1" aria-label="Więcej pytań">+</button>
+          <output id="countOut" for="countRange">30</output>
         </div>
       </div>
 
@@ -2614,7 +2620,7 @@ function renderStarter() {
 }
 function renderStart() {
   setSeg("levelSeg", settings.level);
-  setSeg("countSeg", settings.count);
+  setCount(settings.count);
   setSeg("timeSeg", settings.time);
   setSeg("minusSeg", settings.minus);
   $("#levelHint").textContent = LEVELS[settings.level].hint;
@@ -2743,6 +2749,17 @@ function renderMix(box, level, sel) {
   box.querySelectorAll("[data-k]").forEach((b) => b.setAttribute("aria-pressed", String(on.includes(b.dataset.k))));
   box.querySelector("#mixHint").textContent = `${on.length} ${on.length === 1 ? "kategoria" : on.length < 5 ? "kategorie" : "kategorii"}, ${poolSize(MIX, on)} pytań w puli. Kliknij, żeby dodać albo usunąć.`;
 }
+/* Liczba pytań: suwak 1–100 z przyciskami −/+ (na telefonie suwakiem trudno trafić w jedną liczbę). */
+const clampCount = (n) => Math.max(1, Math.min(100, Math.round(+n) || 30));
+function setCount(n) { const r = $("#countRange"); if (!r) return; r.value = clampCount(n); $("#countOut").textContent = r.value; }
+function initCount(onInput, onDone) {
+  const r = $("#countRange");
+  r.addEventListener("input", () => { $("#countOut").textContent = r.value; onInput(+r.value); });
+  r.addEventListener("change", () => onDone());
+  document.querySelectorAll("#countPick .cstep").forEach((b) => b.addEventListener("click", () => {
+    r.value = clampCount(+r.value + +b.dataset.d); $("#countOut").textContent = r.value; onInput(+r.value); onDone();
+  }));
+}
 function bindSeg(id, key, num) {
   $("#" + id).addEventListener("click", (e) => {
     const b = e.target.closest("button"); if (!b) return;
@@ -2752,7 +2769,7 @@ function bindSeg(id, key, num) {
 }
 bindSeg("levelSeg", "level", false); initDrum($("#levelSeg"), (v) => (v === MIX ? "kilka kat." : poolSize(v) + " pyt."));
 initMix($("#mixPick"), () => settings.mix, (sel) => { settings.mix = sel; saveSettings(); renderStart(); });
-bindSeg("countSeg", "count", true);
+initCount((n) => { settings.count = n; saveSettings(); }, renderStart);
 bindSeg("timeSeg", "time", true);
 bindSeg("minusSeg", "minus", true);
 $("#players").addEventListener("input", (e) => { settings.players = parsePlayers(e.target.value); saveSettings(); renderStarter(); });
@@ -2767,7 +2784,7 @@ let S = null, timerId = null, tEnd = 0;
 function newGame() {
   const players = settings.players.slice();
   const starter = settings.starter === -1 ? Math.floor(Math.random() * players.length) : Math.min(settings.starter, players.length - 1);
-  S = { level: settings.level, players, minus: settings.minus, time: settings.time, deck: buildDeck(settings.level, settings.count, settings.mix), i: 0, cur: starter, next: null, phase: "q", log: [], left: settings.time * 1000 };
+  S = { level: settings.level, players, minus: settings.minus, time: settings.time, deck: buildDeck(settings.level, clampCount(settings.count), settings.mix), i: 0, cur: starter, next: null, phase: "q", log: [], left: settings.time * 1000 };
 }
 function scores() {
   const t = S.players.map(() => 0);

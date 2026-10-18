@@ -387,9 +387,11 @@ details.review summary { cursor: pointer; font-weight: 600; }
       </div>
       <div class="field">
         <span class="label" id="lbl-count">Liczba pytań</span>
-        <div class="seg" role="group" aria-labelledby="lbl-count" id="countSeg">
-          <button type="button" data-v="20">20</button><button type="button" data-v="30">30</button>
-          <button type="button" data-v="40">40</button><button type="button" data-v="50">50</button>
+        <div class="countpick" id="countPick">
+          <button type="button" class="cstep" data-d="-1" aria-label="Mniej pytań">−</button>
+          <input type="range" id="countRange" min="1" max="100" step="1" value="30" aria-labelledby="lbl-count">
+          <button type="button" class="cstep" data-d="1" aria-label="Więcej pytań">+</button>
+          <output id="countOut" for="countRange">30</output>
         </div>
       </div>
       <div class="two">
@@ -705,7 +707,7 @@ function bindSeg(id, key, isNum) {
   });
 }
 bindSeg("modeSeg", "mode", false); bindSeg("levelSeg", "level", false); initDrum($("#levelSeg"), (v) => (v === MIX ? "kilka kat." : poolSize(v) + " pyt."));
-initMix($("#mixPick"), () => settings.mix, (sel) => { settings.mix = sel; saveSettings(); renderHostSetup(); }); bindSeg("countSeg", "count", true); bindSeg("timeSeg", "time", true); bindSeg("minusSeg", "minus", true);
+initMix($("#mixPick"), () => settings.mix, (sel) => { settings.mix = sel; saveSettings(); renderHostSetup(); }); initCount((n) => { settings.count = n; saveSettings(); }, () => renderHostSetup()); bindSeg("timeSeg", "time", true); bindSeg("minusSeg", "minus", true);
 
 function hostScreen() { return H && H.mode === "online" ? "s-player" : "s-host"; }
 function connectedPlayers() {
@@ -734,7 +736,7 @@ $("#adminName").addEventListener("input", (e) => { P.name = cleanName(e.target.v
 function renderHostSetup() {
   setSeg("modeSeg", settings.mode);
   $("#modeHint").textContent = MODE_HINT[settings.mode];
-  setSeg("levelSeg", settings.level); setSeg("countSeg", settings.count); setSeg("timeSeg", settings.time); setSeg("minusSeg", settings.minus);
+  setSeg("levelSeg", settings.level); setCount(settings.count); setSeg("timeSeg", settings.time); setSeg("minusSeg", settings.minus);
   $("#levelHint").textContent = LEVELS[settings.level].hint;
   renderMix($("#mixPick"), settings.level, settings.mix);
   const online = settings.mode === "online", admin = adminName();
@@ -873,7 +875,7 @@ function hostStart() {
   if (online && !admin) { $("#adminName").focus(); return; }
   const players = online ? [admin].concat(connectedPlayers().filter((n) => n !== admin)) : connectedPlayers();
   SELF = { p: {}, at: 0 };
-  H = { g: "g" + Date.now().toString(36), level: settings.level, minus: settings.minus, time: settings.time, deck: buildDeck(settings.level, settings.count, settings.mix),
+  H = { g: "g" + Date.now().toString(36), level: settings.level, minus: settings.minus, time: settings.time, deck: buildDeck(settings.level, clampCount(settings.count), settings.mix),
         i: 0, ph: "q", arm: 0, win: null, order: [], blk: [], fs: [], last: null, log: [], players, mode: settings.mode, seen: false, admin };
   saveH(); publishHost(); renderHost(); show(hostScreen());
 }
