@@ -2696,8 +2696,10 @@ function initDrum(el, meta) {
 }
 /* Losowanie pytań i tryb mieszany („Mieszane”, klucz `mix`): pytania z kilku kategorii w jednej grze.
    Kategorie z mieszanki dostają po równo pytań i przeplatają się (w każdej rundzie w losowej kolejności).
-   Najpierw idą pytania, których jeszcze nie było (pk_seen). Id pytania to `kategoria:skrót treści` (qid), więc
-   nie zmienia się po dopisaniu pytań i jest wspólne dla gry z jedną kategorią i mieszanej. */
+   Dobór jak tasowanie w Spotify: nie czysto losowy, tylko według wag. Pytanie, którego nikt jeszcze nie widział,
+   ma wagę 1, a ograne (niedawno albo przez kilku graczy) mniejszą, ale nigdy zerową, więc może wrócić, tylko rzadziej.
+   „Ogranie” bierze się z pamięci telefonu (pk_seen_at: qid → kiedy) i z bazy dla nicków w grze (setQHist, wersja z serwerem).
+   Id pytania to `kategoria:skrót treści` (qid), więc nie zmienia się po dopisaniu pytań. */
 const MIX = "mix";
 const realLevels = () => Object.keys(LEVELS).filter((k) => LEVELS[k].bank);
 const mixKeys = (sel) => { const ok = (Array.isArray(sel) ? sel : []).filter((k) => LEVELS[k] && LEVELS[k].bank); return ok.length ? ok : realLevels(); };
@@ -2717,28 +2719,55 @@ function migrateSeen(list) {
     return Q ? qid(m[1], Q) : id;
   });
 }
-function pickLevel(level, need, seen) {
+const DAY = 864e5, TAU_DAYS = 20, MIN_W = 0.02;
+let QHIST = {};
+function setQHist(h) { QHIST = h && typeof h === "object" && !Array.isArray(h) ? h : {}; }
+function loadSeenAt() {
+  const m = load("pk_seen_at", null);
+  if (m && typeof m === "object" && !Array.isArray(m)) return m;
+  const out = {}, t = Date.now() - 7 * DAY;  // stara pamięć (lista bez dat) liczy się jak sprzed tygodnia
+  migrateSeen(load("pk_seen", [])).forEach((id) => { if (typeof id === "string") out[id] = t; });
+  return out;
+}
+function saveSeenAt(m) { const cut = Date.now() - 365 * DAY; for (const k in m) if (!(m[k] > cut)) delete m[k]; save("pk_seen_at", m); }
+/* Ogranie p: wczoraj u jednego gracza ≈ 1, u trzech ≈ 3, sprzed 20 dni ≈ 0,37. Waga e^(−3p), najmniej MIN_W. */
+function qweight(id, seenAt, now) {
+  const local = seenAt[id] ? Math.exp(-Math.max(0, now - seenAt[id]) / DAY / TAU_DAYS) : 0;
+  return Math.max(MIN_W, Math.exp(-3 * Math.max(local, +QHIST[id] || 0)));
+}
+/* losowanie bez zwracania według wag (Efraimidis–Spirakis): klucz u^(1/w), wygrywają największe */
+function weightedPick(items, need, w) {
+  return items.map((x) => ({ x, k: Math.pow(Math.random(), 1 / w(x)) })).sort((a, b) => b.k - a.k).slice(0, need).map((o) => o.x);
+}
+/* dwa pytania z tego samego działu nie idą po sobie, jeśli da się tego uniknąć */
+function spread(list, key) {
+  const a = list.slice();
+  for (let i = 1; i < a.length; i++) if (key(a[i]) === key(a[i - 1])) {
+    const j = a.findIndex((x, k) => k > i && key(x) !== key(a[i - 1]));
+    if (j > 0) [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function pickLevel(level, need, seenAt, now) {
   const all = [];
   LEVELS[level].bank.forEach((cat) => cat.q.forEach((Q) => all.push({ id: qid(level, Q), Q, cat: cat.name, lv: level })));
-  let fresh = shuffle(all.filter((x) => !seen.has(x.id)));
-  if (fresh.length < need) { all.forEach((x) => seen.delete(x.id)); fresh = fresh.concat(shuffle(all.filter((x) => !fresh.includes(x)))); }
-  return fresh.slice(0, Math.min(need, all.length));
+  return spread(shuffle(weightedPick(all, Math.min(need, all.length), (x) => qweight(x.id, seenAt, now))), (x) => x.cat);
 }
 function buildDeck(level, count, sel) {
-  const seen = new Set(migrateSeen(load("pk_seen", [])));
+  const seenAt = loadSeenAt(), now = Date.now();
   let pick;
-  if (level !== MIX) pick = pickLevel(level, count, seen);
+  if (level !== MIX) pick = pickLevel(level, count, seenAt, now);
   else {
     const keys = mixKeys(sel), need = {};
     keys.forEach((k) => (need[k] = 0));
     let left = Math.min(count, keys.reduce((s, k) => s + levelSize(k), 0));
     while (left > 0) for (const k of shuffle(keys)) if (left > 0 && need[k] < levelSize(k)) { need[k]++; left--; }
-    const lists = keys.map((k) => pickLevel(k, need[k], seen));
+    const lists = keys.map((k) => pickLevel(k, need[k], seenAt, now));
     pick = [];
     while (lists.some((l) => l.length)) for (const l of shuffle(lists)) if (l.length) pick.push(l.shift());
     pick.forEach((x) => (x.cat = LEVELS[x.lv].label));
   }
-  pick.forEach((x) => seen.add(x.id)); save("pk_seen", [...seen]);
+  pick.forEach((x) => (seenAt[x.id] = now)); saveSeenAt(seenAt);
   return pick.map(({ id, Q, cat }) => {
     const order = Q.fix ? Q.o.map((_, i) => i) : shuffle(Q.o.map((_, i) => i));
     return { id, cat, q: Q.q, o: order.map((i) => Q.o[i]), c: order.indexOf(Q.c), e: Q.e };

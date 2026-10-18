@@ -5,7 +5,7 @@
   "scripts": {
     "build": "python3 tools/build.py",
     "validate": "node tests/validate_questions.js",
-    "test:sql": "psql \"$PK_TEST_PGURL\" -X -q -v ON_ERROR_STOP=1 -f supabase/migrations/20261018120000_ranking.sql -f supabase/migrations/20261019090000_ranking_accept_all.sql -f tests/ranking_test.sql",
+    "test:sql": "psql \"$PK_TEST_PGURL\" -X -q -v ON_ERROR_STOP=1 -f supabase/migrations/20261018120000_ranking.sql -f supabase/migrations/20261019090000_ranking_accept_all.sql -f supabase/migrations/20261020090000_question_history.sql -f tests/ranking_test.sql -f tests/history_test.sql",
     "test:web": "python3 tests/smoke_web_supabase.py",
     "test": "node tests/validate_questions.js && python3 tools/build.py && python3 tests/smoke_teleturniej.py && python3 tests/smoke_live_claude.py && python3 tests/smoke_live_web.py"
   },

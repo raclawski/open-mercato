@@ -151,6 +151,8 @@ class Rest:
         'pk_submit_game': "select public.pk_submit_game(b->'p_game') from a",
         'pk_leaderboard': "select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from a, lateral public.pk_leaderboard(b->>'p_level', b->>'p_mode', (b->>'p_days')::int, (b->>'p_limit')::int) t",
         'pk_recent_games': "select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from a, lateral public.pk_recent_games((b->>'p_limit')::int, b->>'p_name') t",
+        'pk_mark_seen': "select public.pk_mark_seen(b->'p_names', b->'p_qids') from a",
+        'pk_history': "select public.pk_history(b->'p_names') from a",
     }
 
     def __init__(self, pgurl):

@@ -11,6 +11,7 @@ Koszt: oba serwisy mają darmowe plany, które wystarczą na gry ze znajomymi.
 1. Załóż konto na https://supabase.com i utwórz projekt (**New project**). Region: Frankfurt (`eu-central-1`), najbliżej Polski. Hasło do bazy zapisz, ale gra go nie potrzebuje.
 2. Wgraj bazę wyników. W panelu otwórz **SQL Editor**, wklej całą zawartość pliku `supabase/migrations/20261018120000_ranking.sql` i kliknij **Run**. Skrypt można uruchomić ponownie, nic nie zepsuje.
    Potem tak samo wgraj `supabase/migrations/20261019090000_ranking_accept_all.sql` (lista wyników przyjmuje każdą grę). Jeśli baza już działa, wystarczy ten drugi plik. Wgraj go ponownie, jeśli gra pokazuje „Lista wyników odrzuciła tę grę (nieprawidłowe dane graczy)”: poprawia funkcję czyszczącą nicki, którą mogło zepsuć kopiowanie pierwszego pliku. Do wklejenia otwórz plik jako **Raw** (na GitHubie przycisk *Raw*) i skopiuj całość.
+   Na końcu tak samo `supabase/migrations/20261020090000_question_history.sql` (historia pytań dla nicków, żeby rzadziej się powtarzały). Bez niego gra działa, tylko pamięta pytania na telefonie, a nie dla nicku.
    Jeśli używasz Supabase CLI: `supabase link --project-ref <ref>` i `supabase db push`.
 3. Sprawdź Realtime. W **Project Settings → Realtime** opcja publicznego dostępu do kanałów (*Allow public access* / bez wymogu autoryzacji kanałów) musi być włączona. W nowych projektach jest włączona domyślnie. Gra używa tylko Broadcast i Presence, bez nasłuchiwania zmian w tabelach.
 4. Skopiuj dane do połączenia z **Project Settings → API** (albo **Connect**):

@@ -53,8 +53,20 @@ function liveGameRecord() {
   H.log.forEach((a) => { st[a.name] = st[a.name] || { ok: 0, bad: 0 }; st[a.name][a.ok ? "ok" : "bad"]++; });
   const players = sortedScores().slice(0, 16).map(([n, s]) => ({ name: n, score: s, correct: (st[n] || {}).ok || 0, wrong: (st[n] || {}).bad || 0 }));
   return { id: H.uid, mode: "live", level: H.level, code: load("pkw_hcode", "") || null, questions_total: H.deck.length,
-           questions_played: Math.min(H.deck.length, H.i + 1), penalty: H.minus, players };
+           questions_played: Math.min(H.deck.length, H.i + 1), penalty: H.minus, players,
+           qids: H.deck.slice(0, Math.min(H.deck.length, H.i + 1)).map((q) => q.id) };
 }
+/* dobór pytań: historia nicków z poczekalni pobiera się przy każdej zmianie składu, przed startem gry */
+let histKey = null, histT = null;
+function prefetchHist() {
+  if (!window.PK || !PK.ready() || (H && H.deck && H.ph !== "lobby")) return;
+  const names = connectedPlayers().concat(settings.mode === "online" && adminName() ? [adminName()] : []);
+  const key = names.map((n) => n.toLowerCase()).sort().join("|");
+  if (key === histKey) return;
+  histKey = key; clearTimeout(histT);
+  histT = setTimeout(() => PK.history(names).then((h) => { if (histKey === key) setQHist(h); }), 400);
+}
+{ const base = renderHostSetup; renderHostSetup = function () { base(); prefetchHist(); }; }
 async function submitLive() {
   const note = $("#fRank");
   if (!H || !H.uid || !H.log.length || !window.PK) { note.textContent = H && !H.log.length ? "Gra bez odpowiedzi, nie trafia na listę wyników." : ""; return; }

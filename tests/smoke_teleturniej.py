@@ -44,10 +44,24 @@ async def main():
         await pg.evaluate('() => localStorage.setItem("pk_seen", JSON.stringify(["std:0-0", "std:1-2"]))')
         await pg.goto(URL); await pg.wait_for_timeout(200)
         await pg.click('#levelSeg [data-v="std"]'); await pg.fill('#countRange', '20'); await pg.click('#btnStart')
-        r = await pg.evaluate("""() => { const seen = JSON.parse(localStorage.getItem("pk_seen")), a = qid("std", LEVELS.std.bank[0].q[0]), b = qid("std", LEVELS.std.bank[1].q[2]);
-          return [seen.includes(a) && seen.includes(b) && !seen.some((x) => /-/.test(x)), S.deck.every((q) => /^std:[0-9a-z]+$/.test(q.id)), !S.deck.some((q) => q.id === a || q.id === b)]; }""")
+        r = await pg.evaluate("""() => { const seen = Object.keys(JSON.parse(localStorage.getItem("pk_seen_at"))), a = qid("std", LEVELS.std.bank[0].q[0]), b = qid("std", LEVELS.std.bank[1].q[2]);
+          return [seen.includes(a) && seen.includes(b) && !seen.some((x) => /-/.test(x)), S.deck.every((q) => /^std:[0-9a-z]+$/.test(q.id)), seen.length >= 20]; }""")
         good = all(r) and not errs
         print(('✓' if good else '✗'), 'stałe id pytań i przepisanie starej pamięci', r, errs)
+        fail += not good
+        # dobór według wag: 41 z 61 pytań „std” widziane wczoraj, nowa gra na 20 bierze głównie niewidziane,
+        # ale ograne nie są zablokowane (po wyczerpaniu puli gra dalej się układa)
+        res = await pg.evaluate("""() => {
+          const all = []; LEVELS.std.bank.forEach((c) => c.q.forEach((Q) => all.push(qid("std", Q))));
+          const old = {}, t = Date.now() - 864e5; all.slice(0, 41).forEach((id) => (old[id] = t));
+          const fresh = new Set(all.slice(41)), runs = [];
+          for (let k = 0; k < 20; k++) { localStorage.setItem("pk_seen_at", JSON.stringify(old)); runs.push(buildDeck("std", 20).filter((q) => fresh.has(q.id)).length); }
+          localStorage.setItem("pk_seen_at", JSON.stringify(Object.fromEntries(all.map((id) => [id, Date.now()]))));
+          const full = buildDeck("std", 20);
+          let same = 0; for (let i = 1; i < full.length; i++) if (full[i].cat === full[i - 1].cat) same++;
+          return { avg: runs.reduce((a, b) => a + b, 0) / runs.length, min: Math.min(...runs), full: full.length, same, ids: new Set(full.map((q) => q.id)).size }; }""")
+        good = res['avg'] >= 16 and res['min'] < 20 and res['full'] == 20 and res['ids'] == 20 and res['same'] <= 2 and not errs
+        print(('✓' if good else '✗'), 'dobór według wag: niewidziane częściej, ograne nie zablokowane, działy rozłożone', res, errs)
         fail += not good
         # koniec czasu: odpowiedzi zostają do zaznaczenia, „Brak odpowiedzi” daje karę, nic nie dzieje się samo
         await pg.evaluate('localStorage.clear()'); await pg.clock.install(); await pg.goto(URL); await pg.wait_for_timeout(200)

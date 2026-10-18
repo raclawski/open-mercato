@@ -38,7 +38,17 @@ $("#nickChips").addEventListener("click", (e) => {
   const inp = $("#players"); inp.value = settings.players.concat(b.dataset.n).join(", ");
   inp.dispatchEvent(new Event("input"));
 });
-if (window.PK && PK.ready()) PK.nicks().then((l) => { knownNicks = l; renderNickChips(); });''')
+if (window.PK && PK.ready()) PK.nicks().then((l) => { knownNicks = l; renderNickChips(); });
+/* dobór pytań: historia graczy z listy (z bazy) pobiera się przy zmianie listy, przed startem gry */
+let histKey = null, histT = null;
+function prefetchHist() {
+  if (!window.PK || !PK.ready()) return;
+  const key = settings.players.map((n) => n.toLowerCase()).sort().join("|");
+  if (key === histKey) return;
+  histKey = key; clearTimeout(histT);
+  histT = setTimeout(() => PK.history(settings.players).then((h) => { if (histKey === key) setQHist(h); }), 400);
+}
+$("#players").addEventListener("input", prefetchHist); prefetchHist();''')
     s = rep(s, '.foot {', '''.nickchips { margin-top: 8px; }
 .nickchips .chip { min-height: 36px; padding: 5px 12px; font-weight: 500; font-size: .85rem; }
 .foot {''')
@@ -68,7 +78,8 @@ function tvGameRecord() {
     return { name, score: t[i], correct: st[i].ok, wrong: st[i].bad };
   });
   return { id: S.uid, mode: "teleturniej", level: S.level, code: null, questions_total: S.deck.length,
-           questions_played: Math.max(1, S.log.filter(Boolean).length), penalty: S.minus, players };
+           questions_played: Math.max(1, S.log.filter(Boolean).length), penalty: S.minus, players,
+           qids: S.deck.filter((q, i) => S.log[i]).map((q) => q.id) };
 }
 async function submitTv() {
   const note = $("#rankNote");

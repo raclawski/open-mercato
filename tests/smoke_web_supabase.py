@@ -258,6 +258,10 @@ async def main(dburl):
         chips_ok = await tv.input_value('#players') == 'Ola, Asia' and not await tv.locator('#nickChips [data-n="Asia"]').count()
         check(chips_ok and await tv.locator('#nickChips [data-n="Tomek"]').count() == 1, 'rejestr nicków: gracze z listy wyników jako podpowiedzi', await tv.input_value('#players'))
         await tv.fill('#players', orig)
+        seen_rows = psql(dburl, '-Atc', "select count(*) from public.pk_seen_q where name_key = 'asia'").strip()
+        await until(tv, '() => Object.keys(QHIST).length > 0')
+        hq = await tv.evaluate('() => { const ids = Object.keys(QHIST); return [ids.length, ids.every((k) => /^[a-z]+:[0-9a-z]+$/.test(k)), Math.max(...Object.values(QHIST))]; }')
+        check(int(seen_rows) > 0 and hq[1] and 0.9 <= hq[2] <= 2.01, 'dobór pytań: historia nicków zapisana w bazie i pobrana przed grą', f'{seen_rows} wierszy, {hq}')
         await tv.click('#btnStart')
         for i in range(20):
             await tv.click('#options .row >> nth=0')

@@ -195,6 +195,10 @@ window.PK = (() => {
         // błąd walidacji (kod 22023) nie zniknie przy ponowieniu, więc taką grę też usuwamy z kolejki
         const final = !error || error.code === "22023";
         if (final) save(OUTBOX, load(OUTBOX, []).filter((x) => x && x.id !== g.id));
+        // historia pytań dla nicków (dobór pytań); bez migracji 20261020090000 błąd jest pomijany
+        if (!error && Array.isArray(g.qids) && g.qids.length) {
+          try { await c.rpc("pk_mark_seen", { p_names: (g.players || []).map((p) => p && p.name), p_qids: g.qids }); } catch (e) { }
+        }
         last = error ? { ok: false, why: error.code === "22023" ? "rejected" : "network", id: g.id, error } : { ok: true, id: g.id, data };
         if (!final) break;
       }
@@ -221,6 +225,12 @@ window.PK = (() => {
   }
   const leaderboard = (o = {}) => rpc("pk_leaderboard", { p_level: o.level || null, p_mode: o.mode || null, p_days: o.days || null, p_limit: o.limit || 100 });
   const recentGames = (o = {}) => rpc("pk_recent_games", { p_limit: o.limit || 20, p_name: o.name || null });
+  /* Ile razy i jak niedawno te nicki widziały pytania: {qid: ogranie}, dla setQHist w mix.js. Bez bazy: {}. */
+  async function history(names) {
+    const list = (names || []).map((n) => String(n || "").trim()).filter(Boolean).slice(0, 16);
+    if (!list.length || !sb()) return {};
+    try { const h = await rpc("pk_history", { p_names: list }); return h && typeof h === "object" && !Array.isArray(h) ? h : {}; } catch (e) { return {}; }
+  }
   /* Rejestr nicków: każdy nick, który choć raz zagrał (z listy wyników, ostatnio grający najpierw).
      Kopia w pk_nicks odświeża się co 2 minuty (bez sieci podpowiedzi biorą się z niej), a nicki z gier
      zapisanych na tym telefonie trafiają do niej od razu. */
@@ -236,5 +246,5 @@ window.PK = (() => {
   if (configured()) setTimeout(() => { if (load(OUTBOX, []).length) flush(); }, 1500);
   window.addEventListener("online", () => { if (load(OUTBOX, []).length) flush(); });
 
-  return { configured, ready: () => !!sb(), whyOff, uuid, hostRoom, playerRoom, submitGame, flush, leaderboard, recentGames, nicks };
+  return { configured, ready: () => !!sb(), whyOff, uuid, hostRoom, playerRoom, submitGame, flush, leaderboard, recentGames, nicks, history };
 })();
