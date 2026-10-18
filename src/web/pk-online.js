@@ -202,7 +202,12 @@ window.PK = (() => {
     })().catch((e) => ({ ok: false, why: "network", error: e })).finally(() => { flushing = null; });
     return flushing;
   }
+  function rememberNicks(names) {
+    const c = load("pk_nicks", null), old = c && Array.isArray(c.list) ? c.list : [], low = new Set(names.map((n) => n.toLowerCase()));
+    save("pk_nicks", { at: c ? c.at : 0, list: names.concat(old.filter((n) => !low.has(String(n).toLowerCase()))) });
+  }
   async function submitGame(game) {
+    try { rememberNicks((game.players || []).map((p) => String(p.name || "").trim()).filter(Boolean)); } catch (e) { }
     queue(game);
     const r = await flush();
     const left = load(OUTBOX, []).some((g) => g && g.id === game.id);
@@ -216,9 +221,20 @@ window.PK = (() => {
   }
   const leaderboard = (o = {}) => rpc("pk_leaderboard", { p_level: o.level || null, p_mode: o.mode || null, p_days: o.days || null, p_limit: o.limit || 100 });
   const recentGames = (o = {}) => rpc("pk_recent_games", { p_limit: o.limit || 20, p_name: o.name || null });
+  /* Rejestr nicków: każdy nick, który choć raz zagrał (z listy wyników, ostatnio grający najpierw).
+     Kopia w pk_nicks odświeża się co 2 minuty (bez sieci podpowiedzi biorą się z niej), a nicki z gier
+     zapisanych na tym telefonie trafiają do niej od razu. */
+  async function nicks() {
+    const c = load("pk_nicks", null), fresh = c && Array.isArray(c.list) && Date.now() - c.at < 2 * 60 * 1000;
+    if (fresh || !sb()) return c && Array.isArray(c.list) ? c.list : [];
+    try {
+      const list = (await leaderboard({ limit: 500 })).slice().sort((a, b) => String(b.last_played).localeCompare(String(a.last_played))).map((r) => r.name);
+      save("pk_nicks", { at: Date.now(), list }); return list;
+    } catch (e) { return c && Array.isArray(c.list) ? c.list : []; }
+  }
 
   if (configured()) setTimeout(() => { if (load(OUTBOX, []).length) flush(); }, 1500);
   window.addEventListener("online", () => { if (load(OUTBOX, []).length) flush(); });
 
-  return { configured, ready: () => !!sb(), whyOff, uuid, hostRoom, playerRoom, submitGame, flush, leaderboard, recentGames };
+  return { configured, ready: () => !!sb(), whyOff, uuid, hostRoom, playerRoom, submitGame, flush, leaderboard, recentGames, nicks };
 })();

@@ -251,6 +251,13 @@ async def main(dburl):
         await tv.wait_for_selector('#screen-start:not([hidden])')
         shared = await tv.evaluate('() => document.querySelector("#levelSeg [data-v=pop]").getAttribute("aria-pressed") === "true" && document.querySelector("#countRange").value === "20"')
         check(shared and not resume, 'wybór trybu: jeden telefon, kategoria i liczba pytań przeniesione z Live')
+        orig = await tv.input_value('#players')
+        await tv.fill('#players', 'Ola')
+        await until(tv, '() => !document.querySelector("#nickChips").hidden && document.querySelector("#nickChips [data-n=Asia]")')
+        await tv.click('#nickChips [data-n="Asia"]')
+        chips_ok = await tv.input_value('#players') == 'Ola, Asia' and not await tv.locator('#nickChips [data-n="Asia"]').count()
+        check(chips_ok and await tv.locator('#nickChips [data-n="Tomek"]').count() == 1, 'rejestr nicków: gracze z listy wyników jako podpowiedzi', await tv.input_value('#players'))
+        await tv.fill('#players', orig)
         await tv.click('#btnStart')
         for i in range(20):
             await tv.click('#options .row >> nth=0')
@@ -291,6 +298,8 @@ async def main(dburl):
             pg = await page(await ctx(), 'live.html?kod=' + ocode)
             await pg.fill('#pname', n); await pg.click('#btnJoin')
             await pg.wait_for_selector('#s-player:not([hidden])', timeout=15000); op[n] = pg
+        await until(op['Kuba'], '() => ["Asia", "Tomek"].every((n) => [...document.querySelectorAll("#nickList option")].some((o) => o.value === n))')
+        check(True, 'rejestr nicków: podpowiedzi przy imieniu gracza')
         await until(oh, '() => document.querySelectorAll("#hsRoster .sc").length === 3')
         check('3 graczy' in await oh.inner_text('#btnHStart'), 'online: admin Ola liczy się jako gracz', await oh.inner_text('#btnHStart'))
         await oh.click('#btnHStart')

@@ -88,7 +88,7 @@ const fmtDate = (s) => { try { return new Date(s).toLocaleString("pl-PL", { day:
 const games = (n) => n === 1 ? "gra" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? "gry" : "gier";
 
 const params = new URLSearchParams(location.search);
-const F = Object.assign({ days: 30, level: "", mode: "", sort: "points" }, load("pk_board", {}));
+const F = Object.assign({ days: 0, level: "", mode: "", sort: "points" }, load("pk_board", {}));
 let who = params.get("gracz") || null;
 let reqId = 0;
 
@@ -129,7 +129,7 @@ async function loadBoard() {
   const id = ++reqId;
   $("#board").setAttribute("aria-busy", "true");
   try {
-    const r = await PK.leaderboard({ level: F.level, mode: F.mode, days: F.days || null, limit: 200 });
+    const r = await PK.leaderboard({ level: F.level, mode: F.mode, days: F.days || null, limit: 500 });
     if (id !== reqId) return;
     rows = r; showErr(null); renderBoard();
   } catch (e) { if (id === reqId) { rows = []; renderBoard(); showErr(e); } }

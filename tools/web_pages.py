@@ -20,6 +20,28 @@ def make_tv_web(doc):
             '<p class="copy-note" id="copyNote" aria-live="polite"></p>\n'
             '      <p class="copy-note" id="rankNote" aria-live="polite"></p>\n'
             '      <a class="btn ghost" href="wyniki.html">Lista wyników</a>')
+    # rejestr nicków: gracze z listy wyników jako chipy do dopisania
+    s = rep(s, '<p class="hint">Imiona oddzielone przecinkami, w kolejności siedzenia.</p>',
+            '<p class="hint">Imiona oddzielone przecinkami, w kolejności siedzenia.</p>\n'
+            '        <div class="chips nickchips" id="nickChips" aria-label="Gracze z listy wyników" hidden></div>')
+    s = rep(s, '$("#players").addEventListener("input", (e) => { settings.players = parsePlayers(e.target.value); saveSettings(); renderStarter(); });',
+            '''$("#players").addEventListener("input", (e) => { settings.players = parsePlayers(e.target.value); saveSettings(); renderStarter(); renderNickChips(); });
+let knownNicks = [];
+function renderNickChips() {
+  const have = new Set(settings.players.map((n) => n.toLowerCase())), box = $("#nickChips");
+  const list = knownNicks.filter((n) => !have.has(n.toLowerCase())).slice(0, 12);
+  box.hidden = !list.length;
+  box.innerHTML = list.map((n) => `<button type="button" class="chip" data-n="${esc(n)}">+ ${esc(n)}</button>`).join("");
+}
+$("#nickChips").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-n]"); if (!b) return;
+  const inp = $("#players"); inp.value = settings.players.concat(b.dataset.n).join(", ");
+  inp.dispatchEvent(new Event("input"));
+});
+if (window.PK && PK.ready()) PK.nicks().then((l) => { knownNicks = l; renderNickChips(); });''')
+    s = rep(s, '.foot {', '''.nickchips { margin-top: 8px; }
+.nickchips .chip { min-height: 36px; padding: 5px 12px; font-weight: 500; font-size: .85rem; }
+.foot {''')
     # jedna gra: tryb wybiera się na stronie startowej; ustawienia wspólne z Live (pk_common)
     s = rep(s, '<button type="button" class="btn" id="btnStart">Zaczynamy</button>',
             '<button type="button" class="btn" id="btnStart">Zaczynamy</button>\n      <a class="link-btn" href="index.html">← Zmień tryb</a>')

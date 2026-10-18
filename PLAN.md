@@ -14,18 +14,18 @@ Zmiana bazy (**SQL**) oznacza, że po wdrożeniu musisz wgrać nowy plik w Supab
 | A4 | Pasek czasu u gracza: czas na wciśnięcie (online) i na odpowiedź, widoczny dla wszystkich | 18.10.2026 |
 | A5 | Liczba pytań: suwak 1–100 z przyciskami −/+ | 18.10.2026 |
 | B0 | Stałe identyfikatory pytań: id z treści, stara pamięć telefonu przepisana | 18.10.2026 |
+| B1 | Rejestr nicków: podpowiedzi znanych nicków przy imieniu (gracz, admin, jeden telefon), lista wyników domyślnie „Zawsze” (do 500 nicków). Punkty sumują się po nicku jak dotąd. | 18.10.2026 |
 | A8 | Instrukcja gry z przyciskami zostaje na ekranie, dopóki prowadzący nie kliknie „Zaczynamy!” | 18.10.2026 |
 | C1 | Partia 1 bazy pytań: 5 nowych kategorii po 100 pytań (razem 944) | 18.10.2026 |
 | — | Naprawa listy wyników (funkcja czyszcząca nicki) | 18.10.2026 |
 
 ## Do zrobienia
 
-Kolejność ustalona przez Ciebie: B0 (✓), B1, B2. Pozycje dopisane później stoją za nimi, chyba że zdecydujesz inaczej.
+Kolejność ustalona przez Ciebie: B0 (✓), B1 (✓), B2. Pozycje dopisane później stoją za nimi, chyba że zdecydujesz inaczej.
 
 | ID | Usprawnienie | Wielkość | Status |
 |---|---|---|---|
-| B1 | Rejestr nicków: raz użyty nick zostaje na liście, kolejne gry dopisują mu punkty | M, SQL | następne |
-| B2 | Dobór pytań sterujący częstotliwością powtórek dla nicku | M, SQL | — |
+| B2 | Dobór pytań sterujący częstotliwością powtórek dla nicku | M, SQL | następne |
 | A9 | Wybór kategorii: najpierw „1 kategoria” albo „MIX”, potem bęben jako wielkie koło | M | — |
 | A7 | Przycisk „Następne pytanie”, żeby nie czekać na automatyczne przejście | S | — |
 | A6 | Pytanie za podwójne punkty (×2), z komunikatem dla graczy, włączane w lobby | M, SQL | — |

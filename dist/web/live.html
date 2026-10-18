@@ -340,7 +340,8 @@ a.btn { text-align: center; text-decoration: none; box-sizing: border-box; }
       </div>
       <div class="field">
         <label for="pname">Imię widoczne dla wszystkich</label>
-        <input type="text" id="pname" maxlength="20" autocomplete="off" placeholder="np. Asia">
+        <input type="text" id="pname" maxlength="20" autocomplete="off" placeholder="np. Asia" list="nickList">
+        <datalist id="nickList"></datalist>
       </div>
       <div class="chips" id="pnameChips" aria-label="Szybki wybór"></div>
       <p class="notice" id="joinErr" hidden></p>
@@ -409,7 +410,7 @@ a.btn { text-align: center; text-decoration: none; box-sizing: border-box; }
       </div>
       <div class="field" id="adminBox" hidden>
         <label for="adminName">Twoje imię w grze (admin pokoju też gra)</label>
-        <input type="text" id="adminName" maxlength="20" autocomplete="off" placeholder="np. Adam">
+        <input type="text" id="adminName" maxlength="20" autocomplete="off" placeholder="np. Adam" list="nickList">
       </div>
       <div class="field">
         <span class="label" id="lbl-level">Kategoria pytań</span>
@@ -3441,7 +3442,12 @@ $("#btnBack1").addEventListener("click", () => location.assign("index.html"));
 $("#btnBack2").addEventListener("click", () => { if (room && room.close) room.close(); room = null; role = null; save("pkl_role", null); setPresence({ role: null, g: null, ph: null }); location.assign("index.html"); });
 
 /* ---------- start ---------- */
+function fillNicks() {
+  if (!window.PK || !PK.ready()) return;
+  PK.nicks().then((list) => { $("#nickList").innerHTML = list.map((n) => `<option value="${esc(n)}"></option>`).join(""); });
+}
 function boot() {
+  fillNicks();
   const q = new URLSearchParams(location.search).get("kod");
   if (q) save("pkw_code", q.toUpperCase().replace(/[^A-Z0-9]/g, ""));
   const tryb = new URLSearchParams(location.search).get("tryb");

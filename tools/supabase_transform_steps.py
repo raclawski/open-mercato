@@ -98,6 +98,18 @@ src = rep(src, '''<p class="eyebrow hot">Prowadzący</p>
       <p class="conn" id="connHS">''', '''<p class="eyebrow hot">Przyciski na telefonach · prowadzący</p>
       <p class="conn" id="connHS">''')
 
+# rejestr nicków: podpowiedzi z listy wyników przy imieniu gracza i admina
+src = rep(src, '<input type="text" id="pname" maxlength="20" autocomplete="off" placeholder="np. Asia">',
+          '<input type="text" id="pname" maxlength="20" autocomplete="off" placeholder="np. Asia" list="nickList">\n        <datalist id="nickList"></datalist>')
+src = rep(src, '<input type="text" id="adminName" maxlength="20" autocomplete="off" placeholder="np. Adam">',
+          '<input type="text" id="adminName" maxlength="20" autocomplete="off" placeholder="np. Adam" list="nickList">')
+src = rep(src, 'function boot() {', '''function fillNicks() {
+  if (!window.PK || !PK.ready()) return;
+  PK.nicks().then((list) => { $("#nickList").innerHTML = list.map((n) => `<option value="${esc(n)}"></option>`).join(""); });
+}
+function boot() {
+  fillNicks();''')
+
 # poziom, liczba pytań i kara są wspólne dla obu trybów (pk_common), czas na odpowiedź nie
 src = rep(src, 'let settings = Object.assign({ level: "pro", count: 30, time: 10, minus: 1, mode: "online" }, load("pkl_settings2", {}));',
           'let settings = Object.assign({ level: "pro", count: 30, time: 10, minus: 1, mode: "online" }, load("pkl_settings2", {}), load("pk_common", {}));')
