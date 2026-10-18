@@ -7,3 +7,8 @@ uzywki.js
 prawo-spolek.js
 taylor-swift.js
 jaki-to-wydzial.js
+telewizja.js
+historia-polski.js
+geografia.js
+sport.js
+literatura.js

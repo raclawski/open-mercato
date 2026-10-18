@@ -11,6 +11,7 @@ src/templates/teleturniej.html   gra na jednym telefonie (bez zależności)
 src/templates/live-claude.html   gra z przyciskami przez capability `room` artefaktów Claude
 src/templates/shared/     wspólne części obu szablonów, wklejane przez build: bęben kategorii (drum.js, drum.css), losowanie pytań i tryb mieszany (mix.js)
 tools/build.py            składa dist/ z src/
+tools/add_category.py     dopisuje kategorię do LEVELS i bębna w obu szablonach oraz do ORDER.txt
 tools/web_transform*.py   zamienia live-claude w wersję bez logowania (PeerJS albo Supabase)
 tools/supabase_transform_steps.py  kroki tylko dla wersji Supabase (transport, zapis wyniku)
 tools/web_pages.py        teleturniej z zapisem wyniku, etykiety kategorii dla listy wyników
@@ -28,7 +29,7 @@ Szablony to pojedyncze pliki HTML+CSS+JS bez frameworka. Miejsce na pytania to z
 
 ```bash
 python3 tools/build.py              # buduje dist/
-node tests/validate_questions.js    # struktura wszystkich pytań
+node tests/validate_questions.js    # struktura wszystkich pytań, powtórzone pytania
 python3 tests/smoke_teleturniej.py  # rozgrywa 20 pytań na każdym poziomie
 python3 tests/smoke_live_claude.py  # prowadzący + 3 graczy na atrapie room (tests/mock_room.js)
 npm install && python3 tests/smoke_live_web.py   # wersja PeerJS na lokalnym serwerze peer
@@ -51,6 +52,8 @@ Testy wymagają Pythona z pakietem `playwright` (`pip install playwright && play
 - Kategoria to `{ name: "Dział", q: [...] }`. Pula to tablica 3–4 takich działów.
 
 ## Jak dodać nową kategorię
+
+Najprościej: utwórz plik z pytaniami i uruchom `python3 tools/add_category.py klucz plik.js BANK_NAZWA "Etykieta" "Opis pod bębnem." [--after klucz]`. Skrypt robi kroki 1–2 w obu szablonach i nic nie zmienia, gdy kategoria już jest. Ręcznie:
 
 1. Utwórz `src/questions/nazwa.js` z `const BANK_NAZWA = [...]` i dopisz plik na końcu `ORDER.txt`.
 2. W **obu** szablonach (`teleturniej.html` i `live-claude.html`):

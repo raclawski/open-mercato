@@ -237,6 +237,11 @@ details.review summary { cursor: pointer; font-weight: 600; }
             <button type="button" data-v="uzw" class="hotbtn">Używki</button>
             <button type="button" data-v="ksh" class="hotbtn">Prawo spółek</button>
             <button type="button" data-v="ts" class="hotbtn">Taylor Swift</button>
+            <button type="button" data-v="tv" class="hotbtn">Telewizja i show</button>
+            <button type="button" data-v="hist" class="hotbtn">Historia Polski</button>
+            <button type="button" data-v="geo" class="hotbtn">Geografia i przyroda</button>
+            <button type="button" data-v="sport" class="hotbtn">Sport polski</button>
+            <button type="button" data-v="lit" class="hotbtn">Literatura polska</button>
           </div>
         </div>
         <p class="hint" id="levelHint"></p>
@@ -379,7 +384,12 @@ const LEVELS = {
   wydz: { label: "Jaki to wydział?", bank: BANK_WYDZ, hint: "Poziom niżej niż „Jaki to urząd?”: opis zadań, a gracze wskazują konkretny wydział, biuro, izbę albo jednostkę urzędu. Parlament, sądy, służby, skarbówka, IPN i sprawy obywatela." },
   uzw: { label: "Używki", bank: BANK_UZW, hint: "Bardzo trudne: historia, chemia, kultura i prawo alkoholu, tytoniu, kawy i narkotyków." },
   ksh: { label: "Prawo spółek", bank: BANK_KSH, hint: "Kodeks spółek handlowych i okolice: kapitały, większości, odpowiedzialność zarządu, P.S.A., KRS." },
-  ts: { label: "Taylor Swift", bank: BANK_TS, hint: "Albumy, rekordy, Eras Tour, „Taylor's Version”, koty i Travis Kelce. Bez cytowania tekstów piosenek." }
+  ts: { label: "Taylor Swift", bank: BANK_TS, hint: "Albumy, rekordy, Eras Tour, „Taylor's Version”, koty i Travis Kelce. Bez cytowania tekstów piosenek." },
+  tv: { label: "Telewizja i show", bank: BANK_TV, hint: "Taniec z gwiazdami, teleturnieje, talent show i dawna telewizja." },
+  hist: { label: "Historia Polski", bank: BANK_HIST, hint: "Od Piastów do 1989 r., mniej znane fakty." },
+  geo: { label: "Geografia i przyroda", bank: BANK_GEO, hint: "Góry, rzeki, miasta, parki narodowe i zabytki Polski." },
+  sport: { label: "Sport polski", bank: BANK_SPORT, hint: "Piłka, skoki, igrzyska, siatkówka, żużel i himalaizm." },
+  lit: { label: "Literatura polska", bank: BANK_LIT, hint: "Od Kochanowskiego do noblistów i Nagrody Nike." },
 };
 const DEFAULT_PLAYERS = ["Adam", "Zając", "Asia", "Tomek", "Julia"];
 const PLUS = 10;

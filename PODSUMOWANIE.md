@@ -1,6 +1,6 @@
 # Postaw Krzyżyk: podsumowanie projektu
 
-Teleturniej na telefon z pytaniami o polityce, prawie i popkulturze. Zaczęło się od prostego pub quizu, a skończyło na grze z przyciskami na telefonach graczy. Stan na 18 października 2026.
+Teleturniej na telefon z pytaniami o polityce, prawie, popkulturze, historii, sporcie i literaturze. Zaczęło się od prostego pub quizu, a skończyło na grze z przyciskami na telefonach graczy. Stan na 18 października 2026.
 
 ## Wersje gry
 
@@ -32,7 +32,7 @@ Teleturniej na telefon z pytaniami o polityce, prawie i popkulturze. Zaczęło s
 
 ## Kategorie (poziomy pytań)
 
-Razem **444 pytania**. Każda gra losuje pytania, najpierw te, których jeszcze nie było (pamięć w `localStorage`).
+Razem **944 pytania** (cel: 5000 w 20 kategoriach, pytania dochodzą partiami po 500). Każda gra losuje pytania, najpierw te, których jeszcze nie było (pamięć w `localStorage`).
 
 | Przycisk | Plik | Pytań | Zawartość |
 |---|---|---|---|
@@ -45,6 +45,11 @@ Razem **444 pytania**. Każda gra losuje pytania, najpierw te, których jeszcze 
 | Prawo spółek | `prawo-spolek.js` | 37 | KSH: spółki osobowe, sp. z o.o., S.A. i P.S.A., KRS i różności |
 | Jaki to wydział? | `jaki-to-wydzial.js` | 47 | Poziom niżej niż „Jaki to urząd?”: wydziały, biura, izby i jednostki urzędów. Parlament, prezydent i rząd, sądy i rejestry, służby, skarbówka i IPN, sprawy obywatela |
 | Taylor Swift | `taylor-swift.js` | 36 | Albumy, rekordy i nagrody, biznes i prawa do nagrań, życie i fani. Bez cytowania tekstów piosenek |
+| Telewizja i show | `telewizja.js` | 100 | „Taniec z gwiazdami”, teleturnieje, talent show i reality, seriale i dawna telewizja |
+| Historia Polski | `historia-polski.js` | 100 | Piastowie i Jagiellonowie, Rzeczpospolita Obojga Narodów, rozbiory i XIX wiek, 1918–1989 |
+| Geografia i przyroda | `geografia.js` | 100 | Góry i wody, miasta i regiony, parki i przyroda, zabytki i UNESCO |
+| Sport polski | `sport.js` | 100 | Piłka nożna, sporty zimowe, igrzyska i lekkoatletyka, inne dyscypliny |
+| Literatura polska | `literatura.js` | 100 | Od Kochanowskiego do romantyzmu, pozytywizm i Młoda Polska, dwudziestolecie i wojna, po 1945 r. |
 
 ## Historia zmian
 
@@ -59,6 +64,7 @@ Razem **444 pytania**. Każda gra losuje pytania, najpierw te, których jeszcze 
 9. Wersja Live bez logowania na PeerJS, jako plik do hostingu.
 10. Kategorie „Jaki to urząd?”, „Używki”, „Prawo spółek (KSH)” i „Taylor Swift”.
 11. Serwis na Vercel + Supabase: gra Live przez Supabase Realtime (zamiast połączeń telefon–telefon), odporna na odświeżenie strony i chwilowy brak sieci; lista wyników z rankingiem (okres, kategoria, tryb, sortowanie), ostatnimi grami i historią gracza; strona startowa z czołówką.
+17. Baza pytań, partia 1 (500 pytań): pięć nowych kategorii po 100 pytań. Trudne fakty z polskim kontekstem; wyniki programów, medale i nagrody z ostatnich lat sprawdzone w sieci. Walidator wyłapuje też powtórzone pytania. Nowe kategorie dodaje `tools/add_category.py`.
 16. Online bez prowadzącego: admin pokoju konfiguruje grę, gra razem z innymi i nie widzi odpowiedzi z góry. Gra sama daje start, ocenia, robi odbicie i przechodzi dalej. Przycisk jest pod pytaniem, a tabela wyników na koniec pokazuje się wszystkim graczom (też w wersji offline). Lista wyników przyjmuje każdą grę: baza porządkuje dane zamiast je odrzucać (migracja `20261019090000_ranking_accept_all.sql`).
 15. Kategoria „Jaki to wydział?” (47 pytań). Fakty z ostatnich lat sprawdzone w sieci; pominięte jednostki w trakcie zmian (CBŚP i CBZC, które Policja łączy w 2026 r. w Narodowe Biuro Śledcze, oraz COI).
 14. Tryb mieszany („Mieszane” na bębnie): pytania z kilku wybranych kategorii w jednej grze, po równo i na zmianę. Działa w obu trybach i na liście wyników.
@@ -67,7 +73,7 @@ Razem **444 pytania**. Każda gra losuje pytania, najpierw te, których jeszcze 
 
 ## Co sprawdzono
 
-- **Struktura wszystkich 397 pytań**: każde ma 4 różne odpowiedzi, poprawny indeks i wyjaśnienie (`tests/validate_questions.js`).
+- **Struktura wszystkich pytań**: każde ma 4 różne odpowiedzi, poprawny indeks i wyjaśnienie, bez powtórzeń między kategoriami (`tests/validate_questions.js`).
 - **Rozgrywka teleturnieju**: na każdym z 8 poziomów rozegrano grę od początku do końca w przeglądarce, bez błędów JS (`tests/smoke_teleturniej.py`).
 - **Live w Claude**: prowadzący i 3 graczy na atrapie `room`. Sprawdzono falstart, sygnał, kolejność, odbicie i punkty (`tests/smoke_live_claude.py`).
 - **Live bez logowania**: prowadzący i 2 graczy w osobnych przeglądarkach na lokalnym serwerze PeerJS (`tests/smoke_live_web.py`).
@@ -84,7 +90,7 @@ Razem **444 pytania**. Każda gra losuje pytania, najpierw te, których jeszcze 
 
 - Live w Claude działa tylko dla zalogowanych osób z dostępem do artefaktu. Do gry ze znajomymi lepsza jest wersja bez logowania.
 - Wersja bez logowania ładuje PeerJS z unpkg.com i łączy się przez publiczny broker PeerJS. Dla pewności można postawić własny serwer `peer` i ustawić `window.PK_PEER_OPTS`.
-- Wpis kategorii (`LEVELS`) i przycisk poziomu są osobno w każdym szablonie, więc nową kategorię trzeba dopisać w dwóch miejscach (instrukcja w `CLAUDE.md`).
+- Wpis kategorii (`LEVELS`) i przycisk poziomu są osobno w każdym szablonie, więc nową kategorię trzeba dopisać w dwóch miejscach. Robi to `tools/add_category.py` (instrukcja w `CLAUDE.md`).
 - Pomysły: mieszanie kilku kategorii w jednej grze, rundy tematyczne, tryb „TV” (duży ekran dla publiczności), zapis historii gier, edytor własnych pytań.
 
 ## Źródła użyte do weryfikacji
