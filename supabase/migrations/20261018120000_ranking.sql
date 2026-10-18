@@ -37,12 +37,13 @@ alter table public.pk_game_players enable row level security;
 revoke all on public.pk_games, public.pk_game_players from anon, authenticated;
 
 -- Nick: bez znaków sterujących i niewidocznych, przycięty, maks. 20 znaków (jak cleanName w grze).
+-- Znaki niewidoczne zapisane jako \uXXXX: wklejone dosłownie potrafią zniknąć przy kopiowaniu do SQL Editora i psuć wyrażenie.
 create or replace function public.pk_clean_name(p text)
 returns text
 language sql immutable
 set search_path = ''
 as $$
-  select left(btrim(regexp_replace(coalesce(p, ''), '[[:cntrl:]​-‏ -‮⁠-⁯﻿]', '', 'g')), 20)
+  select left(btrim(regexp_replace(coalesce(p, ''), '[[:cntrl:]\u200B-\u200F\u2028-\u202E\u2060-\u206F\uFEFF]', '', 'g')), 20)
 $$;
 
 create or replace function public.pk_parse_players(p jsonb)

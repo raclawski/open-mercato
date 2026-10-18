@@ -92,6 +92,14 @@ begin
   if n <> 5 then raise exception 'FAIL: filtr dni %', n; end if;
 end $$;
 
+-- nick: znaki niewidoczne i sterujące znikają (wyrażenie w migracji jest zapisane samym ASCII)
+do $$
+begin
+  if public.pk_clean_name('  To' || chr(8203) || 'm' || chr(65279) || 'ek' || chr(8238) || chr(9) || ' ') <> 'Tomek' then
+    raise exception 'FAIL: pk_clean_name %', public.pk_clean_name('To' || chr(8203) || 'mek');
+  end if;
+end $$;
+
 -- ostatnie gry i historia gracza
 do $$
 declare r record; n int;

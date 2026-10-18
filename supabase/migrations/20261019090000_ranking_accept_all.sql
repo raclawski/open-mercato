@@ -8,7 +8,18 @@
 --   - powtórzone imiona (bez względu na wielkość liter) łączy w jednego gracza,
 --   - bierze najwyżej 16 graczy, pomija graczy bez imienia.
 -- Pomija tylko grę bez żadnego gracza z imieniem ({"ok": true, "skipped": true}).
--- Zapis jest dalej idempotentny po id gry. Wgraj ten plik po 20261018120000_ranking.sql (SQL Editor → Run).
+-- Zapis jest dalej idempotentny po id gry. Wgraj ten plik po 20261018120000_ranking.sql (SQL Editor → Run). Można go uruchomić ponownie.
+
+-- Poprawka pk_clean_name: w pierwszej migracji znaki niewidoczne były wpisane dosłownie. Przy wklejaniu
+-- do SQL Editora mogły zniknąć, a wtedy wyrażenie regularne jest błędne i każdy zapis gry kończy się błędem
+-- („nieprawidłowe dane graczy”). Tu są zapisane jako \uXXXX, więc kopiowanie ich nie psuje.
+create or replace function public.pk_clean_name(p text)
+returns text
+language sql immutable
+set search_path = ''
+as $$
+  select left(btrim(regexp_replace(coalesce(p, ''), '[[:cntrl:]\u200B-\u200F\u2028-\u202E\u2060-\u206F\uFEFF]', '', 'g')), 20)
+$$;
 
 create or replace function public.pk_int(p jsonb, p_default int default 0)
 returns int
