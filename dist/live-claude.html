@@ -338,6 +338,10 @@ details.review summary { cursor: pointer; font-weight: 600; }
         <button type="button" class="link-btn" id="btnLeave">Wyjdź</button>
       </div>
       <div class="sheet-body">
+        <div class="timer" id="pTimer" hidden aria-hidden="true">
+          <div class="timer-track"><span class="timer-fill" id="pTimerFill"></span></div>
+          <div class="timer-num" id="pTimerNum">10</div>
+        </div>
         <button type="button" class="buzz" id="buzz">Czekaj<small>na prowadzącego</small></button>
         <p class="big-status" id="pStatus" aria-live="assertive"></p>
         <div id="pQ" hidden style="display:grid;gap:10px">
@@ -2747,7 +2751,25 @@ function applyHostView(h) {
   clearInterval(P.cdTick); P.cdTick = null;
   if (h && h.ph === "count") P.cdTick = setInterval(renderPlayer, 200);
   if (h && prev && h.win && h.win !== prev.win && h.win === P.name) vibrate([80, 40, 80]);
+  syncPlayerTimer(h);
   renderPlayer();
+}
+/* Pasek czasu u gracza: prowadzący podaje, ile zostało (w ms), a telefon odlicza sam od chwili odebrania stanu. */
+function syncPlayerTimer(h) {
+  const tm = h && (h.ph === "armed" || h.ph === "locked") && h.tm && h.tm.T > 0 ? h.tm : null, el = $("#pTimer");
+  if (!tm) { clearInterval(P.tTick); P.tTick = null; P.tKey = null; el.hidden = true; return; }
+  const key = `${h.g}:${h.qn}:${h.arm}:${h.ph}`, end = performance.now() + Math.min(tm.left, tm.T);
+  if (key !== P.tKey || Math.abs(end - P.tEnd) > 700) { P.tKey = key; P.tEnd = end; P.tT = tm.T; }
+  el.hidden = false;
+  const tick = () => {
+    const left = Math.max(0, P.tEnd - performance.now());
+    $("#pTimerFill").style.transform = `scaleX(${left / P.tT})`;
+    $("#pTimerNum").textContent = Math.ceil(left / 1000);
+    el.classList.toggle("low", left <= 3000);
+    if (left <= 0) { clearInterval(P.tTick); P.tTick = null; }
+  };
+  tick();
+  if (!P.tTick) P.tTick = setInterval(tick, 100);
 }
 function isBlocked(h) { return !!(h && Array.isArray(h.blk) && h.blk.includes(P.name)); }
 function renderPlayer() {
@@ -3040,7 +3062,8 @@ function hostView() {
     q: Q && H.seen ? { t: clip(Q.q, 300), o: Q.o.map((o) => clip(o, 100)), c: Q.cat } : null,
     win: H.win, blk: H.blk.slice(0, 16), sc: sortedScores().slice(0, 16),
     rev: H.ph === "reveal" ? Q.c : null, ex: H.ph === "reveal" ? clip(Q.e, 360) : null, last: H.last,
-    fin: H.ph === "final" ? finalRows() : null, lv: LEVELS[H.level].label, admin: H.admin || null
+    fin: H.ph === "final" ? finalRows() : null, lv: LEVELS[H.level].label, admin: H.admin || null,
+    tm: (H.ph === "armed" || H.ph === "locked") && H.tEndAt && H.tT ? { T: H.tT, left: Math.max(0, H.tEndAt - Date.now()) } : null
   };
 }
 let SELF = { p: {}, at: 0 };
@@ -3116,8 +3139,9 @@ function startAnswerTimer() {
   stopTimer();
   const t = $("#timer");
   const T = H.time || (H.mode === "online" ? 30 : 0);
-  if (!T) { t.hidden = true; return; }
+  if (!T) { t.hidden = true; H.tEndAt = 0; return; }
   t.hidden = false;
+  H.tT = T * 1000; H.tEndAt = H.late ? Date.now() : Date.now() + T * 1000;
   if (H.late) { $("#timerFill").style.transform = "scaleX(0)"; $("#timerNum").textContent = "0"; t.classList.add("low"); return; }
   tEnd = performance.now() + T * 1000;
   const tick = () => {
@@ -3144,7 +3168,7 @@ function hostStart() {
 }
 function signal() {
   if (!H || !(H.ph === "q" || H.ph === "q2")) return;
-  H.arm++; H.win = null; H.order = []; H.late = false;
+  H.arm++; H.win = null; H.order = []; H.late = false; H.tEndAt = 0;
   if (H.mode === "online") { H.ph = "count"; H.cdAt = Date.now(); scheduleArm(); }
   else H.ph = "armed";
   saveH(); publishHost(); renderHost();
@@ -3155,7 +3179,7 @@ function scheduleArm() {
   clearTimeout(cdId);
   cdId = setTimeout(() => {
     cdId = null;
-    if (H && H.ph === "count") { H.ph = "armed"; H.seen = true; saveH(); publishHost(); renderHost(); }
+    if (H && H.ph === "count") { H.ph = "armed"; H.seen = true; H.tT = NOBUZZ_MS; H.tEndAt = Date.now() + NOBUZZ_MS; saveH(); publishHost(); renderHost(); }
   }, Math.max(0, CD_MS - (Date.now() - (H.cdAt || 0))));
 }
 function judge(ok, pick) {
