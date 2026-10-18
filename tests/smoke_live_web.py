@@ -37,7 +37,7 @@ async def main():
             for n in ['Asia', 'Tomek']:
                 pg = await newpage(); await pg.goto(url + '?kod=' + code); await pg.fill('#pname', n); await pg.click('#btnJoin')
                 await pg.wait_for_selector('#s-player:not([hidden])', timeout=20000); pl.append(pg)
-            await host.wait_for_timeout(800); await host.click('#btnHStart'); await host.wait_for_timeout(400)
+            await host.wait_for_timeout(800); await host.click('#modeSeg [data-v="offline"]'); await host.click('#btnHStart'); await host.wait_for_timeout(400)
             await host.click('[data-act="signal"]'); await host.wait_for_timeout(500)
             await pl[1].dispatch_event('#buzz', 'pointerdown'); await host.wait_for_timeout(600)
             who = await host.inner_text('#plateName')

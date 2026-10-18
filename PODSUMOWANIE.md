@@ -58,6 +58,7 @@ Razem **397 pytań**. Każda gra losuje pytania, najpierw te, których jeszcze n
 9. Wersja Live bez logowania na PeerJS, jako plik do hostingu.
 10. Kategorie „Jaki to urząd?”, „Używki”, „Prawo spółek (KSH)” i „Taylor Swift”.
 11. Serwis na Vercel + Supabase: gra Live przez Supabase Realtime (zamiast połączeń telefon–telefon), odporna na odświeżenie strony i chwilowy brak sieci; lista wyników z rankingiem (okres, kategoria, tryb, sortowanie), ostatnimi grami i historią gracza; strona startowa z czołówką.
+13. Dwie wersje gry z przyciskami. Online: odliczanie 3…2…1, potem pytanie i przycisk na wszystkich telefonach. Offline: prowadzący czyta pytanie i daje sygnał, gracze widzą tylko przycisk, a pytanie dopiero po wciśnięciu. W obu odpowiadający klika odpowiedź na swoim telefonie i gra sama liczy punkty. Koniec czasu niczego nie ocenia: decyduje prowadzący.
 12. Jedna gra w serwisie: na starcie wybór trybu (jeden telefon albo przyciski na telefonach), potem ekran ustawień wybranego trybu. Kategoria, liczba pytań i kara przechodzą między trybami.
 
 ## Co sprawdzono

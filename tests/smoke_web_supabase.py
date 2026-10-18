@@ -88,6 +88,7 @@ async def main(dburl):
         await host.wait_for_selector('#s-hsetup:not([hidden])', timeout=15000)
         check('tryb=prowadzacy' in host.url, 'wybór trybu: przyciski na telefonach → ustawienia prowadzącego')
         await host.click('#levelSeg [data-v="pop"]'); await host.click('#countSeg [data-v="20"]'); await host.click('#timeSeg [data-v="5"]')
+        await host.click('#modeSeg [data-v="offline"]')  # główny scenariusz: offline; online na końcu testu
         code = (await host.inner_text('#hsCode')).strip()
         check(len(code) == 4 and (await host.inner_text('#joinUrl')).endswith('?kod=' + code), 'gra utworzona, kod i link', code)
 
@@ -125,19 +126,25 @@ async def main(dburl):
         # --- pytanie 1: sygnał, Tomek pierwszy, dobrze ---
         await host.click('#btnHStart')
         await host.wait_for_selector('#s-host:not([hidden])')
-        await until(players['Asia'], '() => !document.querySelector("#pQ").hidden')
+        await until(players['Asia'], '() => /Pytanie 1 z/.test(document.querySelector("#pQnum").textContent)')
+        check(await players['Asia'].evaluate('() => document.querySelector("#pQ").hidden'), 'offline: przed wciśnięciem gracze nie widzą pytania')
         await host.click('[data-act="signal"]')
         await until(players['Tomek'], '() => document.querySelector("#buzz").classList.contains("armed")')
         await players['Tomek'].dispatch_event('#buzz', 'pointerdown')
         await plate(host, 'Tomek')
+        await until(players['Asia'], '() => !document.querySelector("#pQ").hidden && !document.querySelector("#pOpts button")')
+        await until(players['Tomek'], '() => document.querySelectorAll("#pOpts button[data-i]").length === 4')
+        check(True, 'offline: po wciśnięciu wszyscy widzą pytanie, Tomek ma odpowiedzi do kliknięcia')
         # koniec czasu: nic się samo nie ocenia, prowadzący nadal przyznaje punkty
         await host.clock.fast_forward(6000)
         await until(host, '() => document.querySelector("#plateLbl").textContent.startsWith("Czas minął")')
         late_ok = await host.is_visible('[data-act="good"]') and await host.is_visible('[data-act="bad"]') and (await host.inner_text('#plateName')) == 'Tomek'
-        check(late_ok, 'po końcu czasu prowadzący nadal ma „Dobrze” i „Źle”', await host.inner_text('#plateLbl'))
-        await host.click('[data-act="good"]')
+        check(late_ok, 'po końcu czasu prowadzący nadal może ocenić („Dobrze”, „Źle”)', await host.inner_text('#plateLbl'))
+        right = await host.evaluate('() => H.deck[H.i].c')
+        await players['Tomek'].click(f'#pOpts button[data-i="{right}"]')
+        await until(host, '() => H.ph === "reveal"')
         await until(players['Asia'], '() => document.querySelector("#pScores").textContent.includes("Tomek 10")')
-        check(True, 'pytanie 1: Tomek odpowiada po czasie, prowadzący daje +10, widać u Asi')
+        check(True, 'pytanie 1: Tomek klika dobrą odpowiedź na telefonie (po czasie), gra sama daje +10')
 
         # --- pytanie 2: falstart Asi, Tomek źle, odbicie bez Asi, odkrycie ---
         await host.click('[data-act="next"]')
@@ -259,6 +266,43 @@ async def main(dburl):
         home = await page(tc, 'index.html')
         await home.wait_for_selector('#topBox:not([hidden])', timeout=8000)
         check(await home.locator('#top li').count() == 5, 'strona główna: czołówka 30 dni')
+
+        # --- wersja online: odliczanie, potem pytanie i przycisk naraz, odpowiedź klikana na telefonie ---
+        oh = await page(await ctx(), 'index.html')
+        await oh.click('a.mode[href^="live"]'); await oh.wait_for_selector('#s-hsetup:not([hidden])', timeout=15000)
+        await oh.click('#modeSeg [data-v="online"]')
+        ocode = (await oh.inner_text('#hsCode')).strip()
+        op = {}
+        for n in ['Ola', 'Kuba']:
+            pg = await page(await ctx(), 'live.html?kod=' + ocode)
+            await pg.fill('#pname', n); await pg.click('#btnJoin')
+            await pg.wait_for_selector('#s-player:not([hidden])', timeout=15000); op[n] = pg
+        await until(oh, '() => document.querySelectorAll("#hsRoster .sc").length === 2')
+        await oh.click('#btnHStart'); await oh.wait_for_selector('#s-host:not([hidden])')
+        await until(op['Ola'], '() => /Pytanie 1 z/.test(document.querySelector("#pQnum").textContent)')
+        before = await op['Ola'].evaluate('() => document.querySelector("#pQ").hidden && document.querySelector("#buzz").disabled')
+        await oh.click('[data-act="signal"]')
+        await until(op['Ola'], '() => document.querySelector("#buzz").classList.contains("count")')
+        cd = (await op['Ola'].inner_text('#buzz')).strip()
+        cd_hidden = await op['Ola'].evaluate('() => document.querySelector("#pQ").hidden')
+        await until(op['Ola'], '() => document.querySelector("#buzz").classList.contains("armed") && !document.querySelector("#pQ").hidden', timeout=8000)
+        check(before and cd in ('3', '2', '1') and cd_hidden, 'online: przed startem i w odliczaniu pytanie ukryte, potem pytanie i przycisk naraz', cd)
+        await op['Kuba'].dispatch_event('#buzz', 'pointerdown')
+        await plate(oh, 'Kuba')
+        oc = await oh.evaluate('() => H.deck[H.i].c')
+        await until(op['Kuba'], '() => document.querySelectorAll("#pOpts button[data-i]").length === 4')
+        await op['Kuba'].click(f'#pOpts button[data-i="{(oc + 1) % 4}"]')
+        await until(oh, '() => H.ph === "q2"')
+        await until(op['Ola'], '() => document.querySelector("#pScores").textContent.includes("Kuba −1")')
+        await oh.click('[data-act="signal"]')
+        await until(op['Ola'], '() => document.querySelector("#buzz").classList.contains("armed")', timeout=8000)
+        await op['Ola'].dispatch_event('#buzz', 'pointerdown')
+        await plate(oh, 'Ola')
+        await until(op['Ola'], '() => document.querySelectorAll("#pOpts button[data-i]").length === 4')
+        await op['Ola'].click(f'#pOpts button[data-i="{oc}"]')
+        await until(oh, '() => H.ph === "reveal"')
+        await until(op['Kuba'], '() => document.querySelector("#pScores").textContent.includes("Ola 10")')
+        check(True, 'online: Kuba klika złą odpowiedź (−1), po odbiciu Ola klika dobrą (+10), gra sama liczy')
 
         check(not errs, 'brak błędów JS', errs[:3])
         await b.close()

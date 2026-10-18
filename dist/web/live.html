@@ -84,6 +84,7 @@ h1, h2, h3, h4 { font-family: var(--f-display); text-wrap: balance; margin: 0; }
 input[type="text"] { font: inherit; color: var(--ink); background: var(--paper); border: 1px solid var(--rule-strong); border-radius: 3px; padding: 11px 12px; width: 100%; }
 .seg { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--rule-strong); border-radius: 3px; overflow: hidden; }
 .seg.c3 { grid-template-columns: repeat(3, 1fr); }
+.seg.c2 { grid-template-columns: 1fr 1fr; }
 .seg.g2 { grid-template-columns: 1fr 1fr; }
 .seg.g2 button:nth-child(odd) { border-left: 0; }
 .seg.g2 button:nth-child(n+3) { border-top: 1px solid var(--rule); }
@@ -231,7 +232,7 @@ a.btn { text-align: center; text-decoration: none; box-sizing: border-box; }
 .buzz small { display: block; font-family: var(--f-mono); font-size: .72rem; font-weight: 500; letter-spacing: .06em; margin-top: 8px; text-transform: none; }
 .buzz.armed { background: var(--stamp); color: var(--paper); animation: pulse .8s ease-in-out infinite; }
 .buzz.pressed { background: var(--pen); color: var(--paper); }
-.buzz.win { background: var(--ok); color: var(--paper); }
+.buzz.win { background: var(--ok); color: var(--paper); font-size: clamp(1.2rem, 6.5vw, 2rem); padding: 26px; overflow-wrap: anywhere; }
 .buzz.blocked { background: var(--stamp-soft); color: var(--stamp); }
 .buzz:active { transform: scale(.97); }
 @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
@@ -250,6 +251,15 @@ a.btn { text-align: center; text-decoration: none; box-sizing: border-box; }
 .popts li { display: grid; grid-template-columns: 1.4rem 1fr; gap: 8px; padding: 8px 10px; border: 1px solid var(--rule); border-radius: 3px; font-size: .95rem; }
 .popts li b { font-family: var(--f-mono); color: var(--muted); }
 .popts li.good { background: var(--ok-soft); border-color: var(--ok); }
+.popts li.bad { background: var(--stamp-soft); border-color: var(--stamp); }
+.popts li.pick { padding: 0; border: 0; display: block; }
+.popts button { display: grid; grid-template-columns: 1.4rem 1fr; gap: 8px; width: 100%; padding: 12px 10px; min-height: 48px; border: 1.5px solid var(--pen); border-radius: 3px; background: var(--paper); color: var(--ink); font: inherit; font-size: 1rem; text-align: left; cursor: pointer; }
+.popts button b { font-family: var(--f-mono); color: var(--pen); }
+.popts button:hover { background: var(--hover); }
+.popts button[aria-pressed="true"] { background: var(--pen); color: var(--paper); }
+.popts button[aria-pressed="true"] b { color: var(--paper); }
+.popts button:disabled { cursor: default; }
+.buzz.count { background: var(--ink); color: var(--paper); font-size: clamp(4rem, 30vw, 7rem); }
 .codebox { display: grid; gap: 8px; padding: 14px; border: 1.5px dashed var(--rule-strong); border-radius: 3px; text-align: center; }
 .gamecode.big { font-family: var(--f-mono); font-weight: 600; font-size: 2.8rem; letter-spacing: .3em; margin: 0; line-height: 1.1; color: var(--stamp); }
 .joinurl { word-break: break-all; font-size: .82rem; margin: 0; font-family: var(--f-mono); }
@@ -291,8 +301,8 @@ a.btn { text-align: center; text-decoration: none; box-sizing: border-box; }
         <h1 id="t-role">Postaw<br>krzyżyk<span class="sub">Live</span></h1>
       </div>
       <ul class="rules">
-        <li><b>1</b><span>Prowadzący czyta pytanie i daje <strong>sygnał</strong>.</span></li>
-        <li><b>2</b><span>Kto pierwszy wciśnie przycisk na swoim telefonie, ten odpowiada. Wciśnięcie przed sygnałem to falstart i blokada w tym pytaniu.</span></li>
+        <li><b>1</b><span><strong>Online:</strong> odliczanie 3…2…1, potem pytanie i przycisk na każdym telefonie. <strong>Offline:</strong> prowadzący czyta pytanie i daje sygnał, gracze widzą tylko przycisk.</span></li>
+        <li><b>2</b><span>Kto pierwszy wciśnie, ten <strong>klika odpowiedź na swoim telefonie</strong>. W wersji offline wciśnięcie przed sygnałem to falstart i blokada w tym pytaniu.</span></li>
         <li><b>+10</b><span>Za dobrą odpowiedź.</span></li>
         <li><b class="neg" id="ruleMinus">−1</b><span>Za złą. Prowadzący może wtedy dać sygnał pozostałym.</span></li>
       </ul>
@@ -374,6 +384,13 @@ a.btn { text-align: center; text-decoration: none; box-sizing: border-box; }
         <span class="label">Gracze przy przyciskach</span>
         <div class="roster" id="hsRoster"></div>
         <p class="hint" id="hsRosterHint">Gracze otwierają ten sam link na swoich telefonach i wybierają „Jestem graczem”.</p>
+      </div>
+      <div class="field">
+        <span class="label" id="lbl-mode">Wersja gry</span>
+        <div class="seg c2" role="group" aria-labelledby="lbl-mode" id="modeSeg">
+          <button type="button" data-v="online">Online</button><button type="button" data-v="offline">Offline</button>
+        </div>
+        <p class="hint" id="modeHint"></p>
       </div>
       <div class="field">
         <span class="label" id="lbl-level">Kategoria pytań</span>
@@ -1496,7 +1513,7 @@ function setDiag(t) { const f = document.querySelector("#foot"); if (f) f.textCo
 function setPresence(patch) { if (room) room.presence(patch).catch(() => { }); }
 
 /* ============================ GRACZ ============================ */
-const P = { name: load("pkl_name", ""), host: null, armSeen: 0, pressedArm: null, fsKey: null, lastArm: null, lastPh: null };
+const P = { name: load("pkl_name", ""), host: null, armSeen: 0, pressedArm: null, fsKey: null, lastArm: null, lastPh: null, cdArm: null, cdEnd: 0, cdTick: null, ansKey: null, ansPick: null };
 
 function renderJoin() {
   $("#pname").value = P.name;
@@ -1539,6 +1556,9 @@ function playerOnPeers(ch) {
   const prev = P.host;
   P.host = h;
   if (h && h.ph === "armed" && h.arm !== P.lastArm) { P.armSeen = performance.now(); P.lastArm = h.arm; vibrate(60); }
+  if (h && h.ph === "count" && h.arm !== P.cdArm) { P.cdArm = h.arm; P.cdEnd = performance.now() + (typeof h.cd === "number" ? h.cd : CD_MS); }
+  clearInterval(P.cdTick); P.cdTick = null;
+  if (h && h.ph === "count") P.cdTick = setInterval(renderPlayer, 200);
   if (h && prev && h.win && h.win !== prev.win && h.win === P.name) vibrate([80, 40, 80]);
   renderPlayer();
 }
@@ -1551,21 +1571,33 @@ function renderPlayer() {
   $("#pScore").textContent = pts(mine ? mine[1] : 0);
   $("#pScores").innerHTML = sc.map((x) => `<span class="sc${x[0] === P.name ? " on" : ""}">${esc(x[0])} <b class="${x[1] < 0 ? "neg" : ""}">${num(x[1])}</b></span>`).join("");
   b.className = "buzz"; b.disabled = false;
-  const showQ = h && h.q && ["q", "q2", "armed", "locked", "reveal"].includes(h.ph);
+  const showQ = h && h.q && ["q", "q2", "count", "armed", "locked", "reveal"].includes(h.ph);
   $("#pQ").hidden = !showQ;
+  const myTurn = h && h.ph === "locked" && h.win === P.name, akey = h ? `${h.g}:${h.arm}` : "", sent = P.ansKey === akey;
   if (showQ) {
     $("#pQtext").textContent = h.q.t;
-    $("#pOpts").innerHTML = (h.q.o || []).map((o, i) => `<li class="${h.ph === "reveal" && h.rev === i ? "good" : ""}"><b>${LETTERS[i]}</b><span>${esc(o)}</span></li>`).join("");
+    $("#pOpts").innerHTML = (h.q.o || []).map((o, i) => myTurn
+      ? `<li class="pick"><button type="button" data-i="${i}" aria-pressed="${sent && P.ansPick === i}"${sent ? " disabled" : ""}><b>${LETTERS[i]}</b><span>${esc(o)}</span></button></li>`
+      : `<li class="${h.ph === "reveal" && h.rev === i ? "good" : sent && P.ansPick === i && h.ph !== "reveal" ? "bad" : ""}"><b>${LETTERS[i]}</b><span>${esc(o)}</span></li>`).join("");
     const ex = $("#pExplain"); ex.hidden = !(h.ph === "reveal" && h.ex); ex.textContent = h.ex || "";
   }
-  $("#pQnum").textContent = h && h.n ? `Pytanie ${h.qn + 1} z ${h.n}${h.q && h.q.c ? " · " + h.q.c : ""}` : "Czekamy na prowadzącego";
+  const cat = h && (h.cat || (h.q && h.q.c));
+  $("#pQnum").textContent = h && h.n ? `Pytanie ${h.qn + 1} z ${h.n}${cat ? " · " + cat : ""}${h.mode === "online" ? " · online" : ""}` : "Czekamy na prowadzącego";
   if (!h) { b.innerHTML = "Czekaj<small>na prowadzącego</small>"; b.disabled = true; st.textContent = roomState === "off" ? "Brak połączenia z grą." : "Prowadzący jeszcze nie otworzył gry."; return; }
   if (h.ph === "lobby") { b.innerHTML = "Jesteś<small>w poczekalni</small>"; b.disabled = true; st.textContent = "Czekaj na start gry."; return; }
   if (h.ph === "final") { b.innerHTML = "Koniec<small>gry</small>"; b.disabled = true; const top = sc[0]; st.textContent = top ? `Wygrywa ${top[0]} (${pts(top[1])})` : "Koniec gry"; return; }
   const blocked = isBlocked(h);
+  const online = h.mode === "online";
   if (h.ph === "q" || h.ph === "q2") {
     if (blocked) { b.className = "buzz blocked"; b.innerHTML = "Blokada<small>w tym pytaniu</small>"; st.textContent = h.ph === "q2" ? "Odbicie dla pozostałych." : ""; }
+    else if (online) { b.innerHTML = "Czekaj<small>na start pytania</small>"; b.disabled = true; st.textContent = h.ph === "q2" ? "Za chwilę odbicie dla pozostałych!" : "Prowadzący zaraz zacznie."; }
     else { b.innerHTML = "Czekaj<small>na sygnał</small>"; st.textContent = h.ph === "q2" ? "Za chwilę sygnał dla pozostałych!" : "Prowadzący czyta pytanie."; }
+    return;
+  }
+  if (h.ph === "count") {
+    const left = Math.max(0, P.cdEnd - performance.now());
+    if (blocked) { b.className = "buzz blocked"; b.innerHTML = "Blokada<small>w tym pytaniu</small>"; st.textContent = ""; }
+    else { b.className = "buzz count"; b.textContent = String(Math.max(1, Math.ceil(left / 1000))); b.disabled = true; st.textContent = "Uwaga…"; }
     return;
   }
   if (h.ph === "armed") {
@@ -1575,7 +1607,7 @@ function renderPlayer() {
     return;
   }
   if (h.ph === "locked") {
-    if (h.win === P.name) { b.className = "buzz win"; b.innerHTML = "Odpowiadasz!<small>powiedz odpowiedź na głos</small>"; st.textContent = ""; }
+    if (h.win === P.name) { b.className = "buzz win"; b.disabled = true; b.innerHTML = sent ? `Wysłano: ${LETTERS[P.ansPick]}<small>czekaj na wynik</small>` : "Odpowiadasz!<small>kliknij odpowiedź poniżej</small>"; st.textContent = sent ? "" : "Wybierz odpowiedź!"; }
     else { b.innerHTML = "Odpowiada<small>" + esc(h.win || "") + "</small>"; b.disabled = true; st.textContent = `Odpowiada ${h.win || ""}`; }
     return;
   }
@@ -1597,7 +1629,7 @@ function pressBuzz() {
     setPresence({ buzz: { g: h.g, a: h.arm, rt: Math.round(performance.now() - P.armSeen) } });
     vibrate(30);
     renderPlayer();
-  } else if (h.ph === "q" || h.ph === "q2") {
+  } else if ((h.ph === "q" || h.ph === "q2") && h.mode !== "online") {
     const fk = `${h.g}:${h.qn}:${h.arm}`;
     if (P.fsKey === fk) return;
     P.fsKey = fk;
@@ -1606,11 +1638,21 @@ function pressBuzz() {
     $("#pStatus").textContent = "Falstart! Blokada w tym pytaniu.";
   }
 }
+$("#pOpts").addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-i]"), h = P.host;
+  if (!btn || !h || role !== "player" || h.ph !== "locked" || h.win !== P.name) return;
+  const key = `${h.g}:${h.arm}`;
+  if (P.ansKey === key) return;
+  P.ansKey = key; P.ansPick = +btn.dataset.i;
+  setPresence({ ans: { g: h.g, a: h.arm, i: P.ansPick } });
+  vibrate(30); renderPlayer();
+});
 $("#buzz").addEventListener("pointerdown", (e) => { e.preventDefault(); pressBuzz(); });
 $("#buzz").addEventListener("keydown", (e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); pressBuzz(); } });
 
 /* ============================ PROWADZĄCY ============================ */
-let settings = Object.assign({ level: "pro", count: 30, time: 10, minus: 1 }, load("pkl_settings2", {}), load("pk_common", {}));
+let settings = Object.assign({ level: "pro", count: 30, time: 10, minus: 1, mode: "online" }, load("pkl_settings2", {}), load("pk_common", {}));
+if (!["online", "offline"].includes(settings.mode)) settings.mode = "online";
 if (![1, 5, 10].includes(settings.minus)) settings.minus = 1;
 if (!LEVELS[settings.level]) settings.level = "pro";
 let H = load("pkl_host", null);
@@ -1682,7 +1724,7 @@ function bindSeg(id, key, isNum) {
     settings[key] = isNum ? +b.dataset.v : b.dataset.v; save("pkl_settings2", settings); save("pk_common", { level: settings.level, count: settings.count, minus: settings.minus }); renderHostSetup();
   });
 }
-bindSeg("levelSeg", "level", false); initDrum($("#levelSeg"), (v) => LEVELS[v].bank.reduce((s, c) => s + c.q.length, 0) + " pyt."); bindSeg("countSeg", "count", true); bindSeg("timeSeg", "time", true); bindSeg("minusSeg", "minus", true);
+bindSeg("modeSeg", "mode", false); bindSeg("levelSeg", "level", false); initDrum($("#levelSeg"), (v) => LEVELS[v].bank.reduce((s, c) => s + c.q.length, 0) + " pyt."); bindSeg("countSeg", "count", true); bindSeg("timeSeg", "time", true); bindSeg("minusSeg", "minus", true);
 
 function connectedPlayers() {
   if (!room) return [];
@@ -1698,7 +1740,14 @@ function rosterHTML(names, extra) {
     return `<span class="sc${online.includes(n) ? "" : " off"}${blk ? " blk" : ""}${extra && extra.win === n ? " on" : ""}">${esc(n)}${s !== null ? ` <b class="${s < 0 ? "neg" : ""}">${num(s)}</b>` : ""}</span>`;
   }).join("") || '<span class="hint">Nikt jeszcze nie dołączył.</span>';
 }
+const MODE_HINT = {
+  online: "Klikasz „Start”, gracze widzą odliczanie 3…2…1, a potem pytanie i przycisk. Kto pierwszy wciśnie, klika odpowiedź na swoim telefonie. Gra sama liczy punkty.",
+  offline: "Czytasz pytanie na głos i dajesz sygnał. Gracze widzą tylko przycisk. Kto pierwszy wciśnie, klika odpowiedź na swoim telefonie, a wszyscy widzą pytanie i odpowiedzi."
+};
+const CD_MS = 3000;
 function renderHostSetup() {
+  setSeg("modeSeg", settings.mode);
+  $("#modeHint").textContent = MODE_HINT[settings.mode];
   setSeg("levelSeg", settings.level); setSeg("countSeg", settings.count); setSeg("timeSeg", settings.time); setSeg("minusSeg", settings.minus);
   $("#levelHint").textContent = LEVELS[settings.level].hint;
   const names = connectedPlayers();
@@ -1733,14 +1782,15 @@ function publishHost() {
   const Q = H.deck[H.i];
   setPresence({
     role: "host", g: H.g, ph: H.ph, n: H.deck.length, qn: H.i, arm: H.arm,
-    q: Q ? { t: clip(Q.q, 300), o: Q.o.map((o) => clip(o, 100)), c: Q.cat } : null,
+    mode: H.mode || "offline", cat: Q ? Q.cat : null, cd: H.ph === "count" ? Math.max(0, CD_MS - (Date.now() - (H.cdAt || 0))) : 0,
+    q: Q && H.seen ? { t: clip(Q.q, 300), o: Q.o.map((o) => clip(o, 100)), c: Q.cat } : null,
     win: H.win, blk: H.blk.slice(0, 16), sc: sortedScores().slice(0, 16),
     rev: H.ph === "reveal" ? Q.c : null, ex: H.ph === "reveal" ? clip(Q.e, 360) : null, last: H.last
   });
 }
 function hostOnPeers(ch) {
   if (!H || H.ph === "lobby" || !H.deck) { if (!$("#s-hsetup").hidden) renderHostSetup(); return; }
-  let changed = false;
+  let changed = false, pick = null;
   const cands = [];
   for (const p of ch.peers) {
     const pr = p.presence || {};
@@ -1751,6 +1801,8 @@ function hostOnPeers(ch) {
     if (fs && fs.g === H.g && fs.qn === H.i && fs.a === H.arm && (H.ph === "q" || H.ph === "q2") && !H.blk.includes(name)) {
       H.blk.push(name); H.fs.push(name); changed = true;
     }
+    const an = pr.ans;
+    if (an && H.ph === "locked" && name === H.win && an.g === H.g && an.a === H.arm && Number.isInteger(an.i) && an.i >= 0 && an.i < 4) pick = an.i;
     const bz = pr.buzz;
     if (bz && bz.g === H.g && bz.a === H.arm && (H.ph === "armed" || H.ph === "locked") && !H.blk.includes(name) && !H.order.some((o) => o.n === name)) {
       cands.push({ n: name, at: p.updatedAt, rt: typeof bz.rt === "number" ? bz.rt : 99999 });
@@ -1760,10 +1812,11 @@ function hostOnPeers(ch) {
     cands.sort((a, b) => a.at - b.at || a.rt - b.rt);
     const base = H.order.length ? H.order[0].at : cands[0].at;
     cands.forEach((c) => H.order.push({ n: c.n, at: c.at, d: Math.max(0, Math.round(c.at - base)) }));
-    if (H.ph === "armed" && !H.win) { H.win = H.order[0].n; H.ph = "locked"; startAnswerTimer(); }
+    if (H.ph === "armed" && !H.win) { H.win = H.order[0].n; H.ph = "locked"; H.seen = true; startAnswerTimer(); }
     changed = true;
   }
   if (changed) { saveH(); publishHost(); }
+  if (pick !== null && H.ph === "locked") { judge(pick === H.deck[H.i].c, pick); return; }
   renderHost();
 }
 function startAnswerTimer() {
@@ -1788,30 +1841,41 @@ function stopTimer() { if (tId) { clearInterval(tId); tId = null; } $("#timer").
 function hostStart() {
   const players = connectedPlayers();
   H = { uid: window.PK ? PK.uuid() : null, g: "g" + Date.now().toString(36), level: settings.level, minus: settings.minus, time: settings.time, deck: buildDeck(settings.level, settings.count),
-        i: 0, ph: "q", arm: 0, win: null, order: [], blk: [], fs: [], last: null, log: [], players };
+        i: 0, ph: "q", arm: 0, win: null, order: [], blk: [], fs: [], last: null, log: [], players, mode: settings.mode, seen: false };
   saveH(); publishHost(); renderHost(); show("s-host");
 }
 function signal() {
   if (!H || !(H.ph === "q" || H.ph === "q2")) return;
-  H.arm++; H.ph = "armed"; H.win = null; H.order = []; H.late = false;
+  H.arm++; H.win = null; H.order = []; H.late = false;
+  if (H.mode === "online") { H.ph = "count"; H.cdAt = Date.now(); scheduleArm(); }
+  else H.ph = "armed";
   saveH(); publishHost(); renderHost();
 }
-function judge(ok) {
+/* online: po odliczaniu pytanie i przycisk pojawiają się u wszystkich naraz */
+let cdId = null;
+function scheduleArm() {
+  clearTimeout(cdId);
+  cdId = setTimeout(() => {
+    cdId = null;
+    if (H && H.ph === "count") { H.ph = "armed"; H.seen = true; saveH(); publishHost(); renderHost(); }
+  }, Math.max(0, CD_MS - (Date.now() - (H.cdAt || 0))));
+}
+function judge(ok, pick) {
   if (!H || H.ph !== "locked" || !H.win) return;
   stopTimer();
   const name = H.win;
-  H.log.push({ qi: H.i, name, ok, to: !!H.late });
+  H.log.push({ qi: H.i, name, ok, to: !!H.late, pick: Number.isInteger(pick) ? pick : null });
   H.late = false;
-  H.last = { name, ok };
+  H.last = { name, ok, pick: Number.isInteger(pick) ? pick : null };
   if (ok) { H.ph = "reveal"; }
   else { H.blk.push(name); H.win = null; H.ph = "q2"; }
   saveH(); publishHost(); renderHost();
 }
-function reveal() { if (!H) return; stopTimer(); H.late = false; H.ph = "reveal"; if (!H.last || H.last.ok === false) H.last = H.last ? { name: H.last.name, ok: false } : null; saveH(); publishHost(); renderHost(); }
+function reveal() { if (!H) return; stopTimer(); clearTimeout(cdId); cdId = null; H.late = false; H.seen = true; H.ph = "reveal"; if (!H.last || H.last.ok === false) H.last = H.last ? { name: H.last.name, ok: false } : null; saveH(); publishHost(); renderHost(); }
 function nextQ() {
   if (!H) return;
   if (H.i >= H.deck.length - 1) { endGame(); return; }
-  H.i++; H.ph = "q"; H.win = null; H.order = []; H.blk = []; H.fs = []; H.last = null;
+  H.i++; H.ph = "q"; H.win = null; H.order = []; H.blk = []; H.fs = []; H.last = null; H.seen = false;
   saveH(); publishHost(); renderHost();
 }
 function endGame() { stopTimer(); H.ph = "final"; saveH(); publishHost(); renderFinal(sortedScores(), true); submitLive(); }
@@ -1858,24 +1922,31 @@ function renderHost() {
   fb.hidden = true;
   let acts = "";
   const blkTxt = H.blk.length ? ` Zablokowani: ${H.blk.join(", ")}.` : "";
+  const online = H.mode === "online";
+  if (H.ph === "count" && !cdId) scheduleArm();
   if (H.ph === "q") {
-    plateLbl.textContent = "Przeczytaj pytanie"; plateName.textContent = "Potem sygnał";
-    acts = `<button type="button" class="btn go" data-act="signal">Sygnał!</button><button type="button" class="btn ghost" data-act="reveal">Pomiń i pokaż odpowiedź</button>`;
+    plateLbl.textContent = online ? "Online · gracze jeszcze nie widzą pytania" : "Przeczytaj pytanie na głos";
+    plateName.textContent = online ? "Gotowi?" : "Potem sygnał";
+    acts = `<button type="button" class="btn go" data-act="signal">${online ? "Start: 3…2…1" : "Sygnał!"}</button><button type="button" class="btn ghost" data-act="reveal">Pomiń i pokaż odpowiedź</button>`;
     if (H.fs.length) acts = `<p class="notice">Falstart: ${esc(H.fs.join(", "))}. Blokada w tym pytaniu.</p>` + acts;
   } else if (H.ph === "q2") {
     plateLbl.textContent = `${H.last ? H.last.name + ": źle, −" + H.minus : "Odbicie"}`; plateName.textContent = "Odbicie?";
-    acts = `<p class="hint">${esc(blkTxt.trim())}</p><button type="button" class="btn go" data-act="signal">Sygnał dla pozostałych</button><button type="button" class="btn ghost" data-act="reveal">Pokaż odpowiedź</button>`;
+    acts = `<p class="hint">${esc(blkTxt.trim())}</p><button type="button" class="btn go" data-act="signal">${online ? "Start dla pozostałych: 3…2…1" : "Sygnał dla pozostałych"}</button><button type="button" class="btn ghost" data-act="reveal">Pokaż odpowiedź</button>`;
+  } else if (H.ph === "count") {
+    plateLbl.textContent = "Odliczanie na telefonach"; plateName.textContent = "3…2…1";
+    acts = "";
   } else if (H.ph === "armed") {
     plateLbl.textContent = "Sygnał dany"; plateName.textContent = "Czekam…";
     acts = `<button type="button" class="btn ghost" data-act="reveal">Nikt nie wcisnął: pokaż odpowiedź</button>`;
   } else if (H.ph === "locked") {
-    plateLbl.textContent = H.late ? "Czas minął · odpowiadał(a)" : "Odpowiada"; plateName.textContent = H.win;
-    acts = `<div class="btn-row"><button type="button" class="btn ok" data-act="good">Dobrze +10</button><button type="button" class="btn bad" data-act="bad">Źle −${H.minus}</button></div>`;
+    plateLbl.textContent = H.late ? "Czas minął · wybiera odpowiedź" : "Wybiera odpowiedź na telefonie"; plateName.textContent = H.win;
+    acts = `<p class="hint">Gra sama oceni odpowiedź klikniętą na telefonie. Gdy telefon gracza nie działa, oceń sam:</p><div class="btn-row"><button type="button" class="btn ghost" data-act="good">Dobrze +10</button><button type="button" class="btn ghost" data-act="bad">Źle −${H.minus}</button></div>`;
   } else if (reveal) {
     const l = H.last;
     plateLbl.textContent = l && l.ok ? "Punkt dla" : "Odpowiedź"; plateName.textContent = l && l.ok ? l.name : "Nikt nie trafił";
     fb.hidden = false; fb.className = "feedback " + (l && l.ok ? "good" : "bad");
     $("#hFbTitle").textContent = l && l.ok ? `${l.name}: dobrze! +${PLUS}` : `Poprawna: ${Q.o[Q.c]}`;
+    if (l && l.ok && Number.isInteger(l.pick)) $("#hFbTitle").textContent += ` (${LETTERS[l.pick]})`;
     $("#hFbExplain").textContent = Q.e;
     acts = `<button type="button" class="btn" data-act="next">${H.i >= H.deck.length - 1 ? "Zobacz wyniki" : "Następne pytanie"}</button>`;
   }
