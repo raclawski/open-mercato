@@ -24,6 +24,7 @@ Zmiana bazy (**SQL**) oznacza, że po wdrożeniu musisz wgrać nowy plik w Supab
 | A7 | Online: „Następne pytanie” po odkryciu, może kliknąć każdy | 18.10.2026 |
 | A11 | Ekran lekko zielony, gdy odpowiadasz; lekko szary, gdy odpowiada ktoś inny | 18.10.2026 |
 | A12 | Pozostali widzą, którą odpowiedź kliknął odpowiadający (✓/✗ z imieniem) | 18.10.2026 |
+| A9 | Wybór kategorii: „1 kategoria” (bęben) albo „MIX” (lista); bęben jako wielkie koło, dalsze wiersze spłaszczone, mniejsze i blade | 18.10.2026 |
 | A8 | Instrukcja gry z przyciskami zostaje na ekranie, dopóki prowadzący nie kliknie „Zaczynamy!” | 18.10.2026 |
 | C1 | Partia 1 bazy pytań: 5 nowych kategorii po 100 pytań (razem 944) | 18.10.2026 |
 | — | Naprawa listy wyników (funkcja czyszcząca nicki) | 18.10.2026 |
@@ -34,7 +35,6 @@ B0, B1 i B2 zrobione. Dalej kolejność do Twojej decyzji (propozycja: od góry)
 
 | ID | Usprawnienie | Wielkość | Status |
 |---|---|---|---|
-| A9 | Wybór kategorii: najpierw „1 kategoria” albo „MIX”, potem bęben jako wielkie koło | M | — |
 | A6 | Pytanie za podwójne punkty (×2), z komunikatem dla graczy, włączane w lobby | M, SQL | — |
 | B3 | Trzeci tryb online: „Kto pierwszy, ten lepszy” | L, SQL | — |
 | A3 | Kontrola wersji bazy: gra ostrzega, gdy migracja nie jest wgrana | S, SQL | — |

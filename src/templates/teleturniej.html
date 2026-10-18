@@ -225,9 +225,11 @@ details.review summary { cursor: pointer; font-weight: 600; }
 
       <div class="field">
         <span class="label" id="lbl-level">Kategoria pytań</span>
+        <div class="seg catmode" role="group" aria-label="Rodzaj gry" id="catMode">
+          <button type="button" data-v="one">1 kategoria</button><button type="button" data-v="mix" class="hotbtn">MIX</button>
+        </div>
         <div class="drum-wrap">
           <div class="drum" role="group" aria-labelledby="lbl-level" id="levelSeg">
-            <button type="button" data-v="mix" class="hotbtn">Mieszane</button>
             <button type="button" data-v="std">Umiarkowany</button>
             <button type="button" data-v="mega">Mega</button>
             <button type="button" data-v="pro" class="hotbtn">Ekspert PL</button>
@@ -426,7 +428,7 @@ function renderStarter() {
     ps.map((n, i) => `<button type="button" class="chip" data-s="${i}" aria-pressed="${settings.starter === i}">${esc(n)}</button>`).join("");
 }
 function renderStart() {
-  setSeg("levelSeg", settings.level);
+  setSeg("levelSeg", settings.level); syncCatMode(settings.level);
   setCount(settings.count);
   setSeg("timeSeg", settings.time);
   setSeg("minusSeg", settings.minus);
@@ -452,7 +454,7 @@ function bindSeg(id, key, num) {
     const nb = document.querySelector(`#${id} [data-v="${b.dataset.v}"]`); if (nb) nb.focus();
   });
 }
-bindSeg("levelSeg", "level", false); initDrum($("#levelSeg"), (v) => (v === MIX ? "kilka kat." : poolSize(v) + " pyt."));
+bindSeg("levelSeg", "level", false); initDrum($("#levelSeg"), (v) => poolSize(v) + " pyt."); initCatMode((v) => { settings.level = v; saveSettings(); renderStart(); });
 initMix($("#mixPick"), () => settings.mix, (sel) => { settings.mix = sel; saveSettings(); renderStart(); });
 initCount((n) => { settings.count = n; saveSettings(); }, renderStart);
 bindSeg("timeSeg", "time", true);

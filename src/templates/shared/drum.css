@@ -1,8 +1,9 @@
-/* bęben wyboru kategorii (src/templates/shared/drum.js): 5 widocznych wierszy, środkowy to wybór */
-.drum-wrap { --drum-row: 58px; position: relative; border: 1px solid var(--rule-strong); border-radius: 3px; background: var(--paper); overflow: hidden; }
+/* bęben wyboru kategorii (src/templates/shared/drum.js): wielkie koło, 7 widocznych wierszy, środkowy to wybór */
+.drum-wrap { --drum-row: 52px; position: relative; border: 1px solid var(--rule-strong); border-radius: 3px; background: var(--paper); overflow: hidden; }
 .drum-wrap::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: var(--drum-row); transform: translateY(-50%); background: var(--hover); border-block: 2px solid var(--ink); pointer-events: none; }
-.drum-wrap::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(var(--paper), transparent 34%, transparent 66%, var(--paper)); }
-.drum { position: relative; height: calc(var(--drum-row) * 5); overflow-y: auto; overscroll-behavior: contain; scroll-snap-type: y mandatory; padding-block: calc(var(--drum-row) * 2); scrollbar-width: none; outline-offset: -3px; }
+.drum-wrap::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(var(--paper), transparent 38%, transparent 62%, var(--paper)); }
+.drum-wrap[hidden] { display: none; }
+.drum { position: relative; height: calc(var(--drum-row) * 7); overflow-y: auto; overscroll-behavior: contain; scroll-snap-type: y mandatory; padding-block: calc(var(--drum-row) * 3); scrollbar-width: none; outline-offset: -3px; }
 .drum::-webkit-scrollbar { display: none; }
 .drum button { display: grid; grid-template-columns: 1.9rem minmax(0, 1fr) auto; align-items: center; gap: 14px; width: 100%; height: var(--drum-row); padding: 0 16px; border: 0; background: none; scroll-snap-align: center; cursor: pointer; color: var(--muted); text-align: left; font-family: var(--f-display); font-stretch: 85%; font-weight: 800; font-size: 1.35rem; line-height: 1.1; backface-visibility: hidden; transform-origin: 50% 50%; will-change: transform; }
 .drum .dl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -21,3 +22,6 @@
 .countpick .cstep { height: 2.6rem; border: 1px solid var(--rule-strong); border-radius: 3px; background: var(--paper); color: var(--ink); font-family: var(--f-mono); font-size: 1.2rem; cursor: pointer; }
 .countpick .cstep:active { background: var(--hover); }
 .countpick output { font-family: var(--f-mono); font-weight: 600; font-size: 1.3rem; text-align: right; font-variant-numeric: tabular-nums; }
+/* „1 kategoria” albo „MIX” nad bębnem */
+.seg.catmode { grid-template-columns: 1fr 1fr; margin-bottom: 10px; }
+.seg.catmode button { padding: 14px 6px; font-family: var(--f-display); font-stretch: 85%; font-weight: 800; font-size: 1.1rem; letter-spacing: .02em; }

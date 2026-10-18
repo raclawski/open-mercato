@@ -207,11 +207,12 @@ details.review summary { cursor: pointer; font-weight: 600; }
 @media (max-width: 440px) { .stamp { width: 7.6rem; } .stamp .s-num { font-size: 2.1rem; } .result { gap: 14px; } }
 @media (max-width: 360px) { .result { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; } .btn-row { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { .stamp { animation: none; } .row.marked .box path, .row { transition: none; } }
-/* bęben wyboru kategorii (src/templates/shared/drum.js): 5 widocznych wierszy, środkowy to wybór */
-.drum-wrap { --drum-row: 58px; position: relative; border: 1px solid var(--rule-strong); border-radius: 3px; background: var(--paper); overflow: hidden; }
+/* bęben wyboru kategorii (src/templates/shared/drum.js): wielkie koło, 7 widocznych wierszy, środkowy to wybór */
+.drum-wrap { --drum-row: 52px; position: relative; border: 1px solid var(--rule-strong); border-radius: 3px; background: var(--paper); overflow: hidden; }
 .drum-wrap::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: var(--drum-row); transform: translateY(-50%); background: var(--hover); border-block: 2px solid var(--ink); pointer-events: none; }
-.drum-wrap::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(var(--paper), transparent 34%, transparent 66%, var(--paper)); }
-.drum { position: relative; height: calc(var(--drum-row) * 5); overflow-y: auto; overscroll-behavior: contain; scroll-snap-type: y mandatory; padding-block: calc(var(--drum-row) * 2); scrollbar-width: none; outline-offset: -3px; }
+.drum-wrap::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(var(--paper), transparent 38%, transparent 62%, var(--paper)); }
+.drum-wrap[hidden] { display: none; }
+.drum { position: relative; height: calc(var(--drum-row) * 7); overflow-y: auto; overscroll-behavior: contain; scroll-snap-type: y mandatory; padding-block: calc(var(--drum-row) * 3); scrollbar-width: none; outline-offset: -3px; }
 .drum::-webkit-scrollbar { display: none; }
 .drum button { display: grid; grid-template-columns: 1.9rem minmax(0, 1fr) auto; align-items: center; gap: 14px; width: 100%; height: var(--drum-row); padding: 0 16px; border: 0; background: none; scroll-snap-align: center; cursor: pointer; color: var(--muted); text-align: left; font-family: var(--f-display); font-stretch: 85%; font-weight: 800; font-size: 1.35rem; line-height: 1.1; backface-visibility: hidden; transform-origin: 50% 50%; will-change: transform; }
 .drum .dl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -230,6 +231,9 @@ details.review summary { cursor: pointer; font-weight: 600; }
 .countpick .cstep { height: 2.6rem; border: 1px solid var(--rule-strong); border-radius: 3px; background: var(--paper); color: var(--ink); font-family: var(--f-mono); font-size: 1.2rem; cursor: pointer; }
 .countpick .cstep:active { background: var(--hover); }
 .countpick output { font-family: var(--f-mono); font-weight: 600; font-size: 1.3rem; text-align: right; font-variant-numeric: tabular-nums; }
+/* „1 kategoria” albo „MIX” nad bębnem */
+.seg.catmode { grid-template-columns: 1fr 1fr; margin-bottom: 10px; }
+.seg.catmode button { padding: 14px 6px; font-family: var(--f-display); font-stretch: 85%; font-weight: 800; font-size: 1.1rem; letter-spacing: .02em; }
 </style>
 </head>
 <body>
@@ -256,9 +260,11 @@ details.review summary { cursor: pointer; font-weight: 600; }
 
       <div class="field">
         <span class="label" id="lbl-level">Kategoria pytań</span>
+        <div class="seg catmode" role="group" aria-label="Rodzaj gry" id="catMode">
+          <button type="button" data-v="one">1 kategoria</button><button type="button" data-v="mix" class="hotbtn">MIX</button>
+        </div>
         <div class="drum-wrap">
           <div class="drum" role="group" aria-labelledby="lbl-level" id="levelSeg">
-            <button type="button" data-v="mix" class="hotbtn">Mieszane</button>
             <button type="button" data-v="std">Umiarkowany</button>
             <button type="button" data-v="mega">Mega</button>
             <button type="button" data-v="pro" class="hotbtn">Ekspert PL</button>
@@ -2619,7 +2625,7 @@ function renderStarter() {
     ps.map((n, i) => `<button type="button" class="chip" data-s="${i}" aria-pressed="${settings.starter === i}">${esc(n)}</button>`).join("");
 }
 function renderStart() {
-  setSeg("levelSeg", settings.level);
+  setSeg("levelSeg", settings.level); syncCatMode(settings.level);
   setCount(settings.count);
   setSeg("timeSeg", settings.time);
   setSeg("minusSeg", settings.minus);
@@ -2641,7 +2647,8 @@ function renderStart() {
    więc istniejąca obsługa (bindSeg, setSeg) działa bez zmian. Bęben tylko:
    - po zatrzymaniu przewijania klika wiersz, który stanął na środku,
    - po zmianie wyboru (kliknięcie, strzałki, ustawienia z pamięci) przewija go na środek,
-   - wygina wiersze jak na walcu (im dalej od środka, tym bardziej obrócone i bledsze). */
+   - układa wiersze na wielkim kole: im dalej od środka, tym bardziej obrócone (spłaszczone), mniejsze,
+     bliżej środka koła i bledsze; środkowy wiersz jest pełny i ostry. */
 function initDrum(el, meta) {
   const rows = [...el.querySelectorAll("button[data-v]")];
   const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -2650,13 +2657,16 @@ function initDrum(el, meta) {
   let cur = null, auto = false, endT = null, frame = 0;
   const mid = () => el.scrollTop + el.clientHeight / 2;
   const at = (b) => b.offsetTop + b.offsetHeight / 2;
+  const STEP = 20;  // stopnie koła na jeden wiersz
   function paint() {
     frame = 0;
-    const m = mid(), h = rows[0].offsetHeight || 1;
+    const m = mid(), h = rows[0].offsetHeight || 1, R = h / (STEP * Math.PI / 180);
     for (const b of rows) {
-      const d = (at(b) - m) / h;
-      b.style.transform = `perspective(560px) rotateX(${Math.max(-70, Math.min(70, -d * 21))}deg)`;
-      b.style.opacity = String(Math.max(0.22, 1 - Math.abs(d) * 0.27));
+      const d = (at(b) - m) / h, th = Math.max(-88, Math.min(88, d * STEP)), rad = th * Math.PI / 180;
+      // na kole wiersz stoi na wysokości R·sin(kąt), a nie d·h jak na liście: dosuwamy go do środka
+      const dy = R * Math.sin(rad) - d * h, sc = 1 - Math.min(0.24, Math.abs(d) * 0.08);
+      b.style.transform = `translateY(${dy.toFixed(1)}px) perspective(900px) rotateX(${(-th).toFixed(1)}deg) scale(${sc.toFixed(3)})`;
+      b.style.opacity = Math.abs(th) >= 88 ? "0" : String(Math.max(0.1, Math.pow(Math.cos(rad), 1.8)).toFixed(3));
     }
   }
   const nearest = () => { const m = mid(); return rows.reduce((a, b) => (Math.abs(at(b) - m) < Math.abs(at(a) - m) ? b : a)); };
@@ -2693,6 +2703,21 @@ function initDrum(el, meta) {
   // ukryty ekran nie ma wymiarów: wycentruj wybór, gdy bęben pojawi się na ekranie
   new ResizeObserver(() => { if (!el.clientHeight) return; if (cur) center(cur, false); paint(); }).observe(el);
   sync(false);
+}
+/* Rodzaj gry nad bębnem: „1 kategoria” (bęben) albo „MIX” (lista kategorii do zaznaczenia).
+   Ostatnia pojedyncza kategoria jest pamiętana (pk_cat1), żeby powrót z MIX wracał do niej. */
+function syncCatMode(level) {
+  const mix = level === MIX, wrap = $("#levelSeg").closest(".drum-wrap");
+  document.querySelectorAll("#catMode button").forEach((b) => b.setAttribute("aria-pressed", String((b.dataset.v === "mix") === mix)));
+  wrap.hidden = mix;
+  if (!mix && LEVELS[level] && LEVELS[level].bank) save("pk_cat1", level);
+}
+function initCatMode(setLevel) {
+  $("#catMode").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-v]"); if (!b) return;
+    const last = load("pk_cat1", null);
+    setLevel(b.dataset.v === "mix" ? MIX : LEVELS[last] && LEVELS[last].bank ? last : realLevels()[0]);
+  });
 }
 /* Losowanie pytań i tryb mieszany („Mieszane”, klucz `mix`): pytania z kilku kategorii w jednej grze.
    Kategorie z mieszanki dostają po równo pytań i przeplatają się (w każdej rundzie w losowej kolejności).
@@ -2810,7 +2835,7 @@ function bindSeg(id, key, num) {
     const nb = document.querySelector(`#${id} [data-v="${b.dataset.v}"]`); if (nb) nb.focus();
   });
 }
-bindSeg("levelSeg", "level", false); initDrum($("#levelSeg"), (v) => (v === MIX ? "kilka kat." : poolSize(v) + " pyt."));
+bindSeg("levelSeg", "level", false); initDrum($("#levelSeg"), (v) => poolSize(v) + " pyt."); initCatMode((v) => { settings.level = v; saveSettings(); renderStart(); });
 initMix($("#mixPick"), () => settings.mix, (sel) => { settings.mix = sel; saveSettings(); renderStart(); });
 initCount((n) => { settings.count = n; saveSettings(); }, renderStart);
 bindSeg("timeSeg", "time", true);

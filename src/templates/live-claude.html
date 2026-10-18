@@ -376,9 +376,11 @@ body.ans-other #s-player .sheet { filter: grayscale(1); opacity: .82; }
       </div>
       <div class="field">
         <span class="label" id="lbl-level">Kategoria pytań</span>
+        <div class="seg catmode" role="group" aria-label="Rodzaj gry" id="catMode">
+          <button type="button" data-v="one">1 kategoria</button><button type="button" data-v="mix" class="hotbtn">MIX</button>
+        </div>
         <div class="drum-wrap">
           <div class="drum" role="group" aria-labelledby="lbl-level" id="levelSeg">
-            <button type="button" data-v="mix" class="hotbtn">Mieszane</button>
             <button type="button" data-v="std">Umiarkowany</button>
             <button type="button" data-v="mega">Mega</button>
             <button type="button" data-v="pro" class="hotbtn">Ekspert PL</button>
@@ -742,7 +744,7 @@ function bindSeg(id, key, isNum) {
     settings[key] = isNum ? +b.dataset.v : b.dataset.v; saveSettings(); renderHostSetup();
   });
 }
-bindSeg("modeSeg", "mode", false); bindSeg("levelSeg", "level", false); initDrum($("#levelSeg"), (v) => (v === MIX ? "kilka kat." : poolSize(v) + " pyt."));
+bindSeg("modeSeg", "mode", false); bindSeg("levelSeg", "level", false); initDrum($("#levelSeg"), (v) => poolSize(v) + " pyt."); initCatMode((v) => { settings.level = v; saveSettings(); renderHostSetup(); });
 initMix($("#mixPick"), () => settings.mix, (sel) => { settings.mix = sel; saveSettings(); renderHostSetup(); }); initCount((n) => { settings.count = n; saveSettings(); }, () => renderHostSetup()); bindSeg("timeSeg", "time", true); bindSeg("minusSeg", "minus", true);
 
 function hostScreen() { return H && H.mode === "online" ? "s-player" : "s-host"; }
@@ -772,7 +774,7 @@ $("#adminName").addEventListener("input", (e) => { P.name = cleanName(e.target.v
 function renderHostSetup() {
   setSeg("modeSeg", settings.mode);
   $("#modeHint").textContent = MODE_HINT[settings.mode];
-  setSeg("levelSeg", settings.level); setCount(settings.count); setSeg("timeSeg", settings.time); setSeg("minusSeg", settings.minus);
+  setSeg("levelSeg", settings.level); syncCatMode(settings.level); setCount(settings.count); setSeg("timeSeg", settings.time); setSeg("minusSeg", settings.minus);
   $("#levelHint").textContent = LEVELS[settings.level].hint;
   renderMix($("#mixPick"), settings.level, settings.mix);
   const online = settings.mode === "online", admin = adminName();

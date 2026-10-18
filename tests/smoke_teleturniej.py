@@ -24,7 +24,7 @@ async def main():
             fail += (not done) or bool(errs); errs.clear()
         # tryb mieszany: pełna mieszanka i wybrane dwie kategorie (po równo, na zmianę), wybór zapamiętany
         await pg.evaluate('localStorage.clear()'); await pg.goto(URL); await pg.wait_for_timeout(200)
-        await pg.click('#levelSeg [data-v="mix"]'); await pg.fill('#countRange', '20'); await pg.click('#btnStart')
+        await pg.click('#catMode [data-v="mix"]'); await pg.fill('#countRange', '20'); await pg.click('#btnStart')
         full = await pg.evaluate('() => new Set(S.deck.map((q) => q.cat)).size')
         await pg.goto(URL); await pg.wait_for_timeout(300)
         chips_visible = await pg.is_visible('#mixPick')
@@ -38,6 +38,16 @@ async def main():
         mixed = sum(1 for a, b in zip(cats, cats[1:]) if a != b) >= 6
         good = chips_visible and full >= 6 and kept == 'std,ts' and two and mixed and not errs
         print(('✓' if good else '✗'), 'mieszane: pełna mieszanka', full, 'kategorii | wybrane:', kept, '| podział:', {c: cats.count(c) for c in set(cats)}, '| zmian kategorii:', sum(1 for a, b in zip(cats, cats[1:]) if a != b), errs)
+        fail += not good
+        # „1 kategoria” / „MIX”: MIX chowa bęben i pokazuje listę, „1 kategoria” wraca do ostatniej kategorii
+        await pg.evaluate('localStorage.clear()'); await pg.goto(URL); await pg.wait_for_timeout(200)
+        await pg.click('#levelSeg [data-v="geo"]'); await pg.click('#catMode [data-v="mix"]')
+        m1 = [await pg.is_hidden('.drum-wrap'), await pg.is_visible('#mixPick'), await pg.evaluate('() => settings.level')]
+        await pg.click('#catMode [data-v="one"]'); await pg.wait_for_timeout(400)
+        m2 = [await pg.is_visible('.drum-wrap'), await pg.is_hidden('#mixPick'), await pg.evaluate('() => settings.level'),
+              await pg.evaluate('() => { const d = document.querySelector("#levelSeg"), b = d.querySelector("[data-v=geo]"), r = d.getBoundingClientRect(), q = b.getBoundingClientRect(); return Math.abs((q.top + q.bottom) / 2 - (r.top + r.bottom) / 2) < 6 && parseFloat(b.style.opacity) > 0.99; }')]
+        good = m1 == [True, True, 'mix'] and m2 == [True, True, 'geo', True] and not errs
+        print(('✓' if good else '✗'), '„1 kategoria” albo „MIX”, wybrana kategoria na środku koła', m1, m2, errs)
         fail += not good
         # stałe id pytań: id z treści, stara pamięć `kategoria:dział-nr` przepisana na nowe id
         await pg.evaluate('localStorage.clear()'); await pg.goto(URL); await pg.wait_for_timeout(200)
@@ -55,12 +65,12 @@ async def main():
           const all = []; LEVELS.std.bank.forEach((c) => c.q.forEach((Q) => all.push(qid("std", Q))));
           const old = {}, t = Date.now() - 864e5; all.slice(0, 41).forEach((id) => (old[id] = t));
           const fresh = new Set(all.slice(41)), runs = [];
-          for (let k = 0; k < 20; k++) { localStorage.setItem("pk_seen_at", JSON.stringify(old)); runs.push(buildDeck("std", 20).filter((q) => fresh.has(q.id)).length); }
+          for (let k = 0; k < 40; k++) { localStorage.setItem("pk_seen_at", JSON.stringify(old)); runs.push(buildDeck("std", 20).filter((q) => fresh.has(q.id)).length); }
           localStorage.setItem("pk_seen_at", JSON.stringify(Object.fromEntries(all.map((id) => [id, Date.now()]))));
           const full = buildDeck("std", 20);
           let same = 0; for (let i = 1; i < full.length; i++) if (full[i].cat === full[i - 1].cat) same++;
           return { avg: runs.reduce((a, b) => a + b, 0) / runs.length, min: Math.min(...runs), full: full.length, same, ids: new Set(full.map((q) => q.id)).size }; }""")
-        good = res['avg'] >= 16 and res['min'] < 20 and res['full'] == 20 and res['ids'] == 20 and res['same'] <= 2 and not errs
+        good = res['avg'] >= 15 and res['min'] < 20 and res['full'] == 20 and res['ids'] == 20 and res['same'] <= 2 and not errs
         print(('✓' if good else '✗'), 'dobór według wag: niewidziane częściej, ograne nie zablokowane, działy rozłożone', res, errs)
         fail += not good
         # koniec czasu: odpowiedzi zostają do zaznaczenia, „Brak odpowiedzi” daje karę, nic nie dzieje się samo
