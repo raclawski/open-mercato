@@ -20,6 +20,10 @@ Zmiana bazy (**SQL**) oznacza, że po wdrożeniu musisz wgrać nowy plik w Supab
 | B0 | Stałe identyfikatory pytań: id z treści, stara pamięć telefonu przepisana | 18.10.2026 |
 | B1 | Rejestr nicków: podpowiedzi znanych nicków przy imieniu (gracz, admin, jeden telefon), lista wyników domyślnie „Zawsze” (do 500 nicków). Punkty sumują się po nicku jak dotąd. | 18.10.2026 |
 | B2 | Dobór pytań według wag (jak Spotify): ograne pytania rzadziej, nigdy zablokowane; historia nicków w bazie; działy nie idą po sobie | 18.10.2026 |
+| A10 | Online: „Pomiń pytanie” u graczy; gdy pominą wszyscy, odkrycie od razu („Nikt nie wziął pytania”) | 18.10.2026 |
+| A7 | Online: „Następne pytanie” po odkryciu, może kliknąć każdy | 18.10.2026 |
+| A11 | Ekran lekko zielony, gdy odpowiadasz; lekko szary, gdy odpowiada ktoś inny | 18.10.2026 |
+| A12 | Pozostali widzą, którą odpowiedź kliknął odpowiadający (✓/✗ z imieniem) | 18.10.2026 |
 | A8 | Instrukcja gry z przyciskami zostaje na ekranie, dopóki prowadzący nie kliknie „Zaczynamy!” | 18.10.2026 |
 | C1 | Partia 1 bazy pytań: 5 nowych kategorii po 100 pytań (razem 944) | 18.10.2026 |
 | — | Naprawa listy wyników (funkcja czyszcząca nicki) | 18.10.2026 |
@@ -30,11 +34,7 @@ B0, B1 i B2 zrobione. Dalej kolejność do Twojej decyzji (propozycja: od góry)
 
 | ID | Usprawnienie | Wielkość | Status |
 |---|---|---|---|
-| A10 | Pytanie, którego nikt nie wziął, jest pomijane | S | — |
-| A11 | Kolor ekranu: lekko zielony, gdy odpowiadasz; lekko szary, gdy odpowiada ktoś inny | S | — |
-| A12 | Pozostali gracze widzą, którą odpowiedź klika odpowiadający | S | — |
 | A9 | Wybór kategorii: najpierw „1 kategoria” albo „MIX”, potem bęben jako wielkie koło | M | — |
-| A7 | Przycisk „Następne pytanie”, żeby nie czekać na automatyczne przejście | S | — |
 | A6 | Pytanie za podwójne punkty (×2), z komunikatem dla graczy, włączane w lobby | M, SQL | — |
 | B3 | Trzeci tryb online: „Kto pierwszy, ten lepszy” | L, SQL | — |
 | A3 | Kontrola wersji bazy: gra ostrzega, gdy migracja nie jest wgrana | S, SQL | — |
@@ -76,22 +76,17 @@ Ustalone: żadne pytanie nie jest blokowane, sterujemy tylko częstotliwością.
 ## A7. „Następne pytanie”
 
 Po odkryciu odpowiedzi gra online czeka 6 s i sama przechodzi dalej. Przycisk „Następne pytanie” przechodzi od razu.
-**Do decyzji:** kto może go kliknąć: tylko admin pokoju (propozycja) czy każdy gracz?
+Ustalone: każdy gracz.
 
 ## A6. Pytanie ×2
 
 Jedno losowe pytanie w rundzie jest warte podwójnie (+20, kara też podwójna). Przed pytaniem wszyscy widzą komunikat „Pytanie za podwójne punkty!”. Opcję włącza się w lobby i w ustawieniach jednego telefonu.
-**Do decyzji:**
-1. Co to jest „runda”? Propozycja: każde kolejne 10 pytań. Gra na 30 pytań ma wtedy 3 pytania ×2, a gra na 7 pytań jedno.
-2. Czy kara za złą odpowiedź też jest podwójna? Propozycja: tak.
+Ustalone: jedno pytanie ×2 na każde 10 pytań (gra na 7 pytań ma jedno). Do decyzji: czy kara też ×2 (propozycja: tak).
 
 ## B3. „Kto pierwszy, ten lepszy”
 
 Trzeci tryb online: wszyscy widzą pytanie naraz i każdy klika odpowiedź u siebie, bez wciskania przycisku. Punkty zależą od poprawności i szybkości. Pytanie kończy się, gdy odpowiedzą wszyscy albo minie czas, potem odkrycie i tabela.
-**Do decyzji: punktacja.** Propozycje:
-- (a) Miejsca: najszybsza dobra odpowiedź 10 pkt, druga 8, trzecia 6, każda kolejna dobra 4, zła 0.
-- (b) Czas: dobra odpowiedź daje od 10 pkt (od razu) do 5 pkt (na koniec czasu), zła 0, jak w Kahoot.
-- Czy zła odpowiedź ma karę (np. −kara z lobby)? Bez kary opłaca się strzelać, z karą gracze mogą nie odpowiadać.
+Ustalone: czas decyduje tylko o miejscu wśród dobrych odpowiedzi: 1. miejsce 10 pkt, 2. 8, 3. 6, 4. 4, dalej 2. Do decyzji: kara za złą odpowiedź (propozycja: 0).
 
 ## A3. Kontrola wersji bazy
 

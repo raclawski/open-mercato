@@ -260,6 +260,15 @@ details.review summary { cursor: pointer; font-weight: 600; }
 .popts button[aria-pressed="true"] b { color: var(--paper); }
 .popts button:disabled { cursor: default; }
 #s-player.online .sheet-body #pQ { order: -1; }
+/* ty odpowiadasz: ekran lekko zielony; odpowiada ktoś inny: wszystko lekko szare */
+body.ans-me { background: var(--ok-soft); }
+body.ans-me #s-player .sheet { background: color-mix(in srgb, var(--paper) 82%, var(--ok)); border-color: var(--ok); }
+body.ans-other { background: color-mix(in srgb, var(--desk) 70%, var(--muted)); }
+body.ans-other #s-player .sheet { filter: grayscale(1); opacity: .82; }
+.popts li .who { grid-column: 2; font-family: var(--f-mono); font-size: .72rem; letter-spacing: .04em; color: var(--muted); }
+.popts li.bad .who { color: var(--stamp); }
+.popts li.good .who { color: var(--ok); }
+.pmore { display: grid; gap: 8px; }
 #s-player.online .buzz { width: min(58vw, 230px); }
 .buzz.count { background: var(--ink); color: var(--paper); font-size: clamp(4rem, 30vw, 7rem); }
 .codebox { display: grid; gap: 8px; padding: 14px; border: 1.5px dashed var(--rule-strong); border-radius: 3px; text-align: center; }
@@ -366,6 +375,10 @@ details.review summary { cursor: pointer; font-weight: 600; }
         </div>
         <button type="button" class="buzz" id="buzz">Czekaj<small>na prowadzącego</small></button>
         <p class="big-status" id="pStatus" aria-live="assertive"></p>
+        <div class="pmore">
+          <button type="button" class="btn" id="pNext" hidden>Następne pytanie</button>
+          <button type="button" class="link-btn" id="pSkip" hidden>Pomiń pytanie</button>
+        </div>
         <div id="pQ" hidden style="display:grid;gap:10px">
           <p class="pq" id="pQtext"></p>
           <ul class="popts" id="pOpts"></ul>
@@ -2885,6 +2898,16 @@ function syncPlayerTimer(h) {
 function isBlocked(h) { return !!(h && Array.isArray(h.blk) && h.blk.includes(P.name)); }
 function renderPlayer() {
   const h = P.host, b = $("#buzz"), st = $("#pStatus");
+  const onScreen = role === "player" || (role === "host" && h && h.mode === "online");
+  const lockedNow = onScreen && h && h.ph === "locked" && h.win;
+  document.body.classList.toggle("ans-me", !!(lockedNow && h.win === P.name));
+  document.body.classList.toggle("ans-other", !!(lockedNow && h.win !== P.name));
+  const skipKey = h ? `${h.g}:${h.arm}` : "", nextKey = h ? `${h.g}:${h.qn}` : "";
+  $("#pSkip").hidden = !(h && h.mode === "online" && h.ph === "armed" && !isBlocked(h) && P.pressedArm !== skipKey);
+  $("#pSkip").textContent = P.skipKey === skipKey ? "Pominięte · czekam na pozostałych" : "Pomiń pytanie";
+  $("#pSkip").disabled = P.skipKey === skipKey;
+  $("#pNext").hidden = !(h && h.mode === "online" && h.ph === "reveal");
+  $("#pNext").disabled = P.nextKey === nextKey;
   if (h && h.ph === "final" && Array.isArray(h.fin) && role === "player") { drawFinal(h.fin, h.lv || "", h.n ? `${h.qn + 1} z ${h.n} pytań` : "", false); return; }
   if (!$("#s-final").hidden && role === "player") show("s-player");
   $("#s-player").classList.toggle("online", !!(h && h.mode === "online"));
@@ -2902,7 +2925,12 @@ function renderPlayer() {
     $("#pQtext").textContent = h.q.t;
     $("#pOpts").innerHTML = (h.q.o || []).map((o, i) => myTurn
       ? `<li class="pick"><button type="button" data-i="${i}" aria-pressed="${sent && P.ansPick === i}"${sent ? " disabled" : ""}><b>${LETTERS[i]}</b><span>${esc(o)}</span></button></li>`
-      : `<li class="${h.ph === "reveal" && h.rev === i ? "good" : sent && P.ansPick === i && h.ph !== "reveal" ? "bad" : ""}"><b>${LETTERS[i]}</b><span>${esc(o)}</span></li>`).join("");
+      : (() => {
+          const who = (Array.isArray(h.pks) ? h.pks : []).filter((p) => p.i === i), bad = who.some((p) => !p.ok), good = who.some((p) => p.ok);
+          const cls = (h.ph === "reveal" && h.rev === i) || good ? "good" : bad || (sent && P.ansPick === i && h.ph !== "reveal") ? "bad" : "";
+          const tag = who.length ? `<span class="who">${who.map((p) => esc(p.n) + (p.ok ? " ✓" : " ✗")).join(", ")}</span>` : "";
+          return `<li class="${cls}"><b>${LETTERS[i]}</b><span>${esc(o)}</span>${tag}</li>`;
+        })()).join("");
     const ex = $("#pExplain"); ex.hidden = !(h.ph === "reveal" && h.ex); ex.textContent = h.ex || "";
   }
   const cat = h && (h.cat || (h.q && h.q.c));
@@ -2939,7 +2967,7 @@ function renderPlayer() {
     b.disabled = true;
     const l = h.last;
     if (l && l.ok) { b.className = l.name === P.name ? "buzz win" : "buzz"; b.innerHTML = l.name === P.name ? "+10!" : "Dobrze<small>" + esc(l.name) + "</small>"; st.textContent = `${l.name} odpowiada dobrze.`; }
-    else { b.innerHTML = "Odpowiedź<small>na ekranie</small>"; st.textContent = "Nikt nie trafił."; }
+    else { b.innerHTML = "Odpowiedź<small>na ekranie</small>"; st.textContent = h.none ? "Nikt nie wziął pytania." : "Nikt nie trafił."; }
   }
 }
 function pressBuzz() {
@@ -2972,6 +3000,14 @@ $("#pOpts").addEventListener("click", (e) => {
   vibrate(30); renderPlayer();
 });
 $("#buzz").addEventListener("pointerdown", (e) => { e.preventDefault(); pressBuzz(); });
+$("#pSkip").addEventListener("click", () => {
+  const h = P.host; if (!h || h.ph !== "armed") return;
+  P.skipKey = `${h.g}:${h.arm}`; sendMine({ skip: { g: h.g, a: h.arm } }); renderPlayer();
+});
+$("#pNext").addEventListener("click", () => {
+  const h = P.host; if (!h || h.ph !== "reveal") return;
+  P.nextKey = `${h.g}:${h.qn}`; sendMine({ nx: { g: h.g, qn: h.qn } }); renderPlayer();
+});
 $("#buzz").addEventListener("keydown", (e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); pressBuzz(); } });
 
 /* ============================ PROWADZĄCY ============================ */
@@ -3228,7 +3264,9 @@ function hostView() {
     win: H.win, blk: H.blk.slice(0, 16), sc: sortedScores().slice(0, 16),
     rev: H.ph === "reveal" ? Q.c : null, ex: H.ph === "reveal" ? clip(Q.e, 360) : null, last: H.last,
     fin: H.ph === "final" ? finalRows() : null, lv: LEVELS[H.level].label, admin: H.admin || null,
-    tm: (H.ph === "armed" || H.ph === "locked") && H.tEndAt && H.tT ? { T: H.tT, left: Math.max(0, H.tEndAt - Date.now()) } : null
+    tm: (H.ph === "armed" || H.ph === "locked") && H.tEndAt && H.tT ? { T: H.tT, left: Math.max(0, H.tEndAt - Date.now()) } : null,
+    pks: H.log.filter((a) => a.qi === H.i && Number.isInteger(a.pick)).slice(-16).map((a) => ({ n: a.name, i: a.pick, ok: a.ok })),
+    none: H.ph === "reveal" && !H.log.some((a) => a.qi === H.i)
   };
 }
 let SELF = { p: {}, at: 0 };
@@ -3242,8 +3280,8 @@ function sendMine(patch) {
 }
 function hostOnPeers(ch) {
   if (!H || H.ph === "lobby" || !H.deck) { if (!$("#s-hsetup").hidden) renderHostSetup(); return; }
-  let changed = false, pick = null;
-  const cands = [];
+  let changed = false, pick = null, next = false;
+  const cands = [], skips = new Set();
   for (const p of ch.peers.concat(selfPeer())) {
     const pr = p.presence || {};
     if (pr.role !== "player" || !pr.name) continue;
@@ -3255,6 +3293,10 @@ function hostOnPeers(ch) {
     }
     const an = pr.ans;
     if (an && H.ph === "locked" && name === H.win && an.g === H.g && an.a === H.arm && Number.isInteger(an.i) && an.i >= 0 && an.i < 4) pick = an.i;
+    const sk = pr.skip;
+    if (sk && sk.g === H.g && sk.a === H.arm && H.ph === "armed") skips.add(name);
+    const nx = pr.nx;
+    if (nx && nx.g === H.g && nx.qn === H.i && H.ph === "reveal" && H.mode === "online") next = true;
     const bz = pr.buzz;
     if (bz && bz.g === H.g && bz.a === H.arm && (H.ph === "armed" || H.ph === "locked") && !H.blk.includes(name) && !H.order.some((o) => o.n === name)) {
       cands.push({ n: name, at: p.updatedAt, rt: typeof bz.rt === "number" ? bz.rt : 99999 });
@@ -3272,6 +3314,12 @@ function hostOnPeers(ch) {
   }
   if (changed) { saveH(); publishHost(); }
   if (pick !== null && H.ph === "locked") { judge(pick === H.deck[H.i].c, pick); return; }
+  // online: wszyscy, którzy mogą wcisnąć, wybrali „Pomiń pytanie” → odkrycie od razu, bez czekania
+  if (H.mode === "online" && H.ph === "armed" && !H.win && !collectT && !H.order.length) {
+    const free = freePlayers();
+    if (free.length && free.every((n) => skips.has(n))) { reveal(); return; }
+  }
+  if (next) { nextQ(); return; }
   renderHost();
 }
 /* online: gracze są w różnych miejscach i sieć dokłada różne opóźnienia, więc wygrywa najkrótszy czas reakcji

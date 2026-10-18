@@ -327,8 +327,12 @@ async def main(dburl):
         await until(op['Ewa'], '() => P.host && P.host.ph === "locked"')
         tL = await op['Ewa'].evaluate('() => [!document.querySelector("#pTimer").hidden, +document.querySelector("#pTimerNum").textContent, P.host.tm && P.host.tm.T]')
         check(tL[0] and 1 <= tL[1] <= tL[2] / 1000, 'pasek czasu u gracza: czas na odpowiedź widzą też pozostali', tL)
+        bg = [await op['Kuba'].evaluate('() => document.body.className'), await op['Ewa'].evaluate('() => document.body.className')]
+        check('ans-me' in bg[0] and 'ans-other' in bg[1], 'kolor ekranu: zielony u odpowiadającego, szary u pozostałych', bg)
         await op['Kuba'].click(f'#pOpts button[data-i="{(oc + 1) % 4}"]')
         await until(op['Ewa'], '() => document.querySelector("#pScores").textContent.includes("Kuba −1")')
+        seen = await op['Ewa'].evaluate('i => { const li = document.querySelectorAll("#pOpts li")[i]; return [li.className, li.textContent, document.body.className]; }', (oc + 1) % 4)
+        check(seen[0] == 'bad' and 'Kuba ✗' in seen[1] and 'ans-' not in seen[2], 'pozostali widzą odpowiedź rywala', seen)
         await oh.clock.fast_forward(2500)
         await until(op['Ewa'], '() => document.querySelector("#buzz").classList.contains("count") || document.querySelector("#buzz").classList.contains("armed")', timeout=8000)
         await until(oh, '() => document.querySelector("#buzz").classList.contains("armed")', timeout=8000)
@@ -348,6 +352,16 @@ async def main(dburl):
         await oh.clock.fast_forward(7000)
         await until(op['Kuba'], '() => /Pytanie 3 z/.test(document.querySelector("#pQnum").textContent)', timeout=8000)
         check(True, 'online: bez wciśnięcia gra sama odkrywa odpowiedź i przechodzi do pytania 3')
+        # wszyscy klikają „Pomiń pytanie” → odkrycie od razu; „Następne pytanie” może kliknąć każdy
+        await until(oh, '() => H.ph === "armed"', timeout=8000)
+        for n in ['Ola', 'Kuba', 'Ewa']:
+            await until(op[n], '() => !document.querySelector("#pSkip").hidden')
+            await op[n].click('#pSkip')
+        await until(op['Kuba'], '() => P.host && P.host.ph === "reveal" && document.querySelector("#pStatus").textContent === "Nikt nie wziął pytania."', timeout=5000)
+        await until(op['Ewa'], '() => !document.querySelector("#pNext").hidden')
+        await op['Ewa'].click('#pNext')
+        await until(op['Kuba'], '() => /Pytanie 4 z/.test(document.querySelector("#pQnum").textContent)', timeout=5000)
+        check(True, 'pytanie pominięte przez wszystkich: odkrycie od razu, „Następne pytanie” od gracza')
         # admin kończy grę → tabela wyników u wszystkich, wynik na liście
         await oh.click('#btnLeave')
         await oh.wait_for_selector('#s-final:not([hidden])')
