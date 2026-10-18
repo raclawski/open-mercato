@@ -28,8 +28,8 @@ async def main():
         full = await pg.evaluate('() => new Set(S.deck.map((q) => q.cat)).size')
         await pg.goto(URL); await pg.wait_for_timeout(300)
         chips_visible = await pg.is_visible('#mixPick')
-        for k in ['mega', 'pro', 'pop', 'urz', 'uzw', 'ksh']:
-            await pg.click(f'#mixPick [data-k="{k}"]')
+        for k in await pg.eval_on_selector_all('#mixPick [data-k]', 'bs => bs.map((b) => b.dataset.k)'):
+            if k not in ('std', 'ts'): await pg.click(f'#mixPick [data-k="{k}"]')
         await pg.goto(URL); await pg.wait_for_timeout(300)
         kept = await pg.evaluate('() => [...document.querySelectorAll("#mixPick [aria-pressed=true]")].map((b) => b.dataset.k).join(",")')
         await pg.click('#btnStart')

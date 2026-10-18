@@ -6,3 +6,4 @@ jaki-to-urzad.js
 uzywki.js
 prawo-spolek.js
 taylor-swift.js
+jaki-to-wydzial.js

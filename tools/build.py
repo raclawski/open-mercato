@@ -56,7 +56,7 @@ n_questions = sum(len(re.findall(r'^\s*\{ q: "', rd('src/questions/' + f), re.M)
 wr('dist/web/live.html', make_web(lv, flavor='supabase'))
 wr('dist/web/teleturniej.html', make_tv_web(tv_doc))
 wr('dist/web/wyniki.html', rd('src/web/wyniki.html').replace('/*__LEVEL_LABELS__*/{}', json.dumps(labels, ensure_ascii=False)))
-wr('dist/web/index.html', rd('src/web/index.html').replace('/*__QUESTION_COUNT__*/', str(n_questions)).replace('/*__LEVEL_COUNT__*/', str(len(labels))))
+wr('dist/web/index.html', rd('src/web/index.html').replace('/*__QUESTION_COUNT__*/', str(n_questions)).replace('/*__LEVEL_COUNT__*/', str(len([k for k in labels if k != 'mix']))))
 for f in ('pk-online.js', 'site.css'):
     wr('dist/web/' + f, rd('src/web/' + f))
 url, key = os.environ.get('SUPABASE_URL', ''), os.environ.get('SUPABASE_ANON_KEY', '')

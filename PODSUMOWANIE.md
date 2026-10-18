@@ -32,7 +32,7 @@ Teleturniej na telefon z pytaniami o polityce, prawie i popkulturze. Zaczęło s
 
 ## Kategorie (poziomy pytań)
 
-Razem **397 pytań**. Każda gra losuje pytania, najpierw te, których jeszcze nie było (pamięć w `localStorage`).
+Razem **444 pytania**. Każda gra losuje pytania, najpierw te, których jeszcze nie było (pamięć w `localStorage`).
 
 | Przycisk | Plik | Pytań | Zawartość |
 |---|---|---|---|
@@ -43,6 +43,7 @@ Razem **397 pytań**. Każda gra losuje pytania, najpierw te, których jeszcze n
 | Jaki to urząd? | `jaki-to-urzad.js` | 41 | Opis kompetencji, a gracze rozpoznają urząd: organy naczelne, sądy i kontrola, urzędy i służby, samorząd i UE |
 | Używki | `uzywki.js` | 47 | Bardzo trudne: alkohol, nikotyna i kofeina, historia narkotyków, polskie prawo. Historia, chemia i kultura, bez instrukcji użycia |
 | Prawo spółek | `prawo-spolek.js` | 37 | KSH: spółki osobowe, sp. z o.o., S.A. i P.S.A., KRS i różności |
+| Jaki to wydział? | `jaki-to-wydzial.js` | 47 | Poziom niżej niż „Jaki to urząd?”: wydziały, biura, izby i jednostki urzędów. Parlament, prezydent i rząd, sądy i rejestry, służby, skarbówka i IPN, sprawy obywatela |
 | Taylor Swift | `taylor-swift.js` | 36 | Albumy, rekordy i nagrody, biznes i prawa do nagrań, życie i fani. Bez cytowania tekstów piosenek |
 
 ## Historia zmian
@@ -58,6 +59,7 @@ Razem **397 pytań**. Każda gra losuje pytania, najpierw te, których jeszcze n
 9. Wersja Live bez logowania na PeerJS, jako plik do hostingu.
 10. Kategorie „Jaki to urząd?”, „Używki”, „Prawo spółek (KSH)” i „Taylor Swift”.
 11. Serwis na Vercel + Supabase: gra Live przez Supabase Realtime (zamiast połączeń telefon–telefon), odporna na odświeżenie strony i chwilowy brak sieci; lista wyników z rankingiem (okres, kategoria, tryb, sortowanie), ostatnimi grami i historią gracza; strona startowa z czołówką.
+15. Kategoria „Jaki to wydział?” (47 pytań). Fakty z ostatnich lat sprawdzone w sieci; pominięte jednostki w trakcie zmian (CBŚP i CBZC, które Policja łączy w 2026 r. w Narodowe Biuro Śledcze, oraz COI).
 14. Tryb mieszany („Mieszane” na bębnie): pytania z kilku wybranych kategorii w jednej grze, po równo i na zmianę. Działa w obu trybach i na liście wyników.
 13. Dwie wersje gry z przyciskami. Online: odliczanie 3…2…1, potem pytanie i przycisk na wszystkich telefonach. Offline: prowadzący czyta pytanie i daje sygnał, gracze widzą tylko przycisk, a pytanie dopiero po wciśnięciu. W obu odpowiadający klika odpowiedź na swoim telefonie i gra sama liczy punkty. Koniec czasu niczego nie ocenia: decyduje prowadzący.
 12. Jedna gra w serwisie: na starcie wybór trybu (jeden telefon albo przyciski na telefonach), potem ekran ustawień wybranego trybu. Kategoria, liczba pytań i kara przechodzą między trybami.

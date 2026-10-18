@@ -258,6 +258,7 @@ details.review summary { cursor: pointer; font-weight: 600; }
             <button type="button" data-v="pro" class="hotbtn">Ekspert PL</button>
             <button type="button" data-v="pop" class="hotbtn">Popkultura PL</button>
             <button type="button" data-v="urz" class="hotbtn">Jaki to urząd?</button>
+            <button type="button" data-v="wydz" class="hotbtn">Jaki to wydział?</button>
             <button type="button" data-v="uzw" class="hotbtn">Używki</button>
             <button type="button" data-v="ksh" class="hotbtn">Prawo spółek</button>
             <button type="button" data-v="ts" class="hotbtn">Taylor Swift</button>
@@ -1344,6 +1345,119 @@ const BANK_TS = [
   }
 ];
 
+const BANK_WYDZ = [
+  {
+    name: "Parlament, prezydent, rząd", q: [
+      { q: "Przygotowuje dla posłów opinie prawne i ekspertyzy, m.in. o zgodności projektów ustaw z prawem Unii Europejskiej. Działa w Kancelarii Sejmu. Co to za jednostka?", o: ["Biuro Analiz Sejmowych", "Rządowe Centrum Legislacji", "Biuro Legislacyjne Senatu", "Krajowe Biuro Wyborcze"], c: 0,
+        e: "BAS to zaplecze eksperckie Sejmu. RCL obsługuje legislację rządu, a nie posłów." },
+      { q: "Pilnuje porządku i bezpieczeństwa w budynkach Sejmu i Senatu. Podlega Marszałkowi Sejmu. Co to za formacja?", o: ["Straż Marszałkowska", "Służba Ochrony Państwa", "Żandarmeria Wojskowa", "Straż Miejska Warszawy"], c: 0,
+        e: "Straż Marszałkowska to formacja Kancelarii Sejmu. SOP chroni najważniejsze osoby w państwie, a nie gmach parlamentu." },
+      { q: "Ta komisja sejmowa przygotowuje sprawę, gdy posłowie chcą postawić kogoś przed Trybunałem Stanu. Co to za komisja?", o: ["Komisja Odpowiedzialności Konstytucyjnej", "Komisja Regulaminowa, Spraw Poselskich i Immunitetowych", "Komisja Ustawodawcza", "Komisja Etyki Poselskiej"], c: 0,
+        e: "Komisja Odpowiedzialności Konstytucyjnej prowadzi postępowanie wstępne i przedstawia Sejmowi wniosek o pociągnięcie do odpowiedzialności przed Trybunałem Stanu." },
+      { q: "Ta komisja sejmowa opiniuje wnioski o uchylenie immunitetu posłom. Co to za komisja?", o: ["Komisja Regulaminowa, Spraw Poselskich i Immunitetowych", "Komisja Odpowiedzialności Konstytucyjnej", "Komisja do Spraw Petycji", "Komisja Etyki Poselskiej"], c: 0,
+        e: "Sprawy immunitetów trafiają do Komisji Regulaminowej, Spraw Poselskich i Immunitetowych. Komisja Etyki ocenia zachowanie posłów, ale o immunitecie nie decyduje." },
+      { q: "Ta komisja sejmowa opiniuje kandydatów na szefów ABW, Agencji Wywiadu i CBA, a jej posiedzenia są zwykle niejawne. Co to za komisja?", o: ["Komisja do Spraw Służb Specjalnych", "Komisja Obrony Narodowej", "Komisja Administracji i Spraw Wewnętrznych", "Komisja Sprawiedliwości i Praw Człowieka"], c: 0,
+        e: "Komisja do Spraw Służb Specjalnych sprawuje parlamentarną kontrolę nad służbami. Komisja Obrony zajmuje się wojskiem." },
+      { q: "Obsługuje prezydenta w sprawach bezpieczeństwa i obronności. Jest częścią jego zaplecza, a nie organem doradczym. Co to za jednostka?", o: ["Biuro Bezpieczeństwa Narodowego", "Rada Bezpieczeństwa Narodowego", "Rządowe Centrum Bezpieczeństwa", "Sztab Generalny Wojska Polskiego"], c: 0,
+        e: "BBN to urząd obsługujący prezydenta. Rada Bezpieczeństwa Narodowego to organ doradczy, a RCB działa przy rządzie." },
+      { q: "Wysyła „Alerty RCB” na telefony przed groźnymi zjawiskami pogodowymi i koordynuje zarządzanie kryzysowe w rządzie. Co to za jednostka?", o: ["Rządowe Centrum Bezpieczeństwa", "Biuro Bezpieczeństwa Narodowego", "Instytut Meteorologii i Gospodarki Wodnej", "Krajowe Centrum Koordynacji Ratownictwa"], c: 0,
+        e: "Skrót RCB w nazwie alertu to Rządowe Centrum Bezpieczeństwa. IMGW wydaje ostrzeżenia meteorologiczne, ale SMS-y rozsyła RCB." },
+      { q: "Koordynuje prace legislacyjne rządu i przygotowuje do ogłoszenia Dziennik Ustaw i Monitor Polski. Co to za jednostka?", o: ["Rządowe Centrum Legislacji", "Biuro Analiz Sejmowych", "Biuro Legislacyjne Kancelarii Sejmu", "Kancelaria Prezydenta RP"], c: 0,
+        e: "RCL to centrum legislacji rządowej. To ono odpowiada za publikację aktów prawnych w dziennikach urzędowych." },
+      { q: "Obsługuje Państwową Komisję Wyborczą, a jego delegatury działają w całym kraju. Co to za urząd?", o: ["Krajowe Biuro Wyborcze", "Biuro Analiz Sejmowych", "Główny Urząd Statystyczny", "Rządowe Centrum Legislacji"], c: 0,
+        e: "PKW to organ wyborczy, a Krajowe Biuro Wyborcze to aparat urzędniczy, który zapewnia jej obsługę." },
+      { q: "Od 2008 r. działa w Biurze RPO. Odwiedza bez zapowiedzi więzienia, izby wytrzeźwień i szpitale psychiatryczne, sprawdzając, jak traktuje się zatrzymanych. Co to za jednostka?", o: ["Krajowy Mechanizm Prewencji Tortur", "Biuro Spraw Wewnętrznych Policji", "Centralny Zarząd Służby Więziennej", "Rzecznik Praw Pacjenta"], c: 0,
+        e: "KMPT wykonuje zadania z protokołu do konwencji ONZ przeciwko torturom. Formalnie powierzono je RPO 18 stycznia 2008 r." },
+      { q: "Ta komisja sejmowa rozpatruje pisma obywateli, w których proponują oni zmiany w prawie. Co to za komisja?", o: ["Komisja do Spraw Petycji", "Komisja Ustawodawcza", "Komisja Łączności z Polakami za Granicą", "Komisja Etyki Poselskiej"], c: 0,
+        e: "Petycje do Sejmu trafiają do Komisji do Spraw Petycji. Może ona przygotować na ich podstawie projekt ustawy." }
+    ]
+  },
+  {
+    name: "Sądy i rejestry", q: [
+      { q: "Prowadzi księgi wieczyste, czyli rejestry własności nieruchomości. W jakiej jednostce?", o: ["Wydział ksiąg wieczystych sądu rejonowego", "Wydział geodezji starostwa", "Urząd skarbowy", "Wydział cywilny sądu okręgowego"], c: 0,
+        e: "Księgi wieczyste prowadzą sądy rejonowe w wydziałach ksiąg wieczystych. Starostwo prowadzi ewidencję gruntów, a to inny rejestr." },
+      { q: "Wydaje nakazy zapłaty w elektronicznym postępowaniu upominawczym dla całego kraju. Potocznie nazywa się go „e-sądem”. Gdzie działa?", o: ["W Sądzie Rejonowym Lublin-Zachód w Lublinie", "W Sądzie Najwyższym", "W Sądzie Okręgowym w Warszawie", "W Ministerstwie Sprawiedliwości"], c: 0,
+        e: "E-sąd to VI Wydział Cywilny Sądu Rejonowego Lublin-Zachód. Rozpatruje sprawy o zapłatę wniesione przez internet z całej Polski." },
+      { q: "Rozpatruje odwołania od decyzji Prezesa UOKiK, a także prezesów URE i UKE. To wydział warszawskiego sądu okręgowego. Jak się nazywa?", o: ["Sąd Ochrony Konkurencji i Konsumentów", "Wojewódzki Sąd Administracyjny", "Sąd Polubowny przy KNF", "Izba Gospodarcza NSA"], c: 0,
+        e: "SOKiK to XVII Wydział Sądu Okręgowego w Warszawie. Spory o decyzje regulatorów rynku trafiają do sądu powszechnego, a nie administracyjnego." },
+      { q: "Który sąd prowadzi ewidencję partii politycznych?", o: ["Sąd Okręgowy w Warszawie", "Sąd Najwyższy", "Państwowa Komisja Wyborcza", "Trybunał Konstytucyjny"], c: 0,
+        e: "Partię rejestruje Sąd Okręgowy w Warszawie. TK może badać zgodność celów partii z Konstytucją, ale ewidencji nie prowadzi." },
+      { q: "Rejestruje spółki, fundacje i stowarzyszenia w Krajowym Rejestrze Sądowym. Która jednostka?", o: ["Wydział gospodarczy KRS sądu rejonowego", "Urząd marszałkowski", "Główny Urząd Statystyczny", "Wydział cywilny sądu apelacyjnego"], c: 0,
+        e: "KRS prowadzą sądy rejonowe w wydziałach gospodarczych KRS. GUS nadaje numer REGON, ale nie rejestruje spółek." },
+      { q: "Rozpatruje w I instancji sprawy o alimenty na dziecko i o władzę rodzicielską. Który wydział?", o: ["Wydział rodzinny i nieletnich sądu rejonowego", "Wydział cywilny sądu okręgowego", "Wydział pracy sądu rejonowego", "Urząd stanu cywilnego"], c: 0,
+        e: "Sprawy rodzinne poza rozwodem trafiają do wydziałów rodzinnych sądów rejonowych. Rozwód należy do sądu okręgowego." },
+      { q: "Który sąd rozpatruje w I instancji sprawę o rozwód?", o: ["Sąd okręgowy", "Sąd rejonowy", "Sąd apelacyjny", "Urząd stanu cywilnego"], c: 0,
+        e: "Sprawy o rozwód i separację są zastrzeżone dla sądów okręgowych. USC rejestruje ślub, ale małżeństwa nie rozwiązuje." },
+      { q: "Wydaje zaświadczenie o niekaralności. Która jednostka?", o: ["Biuro Informacyjne Krajowego Rejestru Karnego", "Komenda Powiatowa Policji", "Prokuratura Rejonowa", "Wydział karny sądu okręgowego"], c: 0,
+        e: "Rejestr karny prowadzi Minister Sprawiedliwości przez Biuro Informacyjne KRK. Wniosek można złożyć także w punktach informacyjnych KRK w sądach." },
+      { q: "Rozpatruje skargi kasacyjne w sprawach podatkowych. Która izba Naczelnego Sądu Administracyjnego?", o: ["Izba Finansowa", "Izba Gospodarcza", "Izba Ogólnoadministracyjna", "Izba Kontroli Nadzwyczajnej"], c: 0,
+        e: "NSA ma trzy izby: Finansową, Gospodarczą i Ogólnoadministracyjną. Podatki należą do Izby Finansowej. Izba Kontroli Nadzwyczajnej jest w Sądzie Najwyższym." },
+      { q: "Ta izba Sądu Najwyższego, utworzona w 2018 r., rozpatrywała protesty wyborcze i ważność wyboru prezydenta w 2025 r. Jak się nazywa?", o: ["Izba Kontroli Nadzwyczajnej i Spraw Publicznych", "Izba Cywilna", "Izba Odpowiedzialności Zawodowej", "Izba Pracy i Ubezpieczeń Społecznych"], c: 0,
+        e: "Ważność wyborów stwierdzała Izba Kontroli Nadzwyczajnej i Spraw Publicznych. Jej status jest sporny, ale to ona orzekała w 2025 r." },
+      { q: "Rozpatruje w Sądzie Najwyższym kasacje w sprawach ze stosunku pracy i emerytur. Która izba?", o: ["Izba Pracy i Ubezpieczeń Społecznych", "Izba Cywilna", "Izba Karna", "Izba Odpowiedzialności Zawodowej"], c: 0,
+        e: "Prawo pracy i ubezpieczeń społecznych ma w SN osobną izbę. Sprawy cywilne trafiają do Izby Cywilnej." }
+    ]
+  },
+  {
+    name: "Służby, skarbówka i IPN", q: [
+      { q: "Zwalcza przestępstwa popełniane przez samych policjantów, np. korupcję i przekroczenie uprawnień. Od 2018 r. jest odrębną jednostką Policji. Co to za jednostka?", o: ["Biuro Spraw Wewnętrznych Policji", "Centralne Biuro Antykorupcyjne", "Biuro Operacji Antyterrorystycznych", "Agencja Bezpieczeństwa Wewnętrznego"], c: 0,
+        e: "BSWP to policja w policji. CBA też zwalcza korupcję, ale nie jest jednostką Policji." },
+      { q: "Wykonuje dla całej Policji najtrudniejsze ekspertyzy kryminalistyczne, m.in. badania DNA i daktyloskopijne. Co to za jednostka?", o: ["Centralne Laboratorium Kryminalistyczne Policji", "Instytut Ekspertyz Sądowych", "Zakład Medycyny Sądowej", "Biuro Spraw Wewnętrznych Policji"], c: 0,
+        e: "CLKP to jednostka organizacyjna Policji. Instytut Ekspertyz Sądowych w Krakowie działa poza Policją." },
+      { q: "Ta jednostka Komendy Głównej Policji odbija zakładników i zatrzymuje najgroźniejszych przestępców. Co to za jednostka?", o: ["Biuro Operacji Antyterrorystycznych", "Biuro Spraw Wewnętrznych Policji", "Centralne Laboratorium Kryminalistyczne Policji", "Służba Ochrony Państwa"], c: 0,
+        e: "BOA to policyjny kontrterroryzm. SOP chroni osoby i obiekty, a nie prowadzi szturmów." },
+      { q: "Wydaje interpretacje indywidualne przepisów podatkowych, czyli wiążącą odpowiedź, jak rozliczyć konkretną sprawę. Co to za jednostka?", o: ["Krajowa Informacja Skarbowa", "Urząd skarbowy właściwy dla podatnika", "Izba administracji skarbowej", "Departament Informacji Finansowej"], c: 0,
+        e: "Interpretacje wydaje Dyrektor Krajowej Informacji Skarbowej. KIS prowadzi też infolinię podatkową." },
+      { q: "Podatnik nie zgadza się z decyzją naczelnika urzędu skarbowego. Kto rozpatruje jego odwołanie?", o: ["Dyrektor izby administracji skarbowej", "Wojewódzki sąd administracyjny", "Minister Finansów", "Szef Krajowej Administracji Skarbowej"], c: 0,
+        e: "II instancją wobec naczelnika US jest dyrektor IAS. Do WSA można się skarżyć dopiero na decyzję po odwołaniu." },
+      { q: "Prowadzi kontrole celno-skarbowe i zwalcza przemyt w danym województwie. Która jednostka KAS?", o: ["Urząd celno-skarbowy", "Urząd skarbowy", "Krajowa Informacja Skarbowa", "Straż Graniczna"], c: 0,
+        e: "Urzędy celno-skarbowe to „służba mundurowa” KAS. Straż Graniczna chroni granicę, ale nie należy do KAS." },
+      { q: "Zbiera informacje o podejrzanych transakcjach od banków i przekazuje je prokuraturze. Przeciwdziała praniu pieniędzy. Co to za organ?", o: ["Generalny Inspektor Informacji Finansowej", "Komisja Nadzoru Finansowego", "Biuro Informacji Kredytowej", "Rzecznik Finansowy"], c: 0,
+        e: "GIIF działa w Ministerstwie Finansów, a obsługuje go Departament Informacji Finansowej. BIK to prywatna baza historii kredytowej." },
+      { q: "To pion śledczy IPN. Ściga zbrodnie nazistowskie, komunistyczne i zbrodnie wojenne. Jak się nazywa?", o: ["Główna Komisja Ścigania Zbrodni przeciwko Narodowi Polskiemu", "Biuro Lustracyjne", "Biuro Upamiętniania Walk i Męczeństwa", "Prokuratura Krajowa"], c: 0,
+        e: "Prokuratorzy IPN pracują w Głównej Komisji i oddziałowych komisjach ścigania. Biuro Lustracyjne zajmuje się oświadczeniami lustracyjnymi." },
+      { q: "Sprawdza prawdziwość oświadczeń lustracyjnych o współpracy z organami bezpieczeństwa PRL. Która jednostka IPN?", o: ["Biuro Lustracyjne", "Archiwum IPN", "Główna Komisja Ścigania Zbrodni przeciwko Narodowi Polskiemu", "Biuro Edukacji Narodowej"], c: 0,
+        e: "Biuro Lustracyjne weryfikuje oświadczenia osób pełniących funkcje publiczne. Archiwum przechowuje akta, ale ich nie analizuje pod tym kątem." },
+      { q: "Poszukuje nieznanych miejsc pochówku ofiar totalitaryzmów i identyfikuje szczątki, np. na „Łączce” na warszawskich Powązkach. Która jednostka IPN?", o: ["Biuro Poszukiwań i Identyfikacji", "Biuro Upamiętniania Walk i Męczeństwa", "Biuro Lustracyjne", "Archiwum IPN"], c: 0,
+        e: "BPiI prowadzi ekshumacje i badania genetyczne. Biuro Upamiętniania zajmuje się grobami i pomnikami, a nie poszukiwaniem szczątków." },
+      { q: "W 2016 r. przejęła zadania Rady Ochrony Pamięci Walk i Męczeństwa. Opiekuje się miejscami pamięci i grobami wojennymi. Która jednostka IPN?", o: ["Biuro Upamiętniania Walk i Męczeństwa", "Biuro Poszukiwań i Identyfikacji", "Biuro Edukacji Narodowej", "Archiwum IPN"], c: 0,
+        e: "BUWiM powstało po nowelizacji ustawy o IPN w 2016 r., gdy zlikwidowano Radę Ochrony Pamięci Walk i Męczeństwa." }
+    ]
+  },
+  {
+    name: "Sprawy obywatela", q: [
+      { q: "Rejestrujesz samochód i odbierasz prawo jazdy. W jakiej jednostce?", o: ["Wydział komunikacji starostwa powiatowego", "Wojewódzki ośrodek ruchu drogowego", "Urząd gminy", "Komenda powiatowa Policji"], c: 0,
+        e: "Rejestracja pojazdów i prawa jazdy należą do starosty (w miastach na prawach powiatu do prezydenta miasta). WORD tylko przeprowadza egzamin." },
+      { q: "Wydaje pozwolenie na budowę domu. Kto?", o: ["Starosta (wydział architektury starostwa)", "Wójt gminy", "Powiatowy inspektor nadzoru budowlanego", "Wojewoda"], c: 0,
+        e: "Pozwolenie wydaje starosta. Nadzór budowlany kontroluje budowę i wydaje decyzje o rozbiórce samowoli, ale pozwoleń nie wydaje." },
+      { q: "Wykrywa samowole budowlane i może nakazać rozbiórkę nielegalnej budowy. Co to za organ?", o: ["Powiatowy inspektor nadzoru budowlanego", "Wydział architektury starostwa", "Straż miejska", "Wojewódzki konserwator zabytków"], c: 0,
+        e: "PINB to organ nadzoru budowlanego I instancji. Konserwator zabytków działa tylko przy obiektach zabytkowych." },
+      { q: "Udostępnia mapy zasadnicze, wypisy z ewidencji gruntów i materiały dla geodetów. Która jednostka powiatu?", o: ["Powiatowy ośrodek dokumentacji geodezyjnej i kartograficznej", "Wydział ksiąg wieczystych sądu rejonowego", "Główny Urząd Geodezji i Kartografii", "Urząd gminy"], c: 0,
+        e: "PODGiK prowadzi powiatowy zasób geodezyjny. GUGiK to urząd centralny, który nadzoruje całą geodezję." },
+      { q: "Rejestruje bezrobotnych, wypłaca zasiłek dla bezrobotnych i kieruje na szkolenia. Co to za jednostka?", o: ["Powiatowy urząd pracy", "Zakład Ubezpieczeń Społecznych", "Ośrodek pomocy społecznej", "Państwowa Inspekcja Pracy"], c: 0,
+        e: "PUP to jednostka samorządu powiatowego. PIP kontroluje pracodawców, a nie obsługuje bezrobotnych." },
+      { q: "Organizuje rodziny zastępcze i pieczę zastępczą nad dziećmi w powiecie. Co to za jednostka?", o: ["Powiatowe centrum pomocy rodzinie", "Ośrodek pomocy społecznej", "Wydział rodzinny sądu rejonowego", "Rzecznik Praw Dziecka"], c: 0,
+        e: "PCPR to powiatowa jednostka pomocy społecznej. Sąd decyduje o umieszczeniu dziecka w pieczy, a PCPR ją organizuje." },
+      { q: "Rejestruje urodzenia, małżeństwa i zgony oraz udziela ślubów cywilnych. Która jednostka gminy?", o: ["Urząd stanu cywilnego", "Wydział spraw obywatelskich starostwa", "Biuro ewidencji ludności urzędu wojewódzkiego", "Sąd rejonowy"], c: 0,
+        e: "USC działa w gminie. To kierownik USC sporządza akty stanu cywilnego." },
+      { q: "W jakiej jednostce w Polsce składasz wniosek o paszport?", o: ["W punkcie paszportowym urzędu wojewódzkiego", "W urzędzie gminy", "W starostwie powiatowym", "W komendzie Straży Granicznej"], c: 0,
+        e: "Paszporty wydaje wojewoda, więc punkty paszportowe działają w urzędach wojewódzkich i ich delegaturach. Dowód osobisty wydaje gmina." },
+      { q: "Cudzoziemiec chce dostać zezwolenie na pobyt czasowy w Polsce. Kto rozpatruje jego wniosek w I instancji?", o: ["Wojewoda (wydział ds. cudzoziemców urzędu wojewódzkiego)", "Szef Urzędu do Spraw Cudzoziemców", "Komendant Straży Granicznej", "Konsul RP"], c: 0,
+        e: "Wnioski rozpatruje wojewoda. Szef Urzędu do Spraw Cudzoziemców jest organem odwoławczym." },
+      { q: "Kontroluje higienę w restauracjach i sklepach spożywczych w powiecie i może je zamknąć. Co to za jednostka?", o: ["Powiatowa stacja sanitarno-epidemiologiczna", "Inspekcja Handlowa", "Straż miejska", "Powiatowy lekarz weterynarii"], c: 0,
+        e: "Sanepid pilnuje bezpieczeństwa żywności i higieny. Inspekcja Handlowa sprawdza głównie oznakowanie i jakość towarów." },
+      { q: "Pomaga mieszkańcom powiatu za darmo w sporach ze sprzedawcami, np. przy reklamacji. Kto?", o: ["Powiatowy rzecznik konsumentów", "Rzecznik Finansowy", "Prezes UOKiK", "Inspekcja Handlowa"], c: 0,
+        e: "Powiatowy rzecznik konsumentów działa w starostwie i może wystąpić w imieniu konsumenta. Prezes UOKiK chroni zbiorowe interesy konsumentów." },
+      { q: "Wystawia Europejską Kartę Ubezpieczenia Zdrowotnego (EKUZ) na wyjazd do innego kraju UE. Kto?", o: ["Oddział wojewódzki NFZ", "Zakład Ubezpieczeń Społecznych", "Ministerstwo Zdrowia", "Urząd wojewódzki"], c: 0,
+        e: "EKUZ wydaje Narodowy Fundusz Zdrowia przez oddziały wojewódzkie. ZUS zajmuje się emeryturami i zasiłkami, a nie leczeniem." },
+      { q: "Od 2022 r. prowadzi kwalifikację wojskową i powołuje do służby. Zastąpiły wojskowe komendy uzupełnień. Co to za jednostki?", o: ["Wojskowe centra rekrutacji", "Wojewódzkie sztaby wojskowe", "Inspektoraty wsparcia", "Wojskowe komisje lekarskie"], c: 0,
+        e: "Ustawa o obronie Ojczyzny przekształciła WKU w wojskowe centra rekrutacji, a wojewódzkie sztaby w Centralne Wojskowe Centrum Rekrutacji." },
+      { q: "Lekarz orzecznik ZUS uznał, że nie jesteś niezdolny do pracy, a ty się z tym nie zgadzasz. Gdzie trafia twój sprzeciw?", o: ["Do komisji lekarskiej ZUS", "Do sądu pracy i ubezpieczeń społecznych", "Do Rzecznika Praw Pacjenta", "Do Państwowej Inspekcji Pracy"], c: 0,
+        e: "Od orzeczenia lekarza orzecznika przysługuje sprzeciw do komisji lekarskiej ZUS. Do sądu odwołujesz się dopiero od decyzji ZUS." }
+    ]
+  }
+];
+
 
 
 /* ===================== POZIOMY ===================== */
@@ -1354,6 +1468,7 @@ const LEVELS = {
   pro: { label: "Ekspert PL", bank: BANK_PRO, hint: "Tylko polska polityka: wyniki wyborów, kulisy rządów III RP, PRL i II RP, ordynacja i regulamin Sejmu." },
   pop: { label: "Popkultura PL", bank: BANK_POP, hint: "Polska popkultura 2010–2026: muzyka i Eurowizja, kino i seriale, internet, gry i sportowe gwiazdy." },
   urz: { label: "Jaki to urząd?", bank: BANK_URZ, hint: "Opis kompetencji, a gracze rozpoznają urząd albo organ: od premiera i NIK po wojewodę, KNF i TSUE." },
+  wydz: { label: "Jaki to wydział?", bank: BANK_WYDZ, hint: "Poziom niżej niż „Jaki to urząd?”: opis zadań, a gracze wskazują konkretny wydział, biuro, izbę albo jednostkę urzędu. Parlament, sądy, służby, skarbówka, IPN i sprawy obywatela." },
   uzw: { label: "Używki", bank: BANK_UZW, hint: "Bardzo trudne: historia, chemia, kultura i prawo alkoholu, tytoniu, kawy i narkotyków." },
   ksh: { label: "Prawo spółek", bank: BANK_KSH, hint: "Kodeks spółek handlowych i okolice: kapitały, większości, odpowiedzialność zarządu, P.S.A., KRS." },
   ts: { label: "Taylor Swift", bank: BANK_TS, hint: "Albumy, rekordy, Eras Tour, „Taylor's Version”, koty i Travis Kelce. Bez cytowania tekstów piosenek." }

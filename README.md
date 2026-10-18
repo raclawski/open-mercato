@@ -2,7 +2,7 @@
 
 **Graj: https://krzyzyk.vercel.app**
 
-Teleturniej na telefon: polityka, prawo, popkultura. 397 pytań w 8 kategoriach. Serwis na Vercel + Supabase z grą Live przez serwer i listą wyników.
+Teleturniej na telefon: polityka, prawo, popkultura. 444 pytania w 9 kategoriach. Serwis na Vercel + Supabase z grą Live przez serwer i listą wyników.
 
 - Opis gry, historia projektu i stan weryfikacji: [PODSUMOWANIE.md](PODSUMOWANIE.md)
 - Praca nad kodem (struktura, build, testy, dodawanie kategorii): [CLAUDE.md](CLAUDE.md)
