@@ -30,7 +30,7 @@ def fill(tpl):
     t = rd('src/templates/' + tpl)
     assert t.count('/*__BANKS__*/') == 1, tpl
     out = t.replace('/*__BANKS__*/', banks)
-    for mark, part in (('/*__DRUM_CSS__*/', 'drum.css'), ('/*__DRUM_JS__*/', 'drum.js'), ('/*__MIX_JS__*/', 'mix.js')):
+    for mark, part in (('/*__DRUM_CSS__*/', 'drum.css'), ('/*__POP_CSS__*/', 'pop.css'), ('/*__DRUM_JS__*/', 'drum.js'), ('/*__MIX_JS__*/', 'mix.js')):
         assert out.count(mark) == 1, (tpl, mark)
         out = out.replace(mark, rd('src/templates/shared/' + part).strip())
     for n in names:
@@ -69,6 +69,7 @@ wr('dist/web/wyniki.html', rd('src/web/wyniki.html').replace('/*__LEVEL_LABELS__
 wr('dist/web/index.html', rd('src/web/index.html').replace('/*__QUESTION_COUNT__*/', str(n_questions)).replace('/*__LEVEL_COUNT__*/', str(len([k for k in labels if k != 'mix']))))
 for f in ('pk-online.js', 'site.css'):
     wr('dist/web/' + f, rd('src/web/' + f))
+wr('dist/web/pop.css', rd('src/templates/shared/pop.css'))  # wygląd gry także na stronach serwisu
 url, key = os.environ.get('SUPABASE_URL', ''), os.environ.get('SUPABASE_ANON_KEY', '')
 wr('dist/web/config.js', '// Wygenerowane przez tools/build.py ze zmiennych środowiskowych.\nwindow.PK_CONFIG = '
    + json.dumps({'supabaseUrl': url, 'supabaseAnonKey': key}, indent=2) + ';\n' if url and key else rd('src/web/config.js'))
