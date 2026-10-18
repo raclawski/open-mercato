@@ -3,7 +3,13 @@ const fs = require('fs'), path = require('path');
 const dir = path.join(__dirname, '..', 'src', 'questions');
 const order = fs.readFileSync(path.join(dir, 'ORDER.txt'), 'utf8').split('\n').map((s) => s.trim()).filter(Boolean);
 let errors = 0, total = 0;
-const seenQ = new Map();
+const seenQ = new Map(), seenH = new Map();
+// to samo co qhash w src/templates/shared/mix.js: id pytania w grze, nie może się powtarzać
+function qhash(t) {
+  let h = 0x811c9dc5;
+  for (const ch of String(t).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '')) { h ^= ch.codePointAt(0); h = Math.imul(h, 0x01000193) >>> 0; }
+  return h.toString(36);
+}
 const norm = (t) => String(t).toLowerCase().replace(/[^0-9a-ząćęłńóśźż]+/g, ' ').trim();
 for (const f of order) {
   const src = fs.readFileSync(path.join(dir, f), 'utf8');
@@ -22,6 +28,7 @@ for (const f of order) {
       if (!(Number.isInteger(q.c) && q.c >= 0 && q.c < 4)) { console.log(`✗ ${where}: c musi być 0–3`); errors++; }
       if (q.q && !/[?…:]$/.test(q.q.trim())) { console.log(`✗ ${where}: pytanie powinno kończyć się „?”`); errors++; }
       if (q.q) { const k = norm(q.q); if (seenQ.has(k)) { console.log(`✗ ${where}: to samo pytanie co ${seenQ.get(k)}`); errors++; } else seenQ.set(k, where); }
+      if (q.q) { const h = qhash(q.q); if (seenH.has(h)) { console.log(`✗ ${where}: ten sam identyfikator (${h}) co ${seenH.get(h)}, przeredaguj pytanie`); errors++; } else seenH.set(h, where); }
     });
   });
   total += n;

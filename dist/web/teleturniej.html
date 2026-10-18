@@ -2706,22 +2706,36 @@ function initDrum(el, meta) {
 }
 /* Losowanie pytań i tryb mieszany („Mieszane”, klucz `mix`): pytania z kilku kategorii w jednej grze.
    Kategorie z mieszanki dostają po równo pytań i przeplatają się (w każdej rundzie w losowej kolejności).
-   Najpierw idą pytania, których jeszcze nie było (pk_seen); id pytania to zawsze `kategoria:dział-nr`,
-   więc pamięć wylosowanych pytań jest wspólna dla gry z jedną kategorią i mieszanej. */
+   Najpierw idą pytania, których jeszcze nie było (pk_seen). Id pytania to `kategoria:skrót treści` (qid), więc
+   nie zmienia się po dopisaniu pytań i jest wspólne dla gry z jedną kategorią i mieszanej. */
 const MIX = "mix";
 const realLevels = () => Object.keys(LEVELS).filter((k) => LEVELS[k].bank);
 const mixKeys = (sel) => { const ok = (Array.isArray(sel) ? sel : []).filter((k) => LEVELS[k] && LEVELS[k].bank); return ok.length ? ok : realLevels(); };
 const levelSize = (k) => LEVELS[k].bank.reduce((s, c) => s + c.q.length, 0);
 function poolSize(level, sel) { return level === MIX ? mixKeys(sel).reduce((s, k) => s + levelSize(k), 0) : levelSize(level); }
+/* Skrót treści pytania (FNV-1a, 32 bity): tylko litery i cyfry, bez wielkości liter. Ten sam liczy tests/validate_questions.js. */
+function qhash(t) {
+  let h = 0x811c9dc5;
+  for (const ch of String(t).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "")) { h ^= ch.codePointAt(0); h = Math.imul(h, 0x01000193) >>> 0; }
+  return h.toString(36);
+}
+const qid = (level, Q) => `${level}:${qhash(Q.q)}`;
+/* Pamięć sprzed stałych id (`kategoria:dział-nr`) przepisuje się na nowe id według obecnej kolejności pytań. */
+function migrateSeen(list) {
+  return list.map((id) => {
+    const m = /^([a-z]+):(\d+)-(\d+)$/.exec(id), cat = m && LEVELS[m[1]] && LEVELS[m[1]].bank && LEVELS[m[1]].bank[+m[2]], Q = cat && cat.q[+m[3]];
+    return Q ? qid(m[1], Q) : id;
+  });
+}
 function pickLevel(level, need, seen) {
   const all = [];
-  LEVELS[level].bank.forEach((cat, ci) => cat.q.forEach((Q, qi) => all.push({ id: `${level}:${ci}-${qi}`, Q, cat: cat.name, lv: level })));
+  LEVELS[level].bank.forEach((cat) => cat.q.forEach((Q) => all.push({ id: qid(level, Q), Q, cat: cat.name, lv: level })));
   let fresh = shuffle(all.filter((x) => !seen.has(x.id)));
   if (fresh.length < need) { all.forEach((x) => seen.delete(x.id)); fresh = fresh.concat(shuffle(all.filter((x) => !fresh.includes(x)))); }
   return fresh.slice(0, Math.min(need, all.length));
 }
 function buildDeck(level, count, sel) {
-  const seen = new Set(load("pk_seen", []));
+  const seen = new Set(migrateSeen(load("pk_seen", [])));
   let pick;
   if (level !== MIX) pick = pickLevel(level, count, seen);
   else {

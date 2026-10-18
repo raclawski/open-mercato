@@ -39,6 +39,16 @@ async def main():
         good = chips_visible and full >= 6 and kept == 'std,ts' and two and mixed and not errs
         print(('✓' if good else '✗'), 'mieszane: pełna mieszanka', full, 'kategorii | wybrane:', kept, '| podział:', {c: cats.count(c) for c in set(cats)}, '| zmian kategorii:', sum(1 for a, b in zip(cats, cats[1:]) if a != b), errs)
         fail += not good
+        # stałe id pytań: id z treści, stara pamięć `kategoria:dział-nr` przepisana na nowe id
+        await pg.evaluate('localStorage.clear()'); await pg.goto(URL); await pg.wait_for_timeout(200)
+        await pg.evaluate('() => localStorage.setItem("pk_seen", JSON.stringify(["std:0-0", "std:1-2"]))')
+        await pg.goto(URL); await pg.wait_for_timeout(200)
+        await pg.click('#levelSeg [data-v="std"]'); await pg.fill('#countRange', '20'); await pg.click('#btnStart')
+        r = await pg.evaluate("""() => { const seen = JSON.parse(localStorage.getItem("pk_seen")), a = qid("std", LEVELS.std.bank[0].q[0]), b = qid("std", LEVELS.std.bank[1].q[2]);
+          return [seen.includes(a) && seen.includes(b) && !seen.some((x) => /-/.test(x)), S.deck.every((q) => /^std:[0-9a-z]+$/.test(q.id)), !S.deck.some((q) => q.id === a || q.id === b)]; }""")
+        good = all(r) and not errs
+        print(('✓' if good else '✗'), 'stałe id pytań i przepisanie starej pamięci', r, errs)
+        fail += not good
         # koniec czasu: odpowiedzi zostają do zaznaczenia, „Brak odpowiedzi” daje karę, nic nie dzieje się samo
         await pg.evaluate('localStorage.clear()'); await pg.clock.install(); await pg.goto(URL); await pg.wait_for_timeout(200)
         await pg.click('#timeSeg [data-v="10"]'); await pg.click('#minusSeg [data-v="5"]'); await pg.click('#btnStart')
