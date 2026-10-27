@@ -35,6 +35,7 @@ Zmiana bazy (**SQL**) oznacza, że po wdrożeniu musisz wgrać nowy plik w Supab
 | A8 | Instrukcja gry z przyciskami zostaje na ekranie, dopóki prowadzący nie kliknie „Zaczynamy!” | 18.10.2026 |
 | C1 | Partia 1 bazy pytań: 5 nowych kategorii po 100 pytań (razem 944) | 18.10.2026 |
 | — | Naprawa listy wyników (funkcja czyszcząca nicki) | 18.10.2026 |
+| C4 | Kategoria „Który polityk to powiedział?” (20 pytań: do 1989, lata 90., nowsze czasy, świat) | 27.10.2026 |
 
 ## Do zrobienia
 
