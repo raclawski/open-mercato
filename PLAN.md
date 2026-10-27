@@ -36,6 +36,7 @@ Zmiana bazy (**SQL**) oznacza, że po wdrożeniu musisz wgrać nowy plik w Supab
 | C1 | Partia 1 bazy pytań: 5 nowych kategorii po 100 pytań (razem 944) | 18.10.2026 |
 | — | Naprawa listy wyników (funkcja czyszcząca nicki) | 18.10.2026 |
 | C4 | Kategoria „Który polityk to powiedział?” (20 pytań: do 1989, lata 90., nowsze czasy, świat) | 27.10.2026 |
+| C5 | Kategoria „Śmieszne wypowiedzi” (20 pytań: wałęsizmy, lata 90. i 2000., po 2007 r.) | 27.10.2026 |
 
 ## Do zrobienia
 

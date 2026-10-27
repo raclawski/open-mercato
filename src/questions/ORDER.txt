@@ -14,3 +14,4 @@ sport.js
 literatura.js
 chajzerowie.js
 kto-powiedzial.js
+smieszne.js
