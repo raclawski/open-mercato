@@ -59,7 +59,7 @@ $("#players").addEventListener("input", prefetchHist); prefetchHist();''')
 .foot {''')
     # jedna gra: tryb wybiera się na stronie startowej; ustawienia wspólne z Live (pk_common)
     s = rep(s, '<button type="button" class="btn" id="btnStart">Zaczynamy</button>',
-            '<button type="button" class="btn" id="btnStart">Zaczynamy</button>\n      <a class="link-btn" href="index.html">← Zmień tryb</a>')
+            '<button type="button" class="btn" id="btnStart">Zaczynamy</button>\n      <a class="link-btn" href="gra.html">← Zmień tryb</a>')
     s = rep(s, '<p class="eyebrow" id="topicEyebrow">Teleturniej · Polityka</p>', '<p class="eyebrow hot" id="topicEyebrow">Tryb: jeden telefon</p>')
     s = rep(s, '$("#topicEyebrow").textContent = settings.level === "pop" ? "Teleturniej · Popkultura" : "Teleturniej · Polityka";', '')
     s = rep(s, 'count: 30, time: 15, minus: 1 }, load("pk_tv2", {}));', 'count: 30, time: 15, minus: 1 }, load("pk_tv2", {}), load("pk_common", {}));')

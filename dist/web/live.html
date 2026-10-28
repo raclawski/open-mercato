@@ -3272,7 +3272,7 @@ $("#btnLeave").addEventListener("click", (e) => {
   e.stopImmediatePropagation();
   if (confirm("Zakończyć grę dla wszystkich graczy?")) endGame();
 });
-$("#btnLeave").addEventListener("click", () => { if (room && room.close) room.close(); room = null; role = null; save("pkl_role", null); setPresence({ role: null, name: null, buzz: null, fs: null }); location.assign("index.html"); });
+$("#btnLeave").addEventListener("click", () => { if (room && room.close) room.close(); room = null; role = null; save("pkl_role", null); setPresence({ role: null, name: null, buzz: null, fs: null }); location.assign("gra.html"); });
 
 function findHost(peers) {
   let h = null;
@@ -4088,8 +4088,8 @@ $("#btnCopyLink").addEventListener("click", () => {
   const code = load("pkw_hcode", ""), t = joinUrl(code), note = $("#copyLinkNote");
   try { navigator.clipboard.writeText(t).then(() => (note.textContent = "Skopiowano link."), () => (note.textContent = "Zaznacz link powyżej i skopiuj go ręcznie.")); } catch (e) { note.textContent = "Zaznacz link powyżej i skopiuj go ręcznie."; }
 });
-$("#btnBack1").addEventListener("click", () => location.assign("index.html"));
-$("#btnBack2").addEventListener("click", () => { if (room && room.close) room.close(); room = null; role = null; save("pkl_role", null); setPresence({ role: null, g: null, ph: null }); location.assign("index.html"); });
+$("#btnBack1").addEventListener("click", () => location.assign("gra.html"));
+$("#btnBack2").addEventListener("click", () => { if (room && room.close) room.close(); room = null; role = null; save("pkl_role", null); setPresence({ role: null, g: null, ph: null }); location.assign("gra.html"); });
 
 /* ---------- start ---------- */
 function fillNicks() {
@@ -4110,7 +4110,7 @@ function boot() {
     if (running) $("#btnBeHost").click();
     else { $("#btnBePlayer").hidden = true; const bh = $("#btnBeHost"); bh.className = "btn go"; bh.textContent = "Zaczynamy!"; bh.dataset.label = "Zaczynamy!"; }
   }
-  else { location.replace("index.html"); return; }
+  else { location.replace("gra.html"); return; }
   if (!window.PK || !PK.ready()) { setConn("off"); const n = $("#roomNote"); n.hidden = false; n.className = "notice"; n.textContent = libErrText(window.PK ? PK.whyOff() : "nolib"); }
 }
 boot();

@@ -66,7 +66,21 @@ def site_brand(s):
 wr('dist/web/live.html', site_brand(make_web(lv, flavor='supabase')))
 wr('dist/web/teleturniej.html', site_brand(make_tv_web(tv_doc)))
 wr('dist/web/wyniki.html', rd('src/web/wyniki.html').replace('/*__LEVEL_LABELS__*/{}', json.dumps(labels, ensure_ascii=False)))
-wr('dist/web/index.html', rd('src/web/index.html').replace('/*__QUESTION_COUNT__*/', str(n_questions)).replace('/*__LEVEL_COUNT__*/', str(len([k for k in labels if k != 'mix']))))
+def site_counts(s):
+    return s.replace('/*__QUESTION_COUNT__*/', str(n_questions)).replace('/*__LEVEL_COUNT__*/', str(len([k for k in labels if k != 'mix'])))
+# strona główna = szybki quiz (10 pytań z mieszanki sześciu kategorii), „Własna gra” (wybór trybu) w gra.html
+QUIZ_KEYS = {'chajzer': 'chajzerowie.js', 'pro': 'ekspert-pl.js', 'urz': 'jaki-to-urzad.js', 'hist': 'historia-polski.js',
+             'polityk': 'kto-powiedzial.js', 'smieszne': 'smieszne.js'}
+quiz_banks = '\n\n'.join(rd('src/questions/' + f).strip() for f in QUIZ_KEYS.values())
+quiz_banks += '\n\nconst LEVELS = {\n' + ''.join(
+    '  %s: { label: %s, bank: %s },\n' % (k, json.dumps(labels[k], ensure_ascii=False), re.search(r'const (BANK_\w+) = ', rd('src/questions/' + f)).group(1))
+    for k, f in QUIZ_KEYS.items()) + '};'
+idx = site_counts(rd('src/web/index.html'))
+for mark, part in (('/*__START_BANKS__*/', quiz_banks), ('/*__MIX_JS__*/', rd('src/templates/shared/mix.js').strip())):
+    assert idx.count(mark) == 1, mark
+    idx = idx.replace(mark, part)
+wr('dist/web/index.html', idx)
+wr('dist/web/gra.html', site_counts(rd('src/web/gra.html')))
 for f in ('pk-online.js', 'site.css'):
     wr('dist/web/' + f, rd('src/web/' + f))
 wr('dist/web/pop.css', rd('src/templates/shared/pop.css'))  # wygląd gry także na stronach serwisu

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Własna gra · TELETURNIEJ</title>
+<meta name="description" content="TELETURNIEJ: gra na telefony. Sam albo ze znajomymi, z przyciskami na telefonach graczy i listą wyników.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,500..800&family=Archivo:wdth,wght@62..125,500..900&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="site.css">
+<link rel="stylesheet" href="pop.css">
+</head>
+<body class="start">
+<main class="app">
+  <header class="marquee" aria-labelledby="t-top">
+    <div class="marquee-in">
+      <p class="mq-kicker">Własna gra</p>
+      <h1 id="t-top">TELETURNIEJ</h1>
+      <p class="mq-meta">/*__QUESTION_COUNT__*/ pytań · /*__LEVEL_COUNT__*/ kategorii</p>
+    </div>
+  </header>
+
+  <p class="cue" id="resume" hidden></p>
+
+  <section class="round" id="q1" aria-labelledby="q1t">
+    <h2 class="qplate" id="q1t"><span class="qn">Pytanie 1</span><span class="qt">Jak dziś gramy?</span></h2>
+    <div class="answers">
+      <a class="ans" href="teleturniej.html?tryb=sam"><span class="in"><b class="key">A</b><span class="at"><strong>Gram sam</strong><small>Ty kontra pytania. Wynik trafia na listę.</small></span></span></a>
+      <button type="button" class="ans" data-go="q2"><span class="in"><b class="key">B</b><span class="at"><strong>Ze znajomymi</strong><small>Na jednym telefonie albo każdy na swoim.</small></span></span></button>
+    </div>
+  </section>
+
+  <section class="round" id="q2" aria-labelledby="q2t" hidden>
+    <h2 class="qplate" id="q2t"><span class="qn">Pytanie 2</span><span class="qt">Ile macie telefonów?</span></h2>
+    <div class="answers">
+      <a class="ans" href="teleturniej.html"><span class="in"><b class="key">A</b><span class="at"><strong>Jeden na wszystkich</strong><small>Prowadzący czyta i zaznacza. Kto trafi, wskazuje następnego.</small></span></span></a>
+      <a class="ans" href="live.html?tryb=prowadzacy"><span class="in"><b class="key">B</b><span class="at"><strong>Każdy swój · zakładam pokój</strong><small>Przyciski na telefonach. Online, „Kto pierwszy” albo offline.</small></span></span></a>
+      <a class="ans" href="live.html?tryb=gracz"><span class="in"><b class="key">C</b><span class="at"><strong>Mam kod gry</strong><small>Dołączam do pokoju znajomego.</small></span></span></a>
+    </div>
+    <button type="button" class="back" data-go="q1">← Wróć do pytania 1</button>
+  </section>
+
+  <section class="scoreboard" aria-labelledby="t-top5" id="topBox" hidden>
+    <div class="sb-head"><h2 id="t-top5">Czołówka</h2><span>ostatnie 30 dni</span></div>
+    <ol class="board" id="top"></ol>
+    <a class="sb-more" href="wyniki.html">Cały ranking →</a>
+  </section>
+
+  <nav class="stage-nav"><a href="index.html">← Szybki quiz</a><a href="wyniki.html">Lista wyników</a></nav>
+  <p class="foot">Bez logowania. Wyniki zapisują się pod imieniem wpisanym w grze.</p>
+</main>
+
+<script src="vendor/supabase.js"></script>
+<script src="config.js"></script>
+<script src="pk-online.js"></script>
+<script>
+// pytania 1 i 2: wybrana odpowiedź podświetla się jak w teleturnieju, potem przejście
+(() => {
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  document.querySelectorAll(".round .ans").forEach((el) => el.addEventListener("click", (e) => {
+    if (el.classList.contains("picked")) { e.preventDefault(); return; }
+    const go = () => {
+      if (el.dataset.go) { document.querySelectorAll(".round").forEach((r) => (r.hidden = r.id !== el.dataset.go)); document.querySelectorAll(".ans.picked").forEach((x) => x.classList.remove("picked")); document.querySelector("#" + el.dataset.go + " .ans").focus({ preventScroll: true }); }
+      else location.assign(el.href);
+    };
+    if (still) return el.dataset.go ? go() : undefined;
+    e.preventDefault(); el.classList.add("picked"); setTimeout(go, 420);
+  }));
+  document.querySelectorAll(".back").forEach((b) => b.addEventListener("click", () => document.querySelectorAll(".round").forEach((r) => (r.hidden = r.id !== b.dataset.go))));
+  addEventListener("pageshow", () => document.querySelectorAll(".ans.picked").forEach((x) => x.classList.remove("picked")));
+})();
+(() => {
+  // trwająca gra prowadzącego na tym urządzeniu: pozwól do niej wrócić
+  try {
+    const H = JSON.parse(localStorage.getItem("pkl_host") || "null"), code = JSON.parse(localStorage.getItem("pkw_hcode") || "null");
+    if (H && H.deck && H.ph && H.ph !== "lobby" && H.ph !== "final" && code) {
+      const r = document.querySelector("#resume");
+      r.innerHTML = `<span>Trwa Twoja gra · kod <b>${String(code).replace(/[^A-Z0-9]/g, "")}</b> · pytanie ${H.i + 1} z ${H.deck.length}</span><a href="live.html?tryb=prowadzacy">Wróć do gry</a>`;
+      r.hidden = false;
+    }
+  } catch (e) { }
+})();
+(async () => {
+  if (!window.PK || !PK.ready()) return;
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const num = (n) => (n < 0 ? "−" + Math.abs(n) : String(n));
+  const games = (n) => n === 1 ? "gra" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? "gry" : "gier";
+  try {
+    const rows = (await PK.leaderboard({ days: 30, limit: 5 })).slice(0, 5);
+    if (!rows.length) return;
+    const max = Math.max(1, ...rows.map((r) => +r.points));
+    document.querySelector("#top").innerHTML = rows.map((r, k) => `<li class="${k === 0 && +r.points > 0 ? "lead" : ""}"><span class="pos">${k + 1}.</span>
+      <span class="nm"><a href="wyniki.html?gracz=${encodeURIComponent(r.name)}">${esc(r.name)}</a><span class="stat">${r.games} ${games(+r.games)} · ${r.wins} wygr.</span></span>
+      <span class="p${+r.points < 0 ? " neg" : ""}">${num(+r.points)} <small>pkt</small></span><span class="bar"><i style="width:${(Math.max(0, +r.points) / max) * 100}%"></i></span></li>`).join("");
+    document.querySelector("#topBox").hidden = false;
+  } catch (e) { }
+})();
+</script>
+</body>
+</html>

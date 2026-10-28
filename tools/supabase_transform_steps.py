@@ -83,7 +83,7 @@ src = rep(src, '''$("#fActions").innerHTML = isHost ? `<button type="button" cla
           '''$("#fActions").innerHTML = (isHost ? `<button type="button" class="btn go" data-f="again">Nowa gra</button>` : "") + `<a class="btn ghost" href="wyniki.html">Lista wyników</a>`;''')
 src = rep(src, '''if (e.target.closest('[data-f="again"]')) { H = { ph: "lobby" };''', '''if (e.target.closest('[data-f="again"]')) { $("#fRank").textContent = ""; H = { ph: "lobby" };''')
 
-# --- jedna gra: tryb wybiera się na stronie startowej (index.html), tu przychodzi w adresie ---
+# --- jedna gra: tryb wybiera się na stronie „Własna gra” (gra.html), tu przychodzi w adresie ---
 #   live.html?tryb=prowadzacy  od razu ustawienia prowadzącego (albo powrót do trwającej gry)
 #   live.html?tryb=gracz       ekran dołączania;  live.html?kod=XXXX  link od prowadzącego
 #   bez parametrów             powrót do wyboru trybu
@@ -99,11 +99,11 @@ src = rep(src, '''  setConn("idle");
     if (running) $("#btnBeHost").click();
     else { $("#btnBePlayer").hidden = true; const bh = $("#btnBeHost"); bh.className = "btn go"; bh.textContent = "Zaczynamy!"; bh.dataset.label = "Zaczynamy!"; }
   }
-  else { location.replace("index.html"); return; }
+  else { location.replace("gra.html"); return; }
   if (!window.PK || !PK.ready()) {''')
-src = rep(src, '$("#btnBack1").addEventListener("click", () => show("s-role"));', '$("#btnBack1").addEventListener("click", () => location.assign("index.html"));')
-src = rep(src, 'setPresence({ role: null, g: null, ph: null }); show("s-role"); });', 'setPresence({ role: null, g: null, ph: null }); location.assign("index.html"); });')
-src = rep(src, 'setPresence({ role: null, name: null, buzz: null, fs: null }); show("s-role"); });', 'setPresence({ role: null, name: null, buzz: null, fs: null }); location.assign("index.html"); });')
+src = rep(src, '$("#btnBack1").addEventListener("click", () => show("s-role"));', '$("#btnBack1").addEventListener("click", () => location.assign("gra.html"));')
+src = rep(src, 'setPresence({ role: null, g: null, ph: null }); show("s-role"); });', 'setPresence({ role: null, g: null, ph: null }); location.assign("gra.html"); });')
+src = rep(src, 'setPresence({ role: null, name: null, buzz: null, fs: null }); show("s-role"); });', 'setPresence({ role: null, name: null, buzz: null, fs: null }); location.assign("gra.html"); });')
 src = rep(src, '<button type="button" class="link-btn" id="btnBack1">← Zmień rolę</button>', '<button type="button" class="link-btn" id="btnBack1">← Zmień tryb</button>')
 src = rep(src, '<button type="button" class="link-btn" id="btnBack2">← Zmień rolę</button>', '<button type="button" class="link-btn" id="btnBack2">← Zmień tryb</button>')
 src = rep(src, '''<p class="eyebrow hot">Prowadzący</p>

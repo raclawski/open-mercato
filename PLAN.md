@@ -37,6 +37,7 @@ Zmiana bazy (**SQL**) oznacza, że po wdrożeniu musisz wgrać nowy plik w Supab
 | — | Naprawa listy wyników (funkcja czyszcząca nicki) | 18.10.2026 |
 | C4 | Kategoria „Który polityk to powiedział?” (20 pytań: do 1989, lata 90., nowsze czasy, świat) | 27.10.2026 |
 | C5 | Kategoria „Śmieszne wypowiedzi” (20 pytań: wałęsizmy, lata 90. i 2000., po 2007 r.) | 27.10.2026 |
+| D2 | Strona główna = szybki quiz (10 pytań z mieszanki 6 kategorii, imię i zapis wyniku na końcu), przycisk „Uruchom własną grę” zawsze na dole; wybór trybu przeniesiony na `gra.html` | 28.10.2026 |
 
 ## Do zrobienia
 

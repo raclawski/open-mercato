@@ -83,7 +83,7 @@ async def main(dburl):
         # --- prowadzący tworzy grę ---
         hc = await ctx()
         await hc.clock.install()  # czas płynie normalnie, ale test może go przewinąć (koniec czasu na odpowiedź)
-        host = await page(hc, 'index.html')
+        host = await page(hc, 'gra.html')
         await host.click('[data-go="q2"]'); await host.click('a.ans[href="live.html?tryb=prowadzacy"]')
         await host.wait_for_selector('#s-role:not([hidden]) .rules')
         await host.wait_for_timeout(1500)
@@ -101,7 +101,7 @@ async def main(dburl):
         players = {}
         for n in ['Asia', 'Tomek']:
             if n == 'Asia':  # przez stronę startową: „Mam kod gry”
-                pg = await page(await ctx(), 'index.html')
+                pg = await page(await ctx(), 'gra.html')
                 await pg.click('[data-go="q2"]'); await pg.click('a.ans[href="live.html?tryb=gracz"]')
                 await pg.wait_for_selector('#s-pjoin:not([hidden])')
                 await pg.fill('#pcode', code.lower())
@@ -120,7 +120,7 @@ async def main(dburl):
         check('Nie ma gry o kodzie ZZZZ' in await bad.inner_text('#joinErr'), 'zły kod: komunikat')
 
         # --- lobby: każde odświeżenie daje nowy kod (zapamiętany kod nie wraca, gdy gra nie trwa) ---
-        h2 = await page(await ctx(), 'index.html')
+        h2 = await page(await ctx(), 'gra.html')
         await h2.evaluate('c => localStorage.setItem("pkw_hcode", JSON.stringify(c))', code)
         await h2.click('[data-go="q2"]'); await h2.click('a.ans[href="live.html?tryb=prowadzacy"]')
         await h2.click('#btnBeHost')
@@ -243,10 +243,10 @@ async def main(dburl):
         # --- teleturniej na jednym telefonie ---
         tc = await ctx()
         bare = await page(tc, 'live.html')
-        await bare.wait_for_url('**/index.html', timeout=5000)
+        await bare.wait_for_url('**/gra.html', timeout=5000)
         check(True, 'live.html bez trybu wraca do wyboru trybu')
         await bare.close()
-        tv = await page(hc, 'index.html')  # przeglądarka prowadzącego: ustawienia z Live są w jej localStorage
+        tv = await page(hc, 'gra.html')  # przeglądarka prowadzącego: ustawienia z Live są w jej localStorage
         resume = await tv.is_visible('#resume')
         await tv.click('[data-go="q2"]'); await tv.click('a.ans[href="teleturniej.html"]')
         await tv.wait_for_selector('#screen-start:not([hidden])')
@@ -272,7 +272,7 @@ async def main(dburl):
         await until(tv, '() => document.querySelector("#rankNote").textContent.includes("zapisany")')
         check(True, 'teleturniej: wynik zapisany', await tv.inner_text('#rankNote'))
         # --- gram sam: jeden gracz pod własnym nickiem, bez wskazywania następnego ---
-        sp = await page(await ctx(), 'index.html')
+        sp = await page(await ctx(), 'gra.html')
         await sp.evaluate('() => localStorage.setItem("pkl_name", JSON.stringify("Solista"))')
         await sp.click('a.ans[href="teleturniej.html?tryb=sam"]')
         await sp.wait_for_selector('#screen-start:not([hidden])')
@@ -304,10 +304,24 @@ async def main(dburl):
         home = await page(tc, 'index.html')
         await home.wait_for_selector('#topBox:not([hidden])', timeout=8000)
         check(await home.locator('#top li').count() == 5, 'strona główna: czołówka 30 dni')
+        # --- strona główna = szybki quiz: 10 pytań z mieszanki, imię na końcu, zapis na listę wyników ---
+        await home.wait_for_selector('#qzAns .ans')
+        cats = await home.evaluate('() => deck.map((q) => q.cat)')
+        check(len(cats) == 10 and set(cats) == {'Chajzerowie', 'Ekspert PL', 'Jaki to urząd?', 'Historia Polski', 'Który polityk to powiedział?', 'Śmieszne wypowiedzi'},
+              'szybki quiz: 10 pytań z mieszanki sześciu kategorii (obie „kto to powiedział”)', sorted(set(cats)))
+        check(await home.is_visible('.own-btn') and (await home.get_attribute('.own-btn', 'href')) == 'gra.html', 'dolny przycisk „Uruchom własną grę” prowadzi do wyboru trybu')
+        for i in range(10):
+            await home.click('#qzAns .ans >> nth=0'); await home.click('#qzNext')
+        await home.wait_for_selector('#qzEnd:not([hidden])')
+        check(await home.is_visible('.own-btn') and await home.is_visible('#qzName'), 'koniec quizu: pole imienia, dolny przycisk nadal widoczny')
+        await home.fill('#qzName', 'Quizowicz'); await home.click('#qzSave')
+        await until(home, '() => document.querySelector("#qzNote").textContent.startsWith("Zapisane")')
+        names = await home.evaluate('() => PK.leaderboard({ limit: 100 }).then((r) => r.map((x) => x.name))')
+        check('Quizowicz' in names, 'szybki quiz: wynik zapisany na liście wyników pod wpisanym imieniem', await home.inner_text('#qzNote'))
 
         # --- wersja online: admin pokoju gra razem z innymi, gra prowadzi się sama ---
         octx = await ctx(); await octx.clock.install()
-        oh = await page(octx, 'index.html')  # admin „Ola”
+        oh = await page(octx, 'gra.html')  # admin „Ola”
         oh.on('dialog', lambda d: asyncio.ensure_future(d.accept()))
         await oh.click('[data-go="q2"]'); await oh.click('a.ans[href="live.html?tryb=prowadzacy"]'); await oh.click('#btnBeHost'); await oh.wait_for_selector('#s-hsetup:not([hidden])', timeout=15000)
         await oh.click('#modeSeg [data-v="online"]'); await oh.fill('#countRange', '20')
@@ -395,7 +409,7 @@ async def main(dburl):
 
         # --- „Kto pierwszy, ten lepszy”: wszyscy odpowiadają naraz, punkty za kolejność dobrych odpowiedzi ---
         rctx = await ctx()
-        rh = await page(rctx, 'index.html')  # admin „Zosia”
+        rh = await page(rctx, 'gra.html')  # admin „Zosia”
         rh.on('dialog', lambda d: asyncio.ensure_future(d.accept()))
         await rh.click('[data-go="q2"]'); await rh.click('a.ans[href="live.html?tryb=prowadzacy"]'); await rh.click('#btnBeHost'); await rh.wait_for_selector('#s-hsetup:not([hidden])', timeout=15000)
         await rh.click('#modeSeg [data-v="race"]'); await rh.fill('#countRange', '5'); await rh.uncheck('#optX2')

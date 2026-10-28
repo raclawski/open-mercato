@@ -4,41 +4,55 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>TELETURNIEJ</title>
-<meta name="description" content="TELETURNIEJ: gra na telefony. Sam albo ze znajomymi, z przyciskami na telefonach graczy i listą wyników.">
+<meta name="description" content="TELETURNIEJ: szybki quiz na 10 pytań. Zagraj od razu, wpisz imię i zapisz wynik na liście. Albo uruchom własną grę ze znajomymi.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,500..800&family=Archivo:wdth,wght@62..125,500..900&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="site.css">
 <link rel="stylesheet" href="pop.css">
 </head>
-<body class="start">
+<body class="start quiz">
 <main class="app">
   <header class="marquee" aria-labelledby="t-top">
     <div class="marquee-in">
-      <p class="mq-kicker">Gra na telefony</p>
+      <p class="mq-kicker">Szybki quiz · 10 pytań</p>
       <h1 id="t-top">TELETURNIEJ</h1>
-      <p class="mq-meta">1024 pytań · 17 kategorii</p>
+      <p class="mq-meta">1024 pytań · 17 kategorii w całej grze</p>
     </div>
   </header>
 
   <p class="cue" id="resume" hidden></p>
 
-  <section class="round" id="q1" aria-labelledby="q1t">
-    <h2 class="qplate" id="q1t"><span class="qn">Pytanie 1</span><span class="qt">Jak dziś gramy?</span></h2>
-    <div class="answers">
-      <a class="ans" href="teleturniej.html?tryb=sam"><span class="in"><b class="key">A</b><span class="at"><strong>Gram sam</strong><small>Ty kontra pytania. Wynik trafia na listę.</small></span></span></a>
-      <button type="button" class="ans" data-go="q2"><span class="in"><b class="key">B</b><span class="at"><strong>Ze znajomymi</strong><small>Na jednym telefonie albo każdy na swoim.</small></span></span></button>
+  <section class="qz" id="qz" aria-labelledby="qzQ">
+    <div class="qz-top">
+      <span class="qz-n" id="qzN">Pytanie 1 z 10</span>
+      <span class="qz-pts" id="qzPts">0 pkt</span>
+    </div>
+    <div class="qz-time" aria-hidden="true"><i id="qzBar"></i></div>
+    <h2 class="qplate"><span class="qn" id="qzCat"></span><span class="qt" id="qzQ"></span></h2>
+    <div class="answers" id="qzAns" role="group" aria-label="Odpowiedzi"></div>
+    <div class="qz-fb" id="qzFb" aria-live="polite" hidden>
+      <p class="qz-fbt" id="qzFbT"></p>
+      <p class="qz-fbe" id="qzFbE"></p>
+      <button type="button" class="qz-next" id="qzNext">Dalej →</button>
     </div>
   </section>
 
-  <section class="round" id="q2" aria-labelledby="q2t" hidden>
-    <h2 class="qplate" id="q2t"><span class="qn">Pytanie 2</span><span class="qt">Ile macie telefonów?</span></h2>
-    <div class="answers">
-      <a class="ans" href="teleturniej.html"><span class="in"><b class="key">A</b><span class="at"><strong>Jeden na wszystkich</strong><small>Prowadzący czyta i zaznacza. Kto trafi, wskazuje następnego.</small></span></span></a>
-      <a class="ans" href="live.html?tryb=prowadzacy"><span class="in"><b class="key">B</b><span class="at"><strong>Każdy swój · zakładam pokój</strong><small>Przyciski na telefonach. Online, „Kto pierwszy” albo offline.</small></span></span></a>
-      <a class="ans" href="live.html?tryb=gracz"><span class="in"><b class="key">C</b><span class="at"><strong>Mam kod gry</strong><small>Dołączam do pokoju znajomego.</small></span></span></a>
+  <section class="qz-end" id="qzEnd" aria-labelledby="qzEndT" hidden>
+    <p class="qz-kick">Koniec quizu</p>
+    <h2 id="qzEndT">Masz <span id="qeOk">0</span>/10</h2>
+    <p class="qz-score"><b id="qeScore">0</b> <small>pkt</small></p>
+    <form class="qz-form" id="qzForm" autocomplete="off">
+      <label for="qzName">Wpisz imię, żeby zapisać wynik</label>
+      <input type="text" id="qzName" maxlength="20" list="qzNicks" placeholder="Twoje imię albo nick" enterkeyhint="done" required>
+      <datalist id="qzNicks"></datalist>
+      <button type="submit" class="btn go" id="qzSave">Zapisz wynik</button>
+    </form>
+    <p class="qz-note" id="qzNote" aria-live="polite"></p>
+    <div class="qz-again">
+      <button type="button" class="btn ghost" id="qzAgain">Zagraj jeszcze raz</button>
+      <a class="btn ghost" href="wyniki.html">Lista wyników</a>
     </div>
-    <button type="button" class="back" data-go="q1">← Wróć do pytania 1</button>
   </section>
 
   <section class="scoreboard" aria-labelledby="t-top5" id="topBox" hidden>
@@ -47,55 +61,982 @@
     <a class="sb-more" href="wyniki.html">Cały ranking →</a>
   </section>
 
-  <nav class="stage-nav"><a href="wyniki.html">Lista wyników</a></nav>
-  <p class="foot">Bez logowania. Wyniki zapisują się pod imieniem wpisanym w grze.</p>
+  <p class="foot">Bez logowania. Wyniki zapisują się pod imieniem wpisanym na końcu.</p>
 </main>
+
+<div class="own-bar"><a class="own-btn" href="gra.html">Uruchom własną grę</a></div>
 
 <script src="vendor/supabase.js"></script>
 <script src="config.js"></script>
 <script src="pk-online.js"></script>
 <script>
-// pytania 1 i 2: wybrana odpowiedź podświetla się jak w teleturnieju, potem przejście
-(() => {
-  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  document.querySelectorAll(".round .ans").forEach((el) => el.addEventListener("click", (e) => {
-    if (el.classList.contains("picked")) { e.preventDefault(); return; }
-    const go = () => {
-      if (el.dataset.go) { document.querySelectorAll(".round").forEach((r) => (r.hidden = r.id !== el.dataset.go)); document.querySelectorAll(".ans.picked").forEach((x) => x.classList.remove("picked")); document.querySelector("#" + el.dataset.go + " .ans").focus({ preventScroll: true }); }
-      else location.assign(el.href);
-    };
-    if (still) return el.dataset.go ? go() : undefined;
-    e.preventDefault(); el.classList.add("picked"); setTimeout(go, 420);
+const BANK_CHAJZER = [
+  {
+    name: "Jak się poznali", q: [
+      { q: "Gdzie Filip i Bianka zobaczyli się po raz pierwszy?", o: ["Na korytarzu w studiu podcastowym", "Na planie „Dzień dobry TVN”", "Na weselu znajomych w Krakowie", "W kawiarni na Ursynowie"], c: 0,
+        e: "Filip był gościem podcastu, a Bianka pracowała w studiu jako producentka. Minęli się na korytarzu." },
+      { q: "W jakie święto, według podcastu, się poznali?", o: ["W chiński Nowy Rok", "W walentynki", "W tłusty czwartek", "W Dzień Kobiet"], c: 0,
+        e: "Poznali się 17 lutego, w pierwszy dzień chińskiego Nowego Roku. Filip podkreślał, że to już drugi „nowy rok” w jego historii." },
+      { q: "Gdzie Filip spędził 1 stycznia przed poznaniem Bianki, biegając o świcie po pustej plaży?", o: ["W Honolulu na Hawajach", "Na Zanzibarze", "W Miami", "Na Teneryfie"], c: 0,
+        e: "Filip nie obchodzi sylwestra: poszedł spać przed północą, a rano pobiegł na plażę. Dziwił się, ilu Polaków spotkał na Hawajach." },
+      { q: "Jak wabi się pies Filipa, który od razu „skradł serce” Bianki?", o: ["Rolo", "Toffi", "Borys", "Lolek"], c: 0,
+        e: "Rolo był z Filipem w studiu w dniu, w którym się poznali. Występuje też w ich podcaście." },
+      { q: "Jakiej rasy jest Rolo?", o: ["Lagotto romagnolo", "Cocker spaniel", "Pudel średni", "Bichon frise"], c: 0,
+        e: "To włoska rasa, używana do szukania trufli. Dlatego Rolo, jak mówią, męczył się w mieszkaniu pełnym kwiatów po ślubie." },
+      { q: "Kogo Filip poprosił, żeby zdobyła dla niego numer Bianki?", o: ["Małgorzatę Ohme", "Kingę Rusin", "Dorotę Wellman", "Agnieszkę Woźniak-Starak"], c: 0,
+        e: "W drugim odcinku Filip przyznał, że wstydził się sam zapytać o numer. Wysłał więc Gosię Ohme, u której był gościem podcastu." },
+      { q: "Po co Filip poleciał do Barcelony tuż przed pierwszą randką?", o: ["Na spotkanie z Robertem Lewandowskim", "Na koncert Eurowizji", "Na kurs tanga", "Na premierę swojej książki"], c: 0,
+        e: "Obiecał synowi spotkanie z Lewandowskim i polecieli na jeden z jego ostatnich meczów w Barcelonie. Z Bianką już wtedy dużo pisał." },
+      { q: "Na jaki film poszli po pierwszej kolacji i z którego wyszli przed końcem?", o: ["„Wichrowe Wzgórza”", "„Diabeł ubiera się u Prady 2”", "„Barbie”", "„Bridget Jones: Szalejąc za facetem”"], c: 0,
+        e: "Film ich nie zauroczył, więc woleli wyjść i rozmawiać. Uznali, że to znak, jak bardzo byli zajęci sobą." },
+      { q: "Kim, według Bianki, mógł być Filip, zanim dowiedziała się, kim naprawdę jest?", o: ["Doktorem", "Pilotem", "Architektem", "Księdzem"], c: 0,
+        e: "Bianka nie znała świata mediów i myślała, że Filip jest doktorem, raczej nauk niż lekarzem." },
+      { q: "Z której dzielnicy Warszawy pochodzą oboje?", o: ["Z Ursynowa", "Z Bielan", "Z Ochoty", "Z Białołęki"], c: 0,
+        e: "Filip wychował się na Ursynowie, a blok Bianki stoi przy ulicy Cynamonowej. Gdyby wtedy już stał, Filip widziałby go ze swojego balkonu." }
+    ]
+  },
+  {
+    name: "Zaręczyny i ślub", q: [
+      { q: "Komu Filip pierwszemu powiedział, że chce się oświadczyć?", o: ["Robertowi Rutkowskiemu", "Zygmuntowi Chajzerowi", "Małgorzacie Ohme", "Robertowi Lewandowskiemu"], c: 0,
+        e: "Spotkali się na kawie na Żoliborzu. Rutkowski od razu powiedział, żeby tak robił, i Filip pojechał prosto po pierścionek." },
+      { q: "Gdzie Filip schował pierścionek zaręczynowy, zanim się oświadczył?", o: ["W schowku w samochodzie", "W bucie w szafie", "W misce psa", "W szufladzie z bielizną"], c: 0,
+        e: "Nie mógł się doczekać, więc zszedł do garażu sprawdzić, czy pierścionek wciąż tam jest. Wrócił z nim w kieszeni." },
+      { q: "Jak wyglądały zaręczyny?", o: ["Spontanicznie, na podłodze w korytarzu, gdy Bianka głaskała psa", "Na plaży o wschodzie słońca", "Na Kopcu Kościuszki", "W studiu, na żywo w podcaście"], c: 0,
+        e: "Filip miał wybraną specjalną datę, ale nie wytrzymał. Zobaczył Biankę siedzącą z psem i też usiadł na podłodze." },
+      { q: "Jakiego sakramentu brakowało Biance przed ślubem kościelnym?", o: ["Bierzmowania", "Chrztu", "Pierwszej komunii", "Spowiedzi przedślubnej"], c: 0,
+        e: "Filip obdzwonił wszystkich znajomych księży. Bierzmowanie wypadło dzień po jego półmaratonie we Wrocławiu." },
+      { q: "Kogo Bianka wybrała na patronkę z bierzmowania?", o: ["Świętą Ritę", "Świętą Faustynę", "Świętą Jadwigę", "Świętą Teresę"], c: 0,
+        e: "Bianka podkreślała, że to była jej świadoma decyzja. Święta Rita to jej trzecie imię." },
+      { q: "W którym kościele w Krakowie wzięli ślub 19 września 2026 r.?", o: ["Matki Bożej Nieustającej Pomocy w Podgórzu", "Mariackim na Rynku", "Na Skałce", "W katedrze na Wawelu"], c: 0,
+        e: "Kościół stoi przy ulicy Zamoyskiego. W podcaście mówią o nim po prostu „u naszego proboszcza”." },
+      { q: "Czego zabrakło dzień przed ślubem, przez co proboszcz powiedział, że ślub się nie odbędzie?", o: ["Zaświadczeń z urzędu stanu cywilnego", "Obrączek", "Świadków", "Zgody biskupa na muzykę"], c: 0,
+        e: "Zaświadczenia o stanie wolnym trzeba było odebrać z urzędu, a ten był już zamknięty." },
+      { q: "Od kogo zaczął się łańcuch telefonów, który uratował ślub?", o: ["Od pani z warzywniaka obok kebaba Filipa", "Od taksówkarza z Błoń", "Od kelnera z hotelu", "Od organisty z parafii"], c: 0,
+        e: "Klaudia prowadziła warzywniak na bazarze obok kebaba. Szwagierka jej męża, pani Irena, pracowała w urzędzie stanu cywilnego." },
+      { q: "Kto zaprojektował suknię ślubną Bianki?", o: ["Wiola Piekut", "Maciej Zień", "Agnieszka Światły", "Ewa Minge"], c: 0,
+        e: "Numer do projektantki dała im Gosia Ohme. Filip zobaczył suknię dopiero w kościele." },
+      { q: "Z jakich kwiatów Bianka chciała bukiet, o którym zapomniała w dniu ślubu?", o: ["Z białych róż", "Z piwonii", "Z eustom", "Z lilii"], c: 0,
+        e: "Bukiet przeleżał cały dzień w mieszkaniu i „wystąpił” dopiero w podcaście. Eustomy, podobne do róż, zdobiły salę." }
+    ]
+  },
+  {
+    name: "Wesele i pierwszy taniec", q: [
+      { q: "Jakie wesele wymarzył sobie Filip?", o: ["Koktajlowe", "Tradycyjne ze stołem wiejskim", "Na plaży", "W stylu boho w stodole"], c: 0,
+        e: "Bianka na początku marzyła o stole wiejskim, ale Filip przekonał ją do koktajlu." },
+      { q: "W której restauracji odbyło się wesele i gdzie zostały kwiaty z giełdy?", o: ["W PINO Garden", "W Wierzynku", "W Hotelu Copernicus", "W Pod Aniołami"], c: 0,
+        e: "Kwiatów było tyle, że nie zmieściły się w ich 70-metrowym mieszkaniu, więc część została w restauracji." },
+      { q: "Jakie danie było „ich” daniem na weselu?", o: ["Żeberka", "Pierogi", "Kaczka z jabłkami", "Rosół z makaronem"], c: 0,
+        e: "Rybę, dorsza, zamówiły tylko trzy osoby, w tym Bianka." },
+      { q: "Do którego odcinka „Tańca z gwiazdami” w 2024 r. dotrwał Filip?", o: ["Do czwartego", "Do drugiego", "Do półfinału", "Do finału"], c: 0, fix: 1,
+        e: "Filip tańczył z Hanną Żudziewicz i odpadł po jivie. Z całego programu najbardziej pokochał tango." },
+      { q: "Na jakim tańcu oparli swój pierwszy taniec?", o: ["Na tangu", "Na walcu angielskim", "Na salsie", "Na cha-chy"], c: 0,
+        e: "Bianka, która przez lata tańczyła commercial, połączyła tango ze swoim stylem show." },
+      { q: "Co Filip zrobił tuż przed pierwszym tańcem?", o: ["Zdjął obcierające nowe buty", "Zdjął marynarkę i krawat", "Poprosił DJ-a o zmianę piosenki", "Wypił kieliszek dla odwagi"], c: 0,
+        e: "Bez butów miał lepszy poślizg. Bianka też zdjęła szpilki i wtedy suknia zrobiła się za długa." },
+      { q: "Kto zaśpiewał w kościele piosenkę Beatlesów, jak w filmie „To właśnie miłość”?", o: ["17 licealistów z Oleśnicy", "Chór Filharmonii Krakowskiej", "Zespół „Mazowsze”", "Dzieci z parafialnej scholi"], c: 0,
+        e: "Licealiści odpowiedzieli na relację Filipa na Instagramie. Do kościoła dowieźli ich meleksami." },
+      { q: "Jak wyglądał ich pierwszy wieczór w krakowskim mieszkaniu?", o: ["Materac na betonie i telewizor na ścianie, żeby obejrzeć Eurowizję", "Kolacja przy świecach na Rynku", "Grill na balkonie z sąsiadami", "Maraton „Kasi i Tomka”"], c: 0,
+        e: "Wokół leżały narzędzia, ale telewizor musiał wisieć, bo była Eurowizja. Oboje kochają ten konkurs." },
+      { q: "Która piosenka wygrała Eurowizję 2026, choć Filipowi najbardziej podobała się włoska?", o: ["„Bangaranga”", "„Tattoo”", "„Zitti e buoni”", "„Euphoria”"], c: 0,
+        e: "Wygrała Dara z Bułgarii. Bianka liczyła na inną piosenkę i to ją chciała na pierwszy taniec." },
+      { q: "Jakie są słynne „paznokcie Bianki Chajzer”?", o: ["Klasyczny french z błyszczącym topem", "Długie czerwone migdały", "Pastelowe ombre", "Czarne z brokatem"], c: 0,
+        e: "Bianka zdradziła, że to zwykły french. Filip dodał, że na niej nic nie jest zwykłe." }
+    ]
+  },
+  {
+    name: "Pytania od widzów", q: [
+      { q: "W jakim serialu paradokumentalnym zagrała Bianka?", o: ["W „Ukrytej prawdzie”", "W „Szpitalu”", "W „Sądzie rodzinnym”", "W „Pierwszej miłości”"], c: 0,
+        e: "Trafiła tam przez agencję aktorską. W „Szpitalu” nie zagrałaby nigdy, bo panicznie boi się krwi i igieł." },
+      { q: "Który numer miał odcinek „Ukrytej prawdy” z Bianką, zapamiętany przez Filipa?", o: ["1732", "1237", "1327", "1723"], c: 0,
+        e: "Filip podał numer od razu. Według pary TVN specjalnie przesunął emisję tego odcinka na niedzielę." },
+      { q: "Jaką markę kosmetyków i świec Filip „kocha” i miał w całym mieszkaniu?", o: ["Rituals", "Yankee Candle", "Lush", "Diptyque"], c: 0,
+        e: "Bianka przyniosła mu kiedyś limitowaną pływającą świecę w kształcie kwiatu wodnego. Filip ma świece zapalone niemal cały czas." },
+      { q: "Jaki skuter zarezerwował Filip na krakowską jesień?", o: ["Suzuki Burgman Executive", "Vespa Primavera", "Honda Forza", "Yamaha TMAX"], c: 0,
+        e: "Bianka nie zgodziła się na jazdę. Nie chce siedzieć w domu i martwić się o niego, a Filip posłuchał żony." },
+      { q: "W której krakowskiej galerii nieznajomy z niebieskiego Audi prosił Biankę o kawę?", o: ["W Bonarce", "W Galerii Krakowskiej", "W Galerii Kazimierz", "W Serenadzie"], c: 0,
+        e: "Odpowiedziała, że ma męża. Gdy mężczyzna chodził za nią dalej, powtórzyła to samo." },
+      { q: "Jakiego samochodu Bianka wypatruje w korkach i nazywa samochodem marzeń?", o: ["Kii Stinger", "Porsche Taycan", "Mercedesa klasy G", "Forda Mustanga"], c: 0,
+        e: "Nie musi mieć Bentleya ani G-klasy. Musi to być wersja z napisem „Stinger” z tyłu, a nowych już nie produkują." },
+      { q: "Co stało się w mieszkaniu zaraz po ich pierwszej kłótni?", o: ["Zalała je woda, bo puściła złączka pod zlewem", "Wyskoczyły korki i zgasło światło", "Rolo pogryzł kanapę", "Spadł telewizor ze ściany"], c: 0,
+        e: "Filip podłączył pod zlewem wąż ogrodowy do podlewania tarasu. Mama Filipa uznała, że woda oznacza oczyszczenie." },
+      { q: "Co znaczy po włosku „pendolino”, o którym opowiadał Filip?", o: ["Wahadełko", "Mała strzała", "Jaskółka", "Błyskawica"], c: 0,
+        e: "Chodzi o wychylne pudło pociągu na górskich trasach. Filip oglądał budowę polskiego Pendolino w fabryce Alstom we Włoszech dla „Dzień dobry TVN”." },
+      { q: "Kim Bianka chciała zostać, gdy była młodsza?", o: ["Prawnikiem w Niemczech", "Stewardesą", "Weterynarzem", "Tancerką w Hiszpanii"], c: 0,
+        e: "Jej ulubiony język to niemiecki. Filip zauważył, że trafiła do rodziny z niemieckim nazwiskiem." },
+      { q: "Jakie imiona Bianka wymyśliła dla wymarzonej chihuahua?", o: ["Fifi, Mimi albo Sisi", "Lulu, Kiki albo Bibi", "Coco, Chanel albo Dior", "Pixie, Dixie albo Trixie"], c: 0,
+        e: "Zakochała się w chihuahua przyjaciela z Batumi. Filip na razie się nie zgadza, bo dużo podróżują." }
+    ]
+  }
+];
+
+const BANK_PRO = [
+  {
+    name: "Wybory", q: [
+      { q: "Który komitet zdobył najwięcej głosów w wyborach do Sejmu w 1991 r.?", o: ["Unia Demokratyczna", "Sojusz Lewicy Demokratycznej", "Wyborcza Akcja Katolicka", "Porozumienie Obywatelskie Centrum"], c: 0,
+        e: "UD Tadeusza Mazowieckiego zdobyła 12,3% głosów, minimalnie wyprzedzając SLD (ok. 12%). Bez progu do Sejmu weszło wtedy kilkadziesiąt ugrupowań." },
+      { q: "W których wyborach do Sejmu po raz pierwszy obowiązywał ogólnokrajowy próg 5% dla partii?", o: ["1991", "1993", "1997", "2001"], c: 1, fix: 1,
+        e: "Próg wprowadzono przed przedterminowymi wyborami w 1993 r. Ponad jedna trzecia głosów przepadła wtedy na ugrupowania pod progiem." },
+      { q: "Ile mandatów zdobyła koalicja SLD–UP w 2001 r.?", o: ["200", "216", "231", "243"], c: 1, fix: 1,
+        e: "SLD–UP zdobyła 216 mandatów (ok. 41% głosów), zabrakło 15 do samodzielnej większości. Leszek Miller utworzył rząd z PSL." },
+      { q: "Które z tych ugrupowań NIE weszło do Sejmu po raz pierwszy w 2001 r.?", o: ["Platforma Obywatelska", "Prawo i Sprawiedliwość", "Liga Polskich Rodzin", "Polskie Stronnictwo Ludowe"], c: 3,
+        e: "PO, PiS, LPR i Samoobrona weszły do Sejmu po raz pierwszy w 2001 r. PSL zasiadało w nim nieprzerwanie od 1991 r." },
+      { q: "Ile mandatów zdobyło PiS w 2015 r., uzyskując samodzielną większość?", o: ["231", "235", "242", "248"], c: 1, fix: 1,
+        e: "Przy 37,6% głosów PiS dostało 235 mandatów. Była to pierwsza samodzielna większość jednej partii w III RP." },
+      { q: "Które ugrupowanie w 2015 r. nie przekroczyło 8-procentowego progu dla koalicji?", o: ["Zjednoczona Lewica", "Kukiz'15", "Nowoczesna", "KORWiN"], c: 0,
+        e: "Zjednoczona Lewica zdobyła 7,55% i po raz pierwszy w III RP w Sejmie zabrakło lewicy. KORWiN miał 4,76% przy progu 5%." },
+      { q: "Ile mandatów zdobyło PiS w wyborach do Sejmu w 2023 r.?", o: ["182", "194", "200", "212"], c: 1, fix: 1,
+        e: "PiS wygrało z 194 mandatami, ale KO (157), Trzecia Droga (65) i Lewica (26) miały razem 248 i utworzyły rząd." },
+      { q: "Z jakim wynikiem Karol Nawrocki wygrał II turę wyborów prezydenckich w 2025 r.?", o: ["50,21%", "50,89%", "51,03%", "52,10%"], c: 1, fix: 1,
+        e: "Nawrocki pokonał Rafała Trzaskowskiego stosunkiem 50,89% do 49,11%. Wynik 51,03% to rezultat Andrzeja Dudy z II tury w 2020 r." },
+      { q: "Kto zajął trzecie miejsce w I turze wyborów prezydenckich w 1995 r.?", o: ["Jacek Kuroń", "Jan Olszewski", "Waldemar Pawlak", "Tadeusz Zieliński"], c: 0,
+        e: "Kuroń zdobył ok. 9,2%, za Kwaśniewskim (35,1%) i Wałęsą (33,1%). Olszewski był czwarty z ok. 6,9%." },
+      { q: "Kto zmierzył się z Lechem Wałęsą w II turze wyborów prezydenckich w 1990 r.?", o: ["Stanisław Tymiński", "Tadeusz Mazowiecki", "Włodzimierz Cimoszewicz", "Leszek Moczulski"], c: 0,
+        e: "Nieznany wcześniej biznesmen z Kanady zdobył w I turze 23% i wyeliminował premiera Mazowieckiego (18%)." },
+      { q: "Kto jako jedyny spoza Komitetu Obywatelskiego „Solidarność” zdobył mandat senatora w 1989 r.?", o: ["Henryk Stokłosa", "Aleksander Kwaśniewski", "Andrzej Stelmachowski", "Mieczysław Rakowski"], c: 0,
+        e: "Przedsiębiorca z Piły Henryk Stokłosa wygrał jako kandydat niezależny. Pozostałe 99 mandatów zdobyła „Solidarność”." },
+      { q: "Ilu z 35 kandydatów z listy krajowej uzyskało mandat w I turze wyborów 4 czerwca 1989 r.?", o: ["0", "2", "5", "12"], c: 1, fix: 1,
+        e: "Przeszli tylko Mikołaj Kozakiewicz i Adam Zieliński, bo wyborcy skreślali nazwiska. Pozostałe mandaty obsadzono po zmianie ordynacji w II turze." },
+      { q: "Ile mandatów zdobyło PSL w 1993 r., co pozostaje jego najlepszym wynikiem w III RP?", o: ["87", "112", "132", "147"], c: 2, fix: 1,
+        e: "PSL miało 132 posłów i utworzyło koalicję z SLD (171 mandatów). Premierem został Waldemar Pawlak." },
+      { q: "W których wyborach do Sejmu III RP mandaty dzielono zmodyfikowaną metodą Sainte-Laguë?", o: ["1993", "1997", "2001", "2005"], c: 2, fix: 1,
+        e: "W 2001 r. zastosowano metodę Sainte-Laguë z pierwszym dzielnikiem 1,4. Od 2002 r. ponownie obowiązuje D'Hondt." },
+      { q: "Od których wyborów senatorów wybiera się w okręgach jednomandatowych?", o: ["2001", "2005", "2011", "2015"], c: 2, fix: 1,
+        e: "Kodeks wyborczy z 2011 r. wprowadził 100 okręgów jednomandatowych. Wcześniej okręgi do Senatu były wielomandatowe." },
+      { q: "Ile mandatów przypada na okręg nr 19 (Warszawa) w wyborach do Sejmu?", o: ["12", "16", "20", "24"], c: 2, fix: 1,
+        e: "Warszawa wybiera 20 posłów, najwięcej ze wszystkich 41 okręgów. Najmniejsze okręgi mają ustawowe minimum 7 mandatów." }
+    ]
+  },
+  {
+    name: "Rządy III RP", q: [
+      { q: "Kto został premierem po wyborach w 1993 r.?", o: ["Waldemar Pawlak", "Józef Oleksy", "Włodzimierz Cimoszewicz", "Leszek Miller"], c: 0,
+        e: "Koalicja SLD–PSL miała w tej kadencji trzech premierów: Pawlaka, Oleksego i Cimoszewicza." },
+      { q: "Który premier podał się do dymisji po zarzutach współpracy z rosyjskim wywiadem (sprawa „Olina”)?", o: ["Józef Oleksy", "Waldemar Pawlak", "Jan Krzysztof Bielecki", "Marek Belka"], c: 0,
+        e: "Oskarżenia ogłosił w 1995 r. szef MSW Andrzej Milczanowski. Oleksy odszedł w styczniu 1996 r., a prokuratura umorzyła potem śledztwo." },
+      { q: "Kto był liderem AWS, który po wyborach 1997 r. nie objął urzędu premiera?", o: ["Marian Krzaklewski", "Jerzy Buzek", "Jan Rokita", "Maciej Płażyński"], c: 0,
+        e: "Przewodniczący „Solidarności” Marian Krzaklewski wskazał na premiera Jerzego Buzka, sam pozostając szefem klubu AWS." },
+      { q: "Po wotum nieufności dla którego rządu Lech Wałęsa rozwiązał Sejm w 1993 r.?", o: ["Hanny Suchockiej", "Jana Olszewskiego", "Jana Krzysztofa Bieleckiego", "Waldemara Pawlaka"], c: 0,
+        e: "Rząd Suchockiej przegrał głosowanie 28 maja 1993 r. jednym głosem. Wałęsa nie przyjął dymisji i rozwiązał parlament." },
+      { q: "Kto był pierwszym premierem z PiS?", o: ["Kazimierz Marcinkiewicz", "Jarosław Kaczyński", "Ludwik Dorn", "Beata Szydło"], c: 0,
+        e: "Marcinkiewicz rządził od października 2005 do lipca 2006 r. Potem premierem został Jarosław Kaczyński." },
+      { q: "Z kim PiS tworzyło koalicję rządową w latach 2006–2007?", o: ["Z Samoobroną i LPR", "Z PO i PSL", "Z PSL i LPR", "Z Samoobroną i PSL"], c: 0,
+        e: "Koalicja z Samoobroną Andrzeja Leppera i LPR Romana Giertycha rozpadła się latem 2007 r." },
+      { q: "Który wicepremier został odwołany w 2007 r. w związku z tzw. aferą gruntową?", o: ["Andrzej Lepper", "Roman Giertych", "Ludwik Dorn", "Przemysław Gosiewski"], c: 0,
+        e: "CBA prowadziło prowokację przy odrolnieniu gruntów w resorcie rolnictwa. Odwołanie Leppera zapoczątkowało koniec koalicji." },
+      { q: "W którym roku Sejm III RP po raz pierwszy sam skrócił swoją kadencję?", o: ["1993", "2001", "2007", "2011"], c: 2, fix: 1,
+        e: "Sejm V kadencji przegłosował samorozwiązanie 7 września 2007 r. W 1993 r. Sejm rozwiązał prezydent." },
+      { q: "Ilu różnych marszałków pełniło obowiązki Prezydenta RP w 2010 r.?", o: ["1", "2", "3", "4"], c: 2, fix: 1,
+        e: "Po katastrofie smoleńskiej był to Bronisław Komorowski, po jego wyborze na krótko Bogdan Borusewicz, a potem nowy marszałek Sejmu Grzegorz Schetyna." },
+      { q: "Kto był autorem tytułu „Wasz prezydent, nasz premier” z lipca 1989 r.?", o: ["Adam Michnik", "Jacek Kuroń", "Bronisław Geremek", "Tadeusz Mazowiecki"], c: 0,
+        e: "Michnik zaproponował w „Gazecie Wyborczej”, by prezydentem został kandydat PZPR, a rząd utworzyła „Solidarność”." },
+      { q: "Kto był pierwszym prezesem Prawa i Sprawiedliwości?", o: ["Lech Kaczyński", "Jarosław Kaczyński", "Ludwik Dorn", "Kazimierz Marcinkiewicz"], c: 0,
+        e: "Lech Kaczyński kierował partią w latach 2001–2003. W 2003 r. zastąpił go brat Jarosław." },
+      { q: "Który z „trzech tenorów” zakładających PO był wcześniej Marszałkiem Sejmu?", o: ["Maciej Płażyński", "Andrzej Olechowski", "Donald Tusk", "Jan Rokita"], c: 0,
+        e: "Płażyński był marszałkiem w latach 1997–2001. Olechowski był wcześniej ministrem finansów i spraw zagranicznych, a Tusk wicemarszałkiem Senatu." },
+      { q: "Czego dotyczyła nowelizacja, przy której Lew Rywin złożył propozycję korupcyjną?", o: ["Ustawy o radiofonii i telewizji", "Prawa prasowego", "Ustawy o grach losowych", "Prawa zamówień publicznych"], c: 0,
+        e: "Rywin żądał 17,5 mln dolarów od Agory w zamian za korzystny kształt ustawy. Sprawę zbadała pierwsza sejmowa komisja śledcza." },
+      { q: "W której restauracji nagrywano polityków w aferze taśmowej (2014)?", o: ["Sowa & Przyjaciele", "Belvedere", "U Fukiera", "Bristol"], c: 0,
+        e: "Kelnerzy nagrywali rozmowy m.in. ministrów i prezesa NBP. Część nagrań pochodziła też z restauracji Amber Room." },
+      { q: "Który Marszałek Sejmu podał się do dymisji w 2019 r. po ujawnieniu lotów rządowymi samolotami?", o: ["Marek Kuchciński", "Elżbieta Witek", "Stanisław Karczewski", "Ryszard Terlecki"], c: 0,
+        e: "Kuchciński odszedł w sierpniu 2019 r. Jego następczynią została Elżbieta Witek." },
+      { q: "Kto był najpierw Marszałkiem Sejmu, a potem premierem?", o: ["Ewa Kopacz", "Beata Szydło", "Hanna Suchocka", "Marek Belka"], c: 0,
+        e: "Kopacz kierowała Sejmem w latach 2011–2014, a po odejściu Tuska do Brukseli została premierem." },
+      { q: "Który premier podał się do dymisji 2 maja 2004 r., dzień po wejściu Polski do UE?", o: ["Leszek Miller", "Marek Belka", "Jerzy Buzek", "Włodzimierz Cimoszewicz"], c: 0,
+        e: "Miller żegnał się słowami, że prawdziwego mężczyznę poznaje się nie po tym, jak zaczyna, ale jak kończy." },
+      { q: "Kto był ministrem spraw zagranicznych w rządzie Tadeusza Mazowieckiego?", o: ["Krzysztof Skubiszewski", "Bronisław Geremek", "Władysław Bartoszewski", "Andrzej Olechowski"], c: 0,
+        e: "Skubiszewski kierował dyplomacją w czterech kolejnych rządach, od 1989 do 1993 r." },
+      { q: "Kto był ministrem spraw wewnętrznych w rządzie Mazowieckiego do lipca 1990 r.?", o: ["Czesław Kiszczak", "Krzysztof Kozłowski", "Andrzej Milczanowski", "Florian Siwicki"], c: 0,
+        e: "Kiszczak zachował resort z kontraktu Okrągłego Stołu. Zastąpił go Krzysztof Kozłowski, a Siwicki kierował wtedy MON." },
+      { q: "Jaką funkcję pełnił Karol Nawrocki tuż przed objęciem urzędu prezydenta?", o: ["Prezesa IPN", "Dyrektora Muzeum II Wojny Światowej", "Wiceministra kultury", "Rzecznika Praw Obywatelskich"], c: 0,
+        e: "Nawrocki był prezesem IPN od 2021 r. Wcześniej kierował Muzeum II Wojny Światowej w Gdańsku." },
+      { q: "Kto był pierwszym prezesem Instytutu Pamięci Narodowej?", o: ["Leon Kieres", "Janusz Kurtyka", "Łukasz Kamiński", "Jarosław Szarek"], c: 0,
+        e: "Leon Kieres kierował IPN w latach 2000–2005. Janusz Kurtyka zginął w katastrofie smoleńskiej jako prezes IPN." },
+      { q: "Kto jako pierwszy premier III RP utrzymał urząd po kolejnych wyborach do Sejmu?", o: ["Donald Tusk", "Jerzy Buzek", "Leszek Miller", "Waldemar Pawlak"], c: 0,
+        e: "Po wygranej PO w 2011 r. Tusk powołał drugi rząd. Wcześniej żaden premier nie przetrwał wyborów." }
+    ]
+  },
+  {
+    name: "PRL i II RP", q: [
+      { q: "Jaką przewagą ponad wymagane minimum Zgromadzenie Narodowe wybrało Jaruzelskiego na prezydenta w 1989 r.?", o: ["1 głosu", "7 głosów", "15 głosów", "30 głosów"], c: 0,
+        e: "Jaruzelski dostał 270 głosów przy wymaganych 269. Część posłów opozycji celowo oddała głosy nieważne." },
+      { q: "Kiedy zakończyły się obrady Okrągłego Stołu?", o: ["6 lutego 1989", "5 kwietnia 1989", "4 czerwca 1989", "19 lipca 1989"], c: 1, fix: 1,
+        e: "Obrady trwały od 6 lutego do 5 kwietnia 1989 r. 19 lipca Zgromadzenie Narodowe wybrało Jaruzelskiego." },
+      { q: "Kto był ostatnim I sekretarzem KC PZPR?", o: ["Mieczysław Rakowski", "Wojciech Jaruzelski", "Czesław Kiszczak", "Aleksander Kwaśniewski"], c: 0,
+        e: "Rakowski objął funkcję w lipcu 1989 r. i kierował partią do jej rozwiązania w styczniu 1990 r." },
+      { q: "Kto w sierpniu 1989 r. został desygnowany na premiera, ale nie zdołał utworzyć rządu?", o: ["Czesław Kiszczak", "Mieczysław Rakowski", "Zbigniew Messner", "Florian Siwicki"], c: 0,
+        e: "Sejm wybrał Kiszczaka 2 sierpnia, lecz ZSL i SD przeszły na stronę „Solidarności”. Kilka dni później premierem został Mazowiecki." },
+      { q: "Kto wyreżyserował „Dziady” zdjęte z afisza Teatru Narodowego w 1968 r.?", o: ["Kazimierz Dejmek", "Adam Hanuszkiewicz", "Konrad Swinarski", "Jerzy Grzegorzewski"], c: 0,
+        e: "Zdjęcie spektaklu stało się iskrą protestów studenckich w marcu 1968 r." },
+      { q: "Od strajku w których zakładach zaczął się Poznański Czerwiec 1956?", o: ["Zakładach im. Cegielskiego", "Zakładach Metalowych im. Waltera", "Zakładach Mechanicznych Ursus", "Stoczni im. Lenina"], c: 0,
+        e: "Robotnicy ówczesnych Zakładów im. Stalina (ZISPO), czyli dawnego Cegielskiego, wyszli na ulice 28 czerwca 1956 r." },
+      { q: "W których zakładach w Radomiu zaczął się protest w czerwcu 1976 r.?", o: ["Zakładach Metalowych im. Waltera", "Zakładach im. Cegielskiego", "Zakładach Mechanicznych Ursus", "Hucie Katowice"], c: 0,
+        e: "Strajk wybuchł 25 czerwca 1976 r. po ogłoszeniu podwyżek cen. Tego samego dnia strajkował też Ursus pod Warszawą." },
+      { q: "Kto stanął na czele pierwszego rządu powołanego przez Piłsudskiego w listopadzie 1918 r.?", o: ["Jędrzej Moraczewski", "Ignacy Jan Paderewski", "Ignacy Daszyński", "Wincenty Witos"], c: 0,
+        e: "Daszyński kierował wcześniej rządem lubelskim, ale pierwszy rząd powołany przez Naczelnika Państwa utworzył Moraczewski." },
+      { q: "Czyj rząd obalił zamach majowy w 1926 r.?", o: ["Wincentego Witosa", "Władysława Grabskiego", "Aleksandra Skrzyńskiego", "Kazimierza Bartla"], c: 0,
+        e: "Trzeci rząd Witosa przetrwał zaledwie kilka dni. Po zamachu premierem został Kazimierz Bartel, a władzę przejął obóz Piłsudskiego." },
+      { q: "W której twierdzy więziono przywódców Centrolewu w 1930 r.?", o: ["Brzeskiej", "Modlińskiej", "Dęblińskiej", "Toruńskiej"], c: 0,
+        e: "Proces brzeski, m.in. Witosa i Liebermana, odbył się w latach 1931–1932." },
+      { q: "Kto był ostatnim premierem II RP przed wybuchem wojny?", o: ["Felicjan Sławoj Składkowski", "Marian Zyndram-Kościałkowski", "Aleksander Prystor", "Walery Sławek"], c: 0,
+        e: "Składkowski rządził od 1936 r. do września 1939 r., najdłużej ze wszystkich premierów II RP." },
+      { q: "Co oznaczał skrót BBWR?", o: ["Bezpartyjny Blok Współpracy z Rządem", "Blok Bezpartyjny Wyborców Republiki", "Bezpartyjny Blok Wsparcia Rządu", "Blok Budowy Wolnej Rzeczypospolitej"], c: 0,
+        e: "Prorządowy blok sanacji założył Walery Sławek w 1927 r. Rozwiązano go w 1935 r." },
+      { q: "Komu okólnik premiera z 1936 r. nadał status pierwszej osoby po Prezydencie?", o: ["Edwardowi Śmigłemu-Rydzowi", "Józefowi Beckowi", "Walerowi Sławkowi", "Felicjanowi Sławojowi Składkowskiemu"], c: 0,
+        e: "Generalny inspektor sił zbrojnych Śmigły-Rydz miał być „pierwszym obywatelem po Prezydencie”. W listopadzie 1936 r. został marszałkiem Polski." },
+      { q: "Jaki organ zastąpił urząd prezydenta w PRL na mocy Konstytucji z 1952 r.?", o: ["Rada Państwa", "Krajowa Rada Narodowa", "Prezydium Sejmu", "Rada Ministrów"], c: 0,
+        e: "Kolegialna Rada Państwa istniała do 1989 r., kiedy przywrócono urząd prezydenta." },
+      { q: "Kto najdłużej sprawował urząd premiera w PRL?", o: ["Józef Cyrankiewicz", "Piotr Jaroszewicz", "Bolesław Bierut", "Edward Osóbka-Morawski"], c: 0,
+        e: "Cyrankiewicz był premierem w latach 1947–1952 i 1954–1970, łącznie ponad 20 lat." }
+    ]
+  },
+  {
+    name: "Ustrój i prawo", q: [
+      { q: "Który artykuł Konstytucji stanowi, że Rada Ministrów prowadzi politykę wewnętrzną i zagraniczną?", o: ["Art. 126", "Art. 141", "Art. 146", "Art. 154"], c: 2, fix: 1,
+        e: "Art. 146 daje rządowi domniemanie kompetencji: sprawy nie zastrzeżone dla innych organów należą do Rady Ministrów." },
+      { q: "Który artykuł Konstytucji zakazuje partii odwołujących się do metod nazizmu, faszyzmu i komunizmu?", o: ["Art. 11", "Art. 13", "Art. 25", "Art. 53"], c: 1, fix: 1,
+        e: "Art. 13 zakazuje też partii, których program dopuszcza nienawiść rasową lub przemoc. Art. 11 dotyczy wolności tworzenia partii." },
+      { q: "Który artykuł Konstytucji definiuje małżeństwo jako związek kobiety i mężczyzny?", o: ["Art. 18", "Art. 32", "Art. 47", "Art. 72"], c: 0, fix: 1,
+        e: "Art. 18 obejmuje ochroną małżeństwo, rodzinę, macierzyństwo i rodzicielstwo. Art. 32 to zasada równości, art. 47 prawo do prywatności." },
+      { q: "Ilu posłów trzeba, by utworzyć klub poselski?", o: ["3", "7", "15", "23"], c: 2, fix: 1,
+        e: "Klub wymaga co najmniej 15 posłów, koło 3. Status klubu daje m.in. przedstawiciela w Konwencie Seniorów." },
+      { q: "Ilu posłów może wspólnie skierować wniosek do Trybunału Konstytucyjnego?", o: ["15", "30", "46", "50"], c: 3, fix: 1,
+        e: "Wniosek może złożyć 50 posłów albo 30 senatorów. Prawo to ma też m.in. prezydent, premier i RPO." },
+      { q: "Jaką większością rząd uzyskuje wotum zaufania w trzecim kroku tworzenia rządu?", o: ["Zwykłą", "Bezwzględną", "3/5 głosów", "2/3 głosów"], c: 0, fix: 1,
+        e: "W pierwszym i drugim kroku potrzeba bezwzględnej większości, w trzecim wystarczy zwykła. Gdy i to zawiedzie, prezydent skraca kadencję Sejmu." },
+      { q: "Na ile okręgów wyborczych podzielona jest Polska w wyborach do Sejmu?", o: ["16", "41", "52", "100"], c: 1, fix: 1,
+        e: "41 okręgów wielomandatowych do Sejmu, 100 jednomandatowych do Senatu i 13 okręgów w wyborach do PE." },
+      { q: "Na ile okręgów podzielona jest Polska w wyborach do Parlamentu Europejskiego?", o: ["1", "13", "16", "41"], c: 1, fix: 1,
+        e: "Jest 13 okręgów, ale mandaty dzieli się najpierw między komitety w skali kraju, dopiero potem między okręgi." },
+      { q: "Ile wynosi ustawowe minimum mandatów w okręgu wyborczym do Sejmu?", o: ["3", "5", "7", "10"], c: 2, fix: 1,
+        e: "Kodeks wyborczy przewiduje co najmniej 7 mandatów w okręgu. Najwięcej, 20, ma Warszawa." },
+      { q: "Kiedy zaczyna się cisza wyborcza przed niedzielnym głosowaniem?", o: ["O północy z czwartku na piątek", "O północy z piątku na sobotę", "W sobotę w południe", "O północy z soboty na niedzielę"], c: 1, fix: 1,
+        e: "Kampania kończy się 24 godziny przed dniem głosowania, czyli o północy z piątku na sobotę. Cisza trwa do zamknięcia lokali." },
+      { q: "Ilu członków Zgromadzenia Narodowego musi podpisać wniosek o postawienie prezydenta przed Trybunałem Stanu?", o: ["46", "115", "140", "280"], c: 2, fix: 1,
+        e: "Wniosek podpisuje co najmniej 140 członków ZN, a uchwała wymaga 2/3 ustawowej liczby członków Zgromadzenia." },
+      { q: "Jak nazywał się urząd prowadzący lustrację przed przejęciem jej przez IPN?", o: ["Rzecznik Interesu Publicznego", "Rzecznik Lustracyjny", "Prokurator Generalny ds. Lustracji", "Komisarz Weryfikacyjny"], c: 0,
+        e: "Urząd działał na mocy ustawy z 1997 r. Pierwszym rzecznikiem był sędzia Bogusław Nizieński." },
+      { q: "Jaki odsetek głosujących poparł Konstytucję w referendum w 1997 r.?", o: ["52,7%", "58,9%", "64,3%", "77,5%"], c: 0, fix: 1,
+        e: "Za było 52,71% przy frekwencji 42,86%. Referendum konstytucyjne nie wymaga progu frekwencji. 77,5% poparło akcesję do UE w 2003 r." },
+      { q: "Jaka była frekwencja w referendum z 15 października 2023 r.?", o: ["ok. 31%", "ok. 41%", "ok. 49%", "ok. 52%"], c: 1, fix: 1,
+        e: "Głosowało 40,91% uprawnionych, więc wynik nie był wiążący. Część opozycji wzywała do niepobierania kart referendalnych." },
+      { q: "Jaką frekwencję miało referendum z 6 września 2015 r. (m.in. o JOW-ach)?", o: ["ok. 7,8%", "ok. 15,6%", "ok. 24,1%", "ok. 32,7%"], c: 0, fix: 1,
+        e: "Referendum zarządził Bronisław Komorowski po I turze wyborów prezydenckich. To najniższa frekwencja w historii III RP." },
+      { q: "Ile podpisów obywateli trzeba zebrać, by zarejestrować kandydata na prezydenta?", o: ["10 000", "50 000", "100 000", "200 000"], c: 2, fix: 1,
+        e: "Potrzeba 100 tys. podpisów. Wcześniej komitet musi zebrać 1000 podpisów, żeby w ogóle powstać." }
+    ]
+  }
+];
+
+const BANK_URZ = [
+  {
+    name: "Naczelne organy", q: [
+      { q: "Kieruje pracami Rady Ministrów, zapewnia wykonywanie jej polityki, kontrasygnuje akty prezydenta i jest zwierzchnikiem służbowym pracowników administracji rządowej. Co to za urząd?", o: ["Prezes Rady Ministrów", "Prezydent RP", "Szef Kancelarii Prezesa Rady Ministrów", "Marszałek Sejmu"], c: 0,
+        e: "To kompetencje premiera z art. 148 Konstytucji. Kontrasygnata premiera jest potrzebna pod aktami urzędowymi prezydenta, poza prerogatywami." },
+      { q: "Zwołuje Zgromadzenie Narodowe i mu przewodniczy, a gdy prezydent nie może sprawować urzędu, przejmuje jego obowiązki. Co to za urząd?", o: ["Marszałek Sejmu", "Marszałek Senatu", "Pierwszy Prezes Sądu Najwyższego", "Prezes Rady Ministrów"], c: 0,
+        e: "Marszałek Senatu wchodzi w te role dopiero wtedy, gdy Marszałek Sejmu nie może tego zrobić." },
+      { q: "Przejmuje obowiązki Prezydenta RP, gdy nie może tego zrobić Marszałek Sejmu, i zastępuje go w przewodniczeniu Zgromadzeniu Narodowemu. Co to za urząd?", o: ["Marszałek Senatu", "Wicemarszałek Sejmu", "Prezes Rady Ministrów", "Prezes Trybunału Konstytucyjnego"], c: 0,
+        e: "Tak było 8 lipca 2010 r., gdy Bogdan Borusewicz przez kilka godzin pełnił obowiązki prezydenta." },
+      { q: "Jest najwyższym zwierzchnikiem Sił Zbrojnych, stosuje prawo łaski, nadaje ordery i obywatelstwo polskie. Co to za urząd?", o: ["Prezydent RP", "Minister Obrony Narodowej", "Prezes Rady Ministrów", "Szef Sztabu Generalnego"], c: 0,
+        e: "To prerogatywy prezydenta, które nie wymagają kontrasygnaty premiera." },
+      { q: "Za jego pośrednictwem prezydent w czasie pokoju sprawuje zwierzchnictwo nad Siłami Zbrojnymi. Co to za urząd?", o: ["Minister Obrony Narodowej", "Szef Sztabu Generalnego", "Szef Biura Bezpieczeństwa Narodowego", "Naczelny Dowódca Sił Zbrojnych"], c: 0,
+        e: "Tak stanowi art. 134 ust. 2 Konstytucji. Naczelnego Dowódcę prezydent mianuje dopiero na czas wojny." },
+      { q: "To Rada Ministrów obradująca pod przewodnictwem prezydenta, zwoływana w sprawach szczególnej wagi. Nie ma kompetencji Rady Ministrów. Co to za organ?", o: ["Rada Gabinetowa", "Rada Bezpieczeństwa Narodowego", "Komitet Rady Ministrów", "Konwent Seniorów"], c: 0,
+        e: "Rada Gabinetowa z art. 141 Konstytucji zbiera się rzadko. Nie podejmuje decyzji, tylko omawia sprawy." },
+      { q: "Jest organem doradczym prezydenta w sprawach wewnętrznego i zewnętrznego bezpieczeństwa państwa. Co to za organ?", o: ["Rada Bezpieczeństwa Narodowego", "Rada Gabinetowa", "Biuro Bezpieczeństwa Narodowego", "Rządowy Zespół Zarządzania Kryzysowego"], c: 0,
+        e: "RBN przewiduje art. 135 Konstytucji. BBN to urząd obsługujący prezydenta w tych sprawach, nie organ doradczy z Konstytucji." },
+      { q: "Zapewnia współdziałanie klubów poselskich w sprawach działalności i trybu prac Sejmu. Tworzą go Marszałek, wicemarszałkowie i przewodniczący klubów. Co to za organ?", o: ["Konwent Seniorów", "Prezydium Sejmu", "Komisja Regulaminowa", "Zgromadzenie Narodowe"], c: 0,
+        e: "Prezydium Sejmu to tylko Marszałek i wicemarszałkowie. Konwent Seniorów dochodzi do tego przewodniczących klubów." },
+      { q: "Ma wyłączną inicjatywę ustawodawczą w sprawie ustawy budżetowej i domniemanie kompetencji w sprawach polityki państwa. Co to za organ?", o: ["Rada Ministrów", "Sejm", "Prezydent RP", "Najwyższa Izba Kontroli"], c: 0,
+        e: "Sprawy niezastrzeżone dla innych organów należą do Rady Ministrów (art. 146), a projekt budżetu może złożyć tylko ona (art. 221)." }
+    ]
+  },
+  {
+    name: "Sądy i kontrola", q: [
+      { q: "Orzeka o zgodności ustaw z Konstytucją, rozstrzyga spory kompetencyjne między centralnymi organami państwa i bada zgodność z Konstytucją celów partii politycznych. Co to za organ?", o: ["Trybunał Konstytucyjny", "Sąd Najwyższy", "Trybunał Stanu", "Naczelny Sąd Administracyjny"], c: 0,
+        e: "To kompetencje TK z art. 188 i 189 Konstytucji. Jego wyroki są ostateczne i powszechnie obowiązujące." },
+      { q: "Orzeka o odpowiedzialności konstytucyjnej prezydenta, premiera, ministrów, prezesa NBP i prezesa NIK. Co to za organ?", o: ["Trybunał Stanu", "Trybunał Konstytucyjny", "Sąd Najwyższy", "Sejmowa Komisja Odpowiedzialności Konstytucyjnej"], c: 0,
+        e: "Komisja Odpowiedzialności Konstytucyjnej tylko przygotowuje sprawę. Orzeka Trybunał Stanu." },
+      { q: "Sprawuje nadzór nad orzekaniem sądów powszechnych i wojskowych, rozpatruje kasacje i stwierdza ważność wyborów do Sejmu. Co to za organ?", o: ["Sąd Najwyższy", "Trybunał Konstytucyjny", "Krajowa Rada Sądownictwa", "Państwowa Komisja Wyborcza"], c: 0,
+        e: "PKW organizuje wybory i ogłasza wyniki, ale ich ważność stwierdza SN." },
+      { q: "Nadzoruje orzekanie wojewódzkich sądów administracyjnych i rozpoznaje skargi kasacyjne od ich orzeczeń. Co to za organ?", o: ["Naczelny Sąd Administracyjny", "Sąd Najwyższy", "Trybunał Konstytucyjny", "Samorządowe Kolegium Odwoławcze"], c: 0,
+        e: "SKO rozpatruje odwołania od decyzji samorządu, ale to organ administracji, nie sąd." },
+      { q: "Stoi na straży niezależności sądów i niezawisłości sędziów oraz przedstawia prezydentowi wnioski o powołanie sędziów. Co to za organ?", o: ["Krajowa Rada Sądownictwa", "Ministerstwo Sprawiedliwości", "Pierwszy Prezes Sądu Najwyższego", "Trybunał Konstytucyjny"], c: 0,
+        e: "Bez wniosku KRS prezydent nie może powołać sędziego (art. 179 i 186 Konstytucji)." },
+      { q: "Kontroluje administrację rządową, NBP i państwowe osoby prawne pod względem legalności, gospodarności, celowości i rzetelności. Podlega Sejmowi. Co to za organ?", o: ["Najwyższa Izba Kontroli", "Regionalna Izba Obrachunkowa", "Centralne Biuro Antykorupcyjne", "Krajowa Administracja Skarbowa"], c: 0,
+        e: "NIK jest naczelnym organem kontroli państwowej. Samorządy kontrolują pod względem finansów regionalne izby obrachunkowe." },
+      { q: "Nadzoruje gospodarkę finansową samorządu terytorialnego i wydaje opinie o projektach budżetów gmin. Co to za organ?", o: ["Regionalna Izba Obrachunkowa", "Najwyższa Izba Kontroli", "Wojewoda", "Samorządowe Kolegium Odwoławcze"], c: 0,
+        e: "RIO działają w każdym województwie. Kontrolują samorządy pod względem zgodności z prawem i dokumentacji." },
+      { q: "Stoi na straży wolności i praw człowieka i obywatela, może zaskarżyć ustawę do TK i co roku informuje Sejm o stanie przestrzegania praw. Co to za urząd?", o: ["Rzecznik Praw Obywatelskich", "Rzecznik Praw Dziecka", "Prokurator Generalny", "Rzecznik Praw Pacjenta"], c: 0,
+        e: "RPO jest niezależny i odpowiada tylko przed Sejmem. Rzecznik Praw Dziecka ma węższy zakres." },
+      { q: "Jest naczelnym organem prokuratury. Od 2016 r. funkcję tę pełni jednocześnie Minister Sprawiedliwości. Co to za urząd?", o: ["Prokurator Generalny", "Prokurator Krajowy", "Pierwszy Prezes Sądu Najwyższego", "Rzecznik Praw Obywatelskich"], c: 0,
+        e: "Prokurator Krajowy jest pierwszym zastępcą Prokuratora Generalnego." },
+      { q: "Nadzoruje przestrzeganie prawa pracy, w tym bezpieczeństwa i higieny pracy. Podlega Sejmowi. Co to za organ?", o: ["Państwowa Inspekcja Pracy", "Zakład Ubezpieczeń Społecznych", "Rada Dialogu Społecznego", "Główny Inspektor Sanitarny"], c: 0,
+        e: "PIP podlega Sejmowi, a nadzór nad nią sprawuje Rada Ochrony Pracy." }
+    ]
+  },
+  {
+    name: "Urzędy i służby", q: [
+      { q: "Ma wyłączne prawo emisji pieniądza oraz ustalania i realizowania polityki pieniężnej i odpowiada za wartość polskiego pieniądza. Co to za organ?", o: ["Narodowy Bank Polski", "Ministerstwo Finansów", "Komisja Nadzoru Finansowego", "Bank Gospodarstwa Krajowego"], c: 0,
+        e: "Tak stanowi art. 227 Konstytucji. BGK to państwowy bank rozwoju, który nie emituje pieniądza." },
+      { q: "Corocznie ustala założenia polityki pieniężnej i decyduje o wysokości stóp procentowych NBP. Co to za organ?", o: ["Rada Polityki Pieniężnej", "Zarząd NBP", "Komisja Nadzoru Finansowego", "Rada Ministrów"], c: 0,
+        e: "RPP liczy 10 osób: prezesa NBP i po trzech członków powoływanych przez Prezydenta, Sejm i Senat." },
+      { q: "Nadzoruje rynek bankowy, kapitałowy, ubezpieczeniowy i emerytalny. Co to za organ?", o: ["Komisja Nadzoru Finansowego", "Narodowy Bank Polski", "Urząd Ochrony Konkurencji i Konsumentów", "Bankowy Fundusz Gwarancyjny"], c: 0,
+        e: "KNF wydaje m.in. zezwolenia na działalność banków. Pieniądze klientów upadłych banków wypłaca BFG." },
+      { q: "Stoi na straży wolności słowa, prawa do informacji i interesu publicznego w radiofonii i telewizji oraz przyznaje koncesje nadawcom. Co to za organ?", o: ["Krajowa Rada Radiofonii i Telewizji", "Rada Mediów Narodowych", "Urząd Komunikacji Elektronicznej", "Ministerstwo Kultury"], c: 0,
+        e: "KRRiT to organ konstytucyjny (art. 213). Częstotliwości jako zasób techniczny rozdziela UKE." },
+      { q: "Chroni konkurencję i konsumentów, nakłada kary za zmowy cenowe i nadużywanie pozycji dominującej, zgadza się na fuzje firm. Co to za urząd?", o: ["Prezes UOKiK", "Komisja Nadzoru Finansowego", "Rzecznik Finansowy", "Prezes URE"], c: 0,
+        e: "URE reguluje rynek energii i zatwierdza taryfy, a Rzecznik Finansowy pomaga klientom w sporach z instytucjami finansowymi." },
+      { q: "Nadzoruje przetwarzanie danych osobowych i nakłada kary za naruszenie RODO. Co to za urząd?", o: ["Prezes Urzędu Ochrony Danych Osobowych", "Rzecznik Praw Obywatelskich", "Generalny Inspektor Informacji Finansowej", "Prezes Urzędu Komunikacji Elektronicznej"], c: 0,
+        e: "UODO zastąpił w 2018 r. Generalnego Inspektora Ochrony Danych Osobowych (GIODO)." },
+      { q: "Gromadzi dokumenty organów bezpieczeństwa PRL, prowadzi śledztwa w sprawie zbrodni nazistowskich i komunistycznych oraz prowadzi lustrację. Co to za instytucja?", o: ["Instytut Pamięci Narodowej", "Archiwum Akt Nowych", "Agencja Bezpieczeństwa Wewnętrznego", "Rzecznik Interesu Publicznego"], c: 0,
+        e: "IPN działa od 2000 r. Lustrację przejął w 2007 r. od zlikwidowanego Rzecznika Interesu Publicznego." },
+      { q: "Zwalcza korupcję w instytucjach publicznych i w gospodarce oraz kontroluje oświadczenia majątkowe osób publicznych. Co to za służba?", o: ["Centralne Biuro Antykorupcyjne", "Agencja Bezpieczeństwa Wewnętrznego", "Centralne Biuro Śledcze Policji", "Najwyższa Izba Kontroli"], c: 0,
+        e: "CBA powstało w 2006 r. CBŚP walczy z przestępczością zorganizowaną." },
+      { q: "Rozpoznaje zagrożenia bezpieczeństwa wewnętrznego państwa, prowadzi kontrwywiad i przeciwdziała terroryzmowi. Co to za służba?", o: ["Agencja Bezpieczeństwa Wewnętrznego", "Agencja Wywiadu", "Służba Kontrwywiadu Wojskowego", "Służba Ochrony Państwa"], c: 0,
+        e: "Agencja Wywiadu działa za granicą, a SKW zajmuje się kontrwywiadem w wojsku." },
+      { q: "Chroni najważniejsze osoby w państwie, w tym prezydenta i premiera, oraz wybrane obiekty. W 2018 r. zastąpiła Biuro Ochrony Rządu. Co to za służba?", o: ["Służba Ochrony Państwa", "Żandarmeria Wojskowa", "Straż Marszałkowska", "Agencja Bezpieczeństwa Wewnętrznego"], c: 0,
+        e: "Straż Marszałkowska chroni budynki Sejmu i Senatu, a Żandarmeria Wojskowa jest policją wojskową." },
+      { q: "Czuwa nad przestrzeganiem prawa wyborczego, ogłasza wyniki wyborów i przyjmuje sprawozdania finansowe partii. Co to za organ?", o: ["Państwowa Komisja Wyborcza", "Sąd Najwyższy", "Krajowe Biuro Wyborcze", "Ministerstwo Spraw Wewnętrznych"], c: 0,
+        e: "PKW składa się z sędziów i osób wskazanych przez Sejm. Krajowe Biuro Wyborcze tylko ją obsługuje." },
+      { q: "Jest forum dialogu rządu, związków zawodowych i organizacji pracodawców. W 2015 r. zastąpiła Komisję Trójstronną. Co to za organ?", o: ["Rada Dialogu Społecznego", "Rada Ochrony Pracy", "Państwowa Inspekcja Pracy", "Rada Gabinetowa"], c: 0,
+        e: "RDS opiniuje m.in. projekty płacy minimalnej i budżetu." }
+    ]
+  },
+  {
+    name: "Samorząd i Europa", q: [
+      { q: "Reprezentuje Radę Ministrów w województwie, jest zwierzchnikiem zespolonej administracji rządowej i nadzoruje legalność uchwał samorządów. Co to za urząd?", o: ["Wojewoda", "Marszałek województwa", "Starosta", "Przewodniczący sejmiku województwa"], c: 0,
+        e: "Wojewodę powołuje premier. Marszałek województwa kieruje samorządem województwa, a nie administracją rządową." },
+      { q: "Przewodniczy zarządowi województwa, kieruje urzędem marszałkowskim i reprezentuje samorząd województwa na zewnątrz. Co to za urząd?", o: ["Marszałek województwa", "Wojewoda", "Przewodniczący sejmiku", "Starosta"], c: 0,
+        e: "Wybiera go sejmik województwa. Wojewoda to przedstawiciel rządu w tym samym województwie." },
+      { q: "Przewodniczy zarządowi powiatu i kieruje jego urzędem. Co to za urząd?", o: ["Starosta", "Wójt", "Przewodniczący rady powiatu", "Wojewoda"], c: 0,
+        e: "Starostę wybiera rada powiatu. Wójta, burmistrza i prezydenta miasta wybierają mieszkańcy w wyborach bezpośrednich." },
+      { q: "Jest organem stanowiącym i kontrolnym gminy, uchwala jej budżet i udziela absolutorium. Co to za organ?", o: ["Rada gminy", "Wójt", "Sołtys", "Regionalna Izba Obrachunkowa"], c: 0,
+        e: "Wójt (burmistrz, prezydent miasta) jest organem wykonawczym. Sołtys kieruje sołectwem, jednostką pomocniczą gminy." },
+      { q: "Ma co do zasady wyłączną inicjatywę ustawodawczą w UE i czuwa nad stosowaniem traktatów, stąd przydomek „strażniczka traktatów”. Co to za instytucja?", o: ["Komisja Europejska", "Rada Unii Europejskiej", "Parlament Europejski", "Rada Europejska"], c: 0,
+        e: "Projekty aktów prawnych zgłasza Komisja, a przyjmują je Parlament Europejski i Rada UE." },
+      { q: "Tworzą ją szefowie państw lub rządów państw członkowskich; wyznacza ogólne kierunki i priorytety polityczne UE. Co to za instytucja?", o: ["Rada Europejska", "Rada Unii Europejskiej", "Rada Europy", "Komisja Europejska"], c: 0,
+        e: "Rada UE to ministrowie państw członkowskich, a Rada Europy to osobna organizacja spoza UE." },
+      { q: "Organizacja międzynarodowa z siedzibą w Strasburgu, niebędąca organem UE, do której należy kilkadziesiąt państw Europy. Co to za instytucja?", o: ["Rada Europy", "Rada Europejska", "Parlament Europejski", "OBWE"], c: 0,
+        e: "Rada Europy stworzyła Europejską Konwencję Praw Człowieka. Parlament Europejski też obraduje w Strasburgu, ale jest instytucją UE." },
+      { q: "Rozpatruje skargi na naruszenie Europejskiej Konwencji Praw Człowieka przez państwa. Co to za sąd?", o: ["Europejski Trybunał Praw Człowieka", "Trybunał Sprawiedliwości UE", "Międzynarodowy Trybunał Sprawiedliwości", "Międzynarodowy Trybunał Karny"], c: 0,
+        e: "ETPCz działa w Strasburgu przy Radzie Europy. TSUE w Luksemburgu stosuje prawo Unii." },
+      { q: "Odpowiada na pytania prejudycjalne sądów krajowych o wykładnię prawa Unii. Co to za sąd?", o: ["Trybunał Sprawiedliwości UE", "Europejski Trybunał Praw Człowieka", "Europejski Trybunał Obrachunkowy", "Sąd Najwyższy"], c: 0,
+        e: "TSUE ma siedzibę w Luksemburgu. Europejski Trybunał Obrachunkowy nie jest sądem, tylko kontroluje finanse UE." },
+      { q: "Rozpatruje skargi na niewłaściwe administrowanie w instytucjach i organach Unii Europejskiej. Co to za urząd?", o: ["Europejski Rzecznik Praw Obywatelskich", "Europejski Inspektor Ochrony Danych", "Prokuratura Europejska", "Europejski Trybunał Obrachunkowy"], c: 0,
+        e: "Europejskiego Rzecznika wybiera Parlament Europejski. Prokuratura Europejska ściga przestępstwa przeciw budżetowi UE." }
+    ]
+  }
+];
+
+const BANK_HIST = [
+  {
+    name: "Piastowie i Jagiellonowie", q: [
+      { q: "Które z tych biskupstw NIE powstało podczas zjazdu gnieźnieńskiego w 1000 r.?", o: ["Poznańskie", "Krakowskie", "Wrocławskie", "Kołobrzeskie"], c: 0,
+        e: "Biskupstwo poznańskie istniało już od 968 r. W 1000 r. powstało arcybiskupstwo w Gnieźnie z biskupstwami w Krakowie, Wrocławiu i Kołobrzegu." },
+      { q: "Jak nazywa się dokument z ok. 991 r., w którym Mieszko I oddał swoje państwo pod opiekę Stolicy Apostolskiej?", o: ["Dagome iudex", "Bulla gnieźnieńska", "Księga henrykowska", "Akt łęczycki"], c: 0,
+        e: "Dagome iudex znamy tylko ze streszczenia w zbiorze kanonistycznym. Bulla gnieźnieńska z 1136 r. to inny dokument, nazywany „złotą bullą języka polskiego” z powodu wielu polskich nazw." },
+      { q: "Z kim Mieszko I stoczył bitwę pod Cedynią w 972 r.?", o: ["Z margrabią Hodonem", "Z cesarzem Ottonem I", "Z księciem czeskim Bolesławem", "Z Wieletami"], c: 0,
+        e: "Margrabia Hodo najechał ziemie Mieszka i został pokonany. Bitwę opisał Thietmar z Merseburga." },
+      { q: "Który cesarz przybył do Gniezna w 1000 r. do grobu św. Wojciecha?", o: ["Otton III", "Otton I", "Henryk II", "Konrad II"], c: 0,
+        e: "Otton III spotkał się z Bolesławem Chrobrym. Jego następca, Henryk II, prowadził z Chrobrym długie wojny." },
+      { q: "W którym roku koronował się Bolesław Chrobry, pierwszy król Polski?", o: ["1025", "1000", "1018", "1076"], c: 0, fix: 1,
+        e: "Chrobry koronował się w 1025 r., na krótko przed śmiercią. W 1076 r. koronował się Bolesław Śmiały." },
+      { q: "Kto napisał pierwszą kronikę dziejów Polski, na początku XII w.?", o: ["Gall Anonim", "Wincenty Kadłubek", "Jan Długosz", "Thietmar z Merseburga"], c: 0,
+        e: "Gall Anonim pisał na dworze Bolesława Krzywoustego. Kadłubek i Długosz pisali później, a Thietmar był kronikarzem niemieckim." },
+      { q: "Co wprowadził testament Bolesława Krzywoustego z 1138 r.?", o: ["Zasadę senioratu i podział kraju na dzielnice", "Dziedziczność tronu w linii męskiej", "Wybór króla przez szlachtę", "Unię z Węgrami"], c: 0,
+        e: "Najstarszy z rodu (senior) miał władać Krakowem i dzielnicą senioralną. W praktyce zaczęło się rozbicie dzielnicowe." },
+      { q: "Kto zginął w bitwie z Mongołami pod Legnicą w 1241 r.?", o: ["Henryk II Pobożny", "Bolesław Wstydliwy", "Konrad Mazowiecki", "Henryk IV Probus"], c: 0,
+        e: "Książę śląski Henryk II Pobożny poległ, a Mongołowie obnosili jego głowę na włóczni." },
+      { q: "Który książę sprowadził Krzyżaków do ziemi chełmińskiej w XIII w.?", o: ["Konrad Mazowiecki", "Leszek Biały", "Henryk Brodaty", "Bolesław Kędzierzawy"], c: 0,
+        e: "Konrad Mazowiecki liczył na pomoc przeciw Prusom. Krzyżacy zbudowali w Prusach własne, potężne państwo." },
+      { q: "Gdzie w 1320 r. koronował się Władysław Łokietek?", o: ["W katedrze na Wawelu", "W katedrze gnieźnieńskiej", "W katedrze poznańskiej", "W Płocku"], c: 0,
+        e: "Łokietek jako pierwszy koronował się w Krakowie, który odtąd był miejscem koronacji polskich królów." },
+      { q: "O którym władcy mówi się, że „zastał Polskę drewnianą, a zostawił murowaną”?", o: ["O Kazimierzu Wielkim", "O Bolesławie Chrobrym", "O Zygmuncie Starym", "O Stefanie Batorym"], c: 0,
+        e: "Kazimierz Wielki wznosił zamki i mury miejskie. Był ostatnim królem z dynastii Piastów." },
+      { q: "W którym roku Kazimierz Wielki założył Akademię Krakowską?", o: ["1364", "1400", "1348", "1410"], c: 0, fix: 1,
+        e: "Uczelnię założono w 1364 r. W 1400 r. odnowił ją Władysław Jagiełło dzięki zapisowi zmarłej rok wcześniej królowej Jadwigi." },
+      { q: "Jak nazywał się układ z 1385 r., w którym Jagiełło zobowiązał się przyjąć chrzest i połączyć Litwę z Polską?", o: ["Unia w Krewie", "Unia w Horodle", "Unia lubelska", "Unia w Wilnie"], c: 0,
+        e: "Unia w Krewie otworzyła Jagielle drogę do tronu i małżeństwa z Jadwigą. Unia lubelska z 1569 r. stworzyła Rzeczpospolitą Obojga Narodów." },
+      { q: "Jaki tytuł otrzymała Jadwiga Andegaweńska przy koronacji w 1384 r.?", o: ["Króla Polski (rex)", "Królowej regentki", "Księżnej krakowskiej", "Cesarzowej"], c: 0,
+        e: "Jadwigę koronowano na króla, by podkreślić, że to ona, a nie jej przyszły mąż, jest prawowitą władczynią." },
+      { q: "Kto był wielkim mistrzem zakonu krzyżackiego, który zginął pod Grunwaldem?", o: ["Ulrich von Jungingen", "Konrad von Jungingen", "Heinrich von Plauen", "Albrecht Hohenzollern"], c: 0,
+        e: "Ulrich von Jungingen poległ 15 lipca 1410 r. Heinrich von Plauen obronił potem Malbork." },
+      { q: "Co Polska odzyskała na mocy drugiego pokoju toruńskiego w 1466 r.?", o: ["Pomorze Gdańskie i ziemię chełmińską", "Prusy Książęce", "Śląsk", "Inflanty"], c: 0,
+        e: "Po wojnie trzynastoletniej Polska odzyskała m.in. Pomorze Gdańskie, a zakon stał się jej lennikiem." },
+      { q: "W której bitwie w 1444 r. zginął król Władysław III, zwany odtąd Warneńczykiem?", o: ["Pod Warną", "Pod Mohaczem", "Pod Nikopolis", "Na Kosowym Polu"], c: 0,
+        e: "Władysław III walczył z Turkami jako król Polski i Węgier. Pod Mohaczem w 1526 r. zginął inny Jagiellończyk, Ludwik II." },
+      { q: "Kto złożył hołd pruski Zygmuntowi Staremu w Krakowie w 1525 r.?", o: ["Albrecht Hohenzollern", "Fryderyk Wilhelm", "Ulrich von Jungingen", "Jerzy Fryderyk"], c: 0,
+        e: "Albrecht zsekularyzował zakon i jako książę pruski stał się lennikiem Polski. Scenę namalował Jan Matejko." },
+      { q: "Co szlachta uzyskała w przywileju koszyckim z 1374 r.?", o: ["Zwolnienie z podatków poza 2 groszami z łanu", "Prawo wyboru króla", "Nietykalność osobistą bez wyroku", "Zakaz nowych podatków bez zgody sejmu"], c: 0,
+        e: "Ludwik Węgierski chciał zapewnić tron córce. Nietykalność dał szlachcie przywilej jedlneńsko-krakowski, a zakaz nowych praw bez zgody sejmu – Nihil novi." },
+      { q: "Z którego kraju pochodziła Bona, żona Zygmunta Starego?", o: ["Z Włoch", "Z Francji", "Z Hiszpanii", "Z Węgier"], c: 0,
+        e: "Bona Sforza pochodziła z Mediolanu i Bari. Przypisuje się jej popularyzację w Polsce warzyw, stąd „włoszczyzna”." },
+      { q: "Po której klęsce powstało powiedzenie „Za króla Olbrachta wyginęła szlachta”?", o: ["Na Bukowinie w 1497 r.", "Pod Warną w 1444 r.", "Pod Cecorą w 1620 r.", "Pod Piławcami w 1648 r."], c: 0,
+        e: "Wyprawa Jana Olbrachta do Mołdawii skończyła się klęską w lasach Bukowiny." },
+      { q: "Kto był ostatnim królem z dynastii Jagiellonów?", o: ["Zygmunt II August", "Zygmunt I Stary", "Stefan Batory", "Henryk Walezy"], c: 0,
+        e: "Zygmunt August zmarł bezpotomnie w 1572 r. Po nim zaczęły się wolne elekcje." },
+      { q: "Która czeska księżniczka była żoną Mieszka I?", o: ["Dobrawa", "Ludmiła", "Oda", "Rycheza"], c: 0,
+        e: "Dobrawa była córką księcia Bolesława I Srogiego. Odę, córkę margrabiego, Mieszko poślubił po jej śmierci." },
+      { q: "Kim był Jan Długosz?", o: ["Kronikarzem, autorem „Roczników”", "Hetmanem wielkim koronnym", "Biskupem, który ukoronował Jagiełłę", "Architektem Wawelu"], c: 0,
+        e: "Długosz napisał w XV w. „Roczniki, czyli kroniki sławnego Królestwa Polskiego”. Był też wychowawcą synów Kazimierza Jagiellończyka." },
+      { q: "Jak nazywała się wojna Polski z zakonem krzyżackim w latach 1454–1466?", o: ["Wojna trzynastoletnia", "Wielka wojna", "Wojna głodowa", "Wojna pruska"], c: 0,
+        e: "Wojna trzynastoletnia zaczęła się po wystąpieniu Związku Pruskiego przeciw Krzyżakom. Wielka wojna to lata 1409–1411 z Grunwaldem." }
+    ]
+  },
+  {
+    name: "Rzeczpospolita Obojga Narodów", q: [
+      { q: "Jak nazywały się stałe zasady ustrojowe, które musiał zaprzysiąc każdy król elekcyjny?", o: ["Artykuły henrykowskie", "Pacta conventa", "Prawa kardynalne", "Konstytucje sejmowe"], c: 0,
+        e: "Artykuły henrykowskie były stałe. Pacta conventa to osobiste zobowiązania każdego elekta, różne przy każdej elekcji." },
+      { q: "Który król założył Akademię Wileńską w 1579 r.?", o: ["Stefan Batory", "Zygmunt August", "Zygmunt III Waza", "Henryk Walezy"], c: 0,
+        e: "Batory przekształcił kolegium jezuickie w Wilnie w akademię. To dzisiejszy Uniwersytet Wileński." },
+      { q: "Który król przeniósł dwór z Krakowa do Warszawy na przełomie XVI i XVII w.?", o: ["Zygmunt III Waza", "Władysław IV", "Stefan Batory", "Jan III Sobieski"], c: 0,
+        e: "Zygmunt III Waza przeniósł dwór, bo Warszawa leżała bliżej Litwy i Szwecji. Jego pomnik stoi na Kolumnie Zygmunta." },
+      { q: "Kto ufundował Kolumnę Zygmunta w Warszawie w 1644 r.?", o: ["Władysław IV, syn Zygmunta III", "Jan Kazimierz", "Sejm Rzeczypospolitej", "Mieszczanie warszawscy"], c: 0,
+        e: "Władysław IV upamiętnił w ten sposób ojca. To najstarszy świecki pomnik w Warszawie." },
+      { q: "Który hetman pokonał Rosjan pod Kłuszynem w 1610 r., co otworzyło drogę do zajęcia Moskwy?", o: ["Stanisław Żółkiewski", "Jan Karol Chodkiewicz", "Stanisław Koniecpolski", "Stefan Czarniecki"], c: 0,
+        e: "Po Kłuszynie polska załoga zajęła Kreml. Chodkiewicz zasłynął zwycięstwem nad Szwedami pod Kircholmem." },
+      { q: "Kogo pokonał Jan Karol Chodkiewicz w bitwie pod Kircholmem w 1605 r.?", o: ["Szwedów", "Rosjan", "Turków", "Kozaków"], c: 0,
+        e: "Husaria rozbiła kilkakrotnie liczniejszą armię szwedzką. Bitwa jest wzorcowym przykładem jej szarży." },
+      { q: "Kto kierował obroną Jasnej Góry przed Szwedami w 1655 r.?", o: ["Przeor Augustyn Kordecki", "Hetman Stefan Czarniecki", "Prymas Andrzej Leszczyński", "Biskup Andrzej Trzebicki"], c: 0,
+        e: "Paulin Augustyn Kordecki stał się bohaterem „Potopu” Sienkiewicza. Czarniecki prowadził wojnę podjazdową w polu." },
+      { q: "Co ogłosił Jan Kazimierz w ślubach lwowskich w 1656 r.?", o: ["Matkę Bożą Królową Korony Polskiej", "Zniesienie pańszczyzny", "Abdykację", "Unię z Ukrainą"], c: 0,
+        e: "Król obiecał też poprawę losu chłopów, ale tej części ślubów nie zrealizowano." },
+      { q: "Czego Polska zrzekła się w traktatach welawsko-bydgoskich w 1657 r.?", o: ["Zwierzchności nad Prusami Książęcymi", "Pomorza Gdańskiego", "Inflant", "Smoleńska"], c: 0,
+        e: "Elektor brandenburski uzyskał pełną suwerenność w Prusach. To otworzyło drogę do powstania Królestwa Prus." },
+      { q: "Jak brzmiały słowa Jana III Sobieskiego z listu do papieża po zwycięstwie pod Wiedniem w 1683 r.?", o: ["Venimus, vidimus, Deus vicit", "Veni, vidi, vici", "Non omnis moriar", "Si vis pacem, para bellum"], c: 0,
+        e: "„Przybyliśmy, zobaczyliśmy, Bóg zwyciężył” to przeróbka słów Cezara „Veni, vidi, vici”." },
+      { q: "Kto przewodził powstaniu kozackiemu, które wybuchło w 1648 r.?", o: ["Bohdan Chmielnicki", "Iwan Mazepa", "Piotr Doroszenko", "Seweryn Nalewajko"], c: 0,
+        e: "Powstanie Chmielnickiego wstrząsnęło Rzecząpospolitą. Nalewajko dowodził buntem kozackim pod koniec XVI w." },
+      { q: "W którym rozejmie z 1667 r. Rzeczpospolita oddała Rosji m.in. Smoleńsk i lewobrzeżną Ukrainę?", o: ["W Andruszowie", "W Polanowie", "W Dywilinie", "W Jamie Zapolskim"], c: 0,
+        e: "Rozejm andruszowski przesunął granicę na Dniepr. Kijów miał wrócić do Polski po dwóch latach, ale został w rękach Rosji." },
+      { q: "Przeciw czemu skierowana była zawiązana w 1768 r. konfederacja barska?", o: ["Przeciw wpływom Rosji i królowi Stanisławowi Augustowi", "Przeciw Szwedom", "Przeciw Turcji", "Przeciw Konstytucji 3 Maja"], c: 0,
+        e: "Konfederaci walczyli z Rosją przez cztery lata. Przeciw Konstytucji 3 Maja zawiązano konfederację targowicką w 1792 r." },
+      { q: "Które państwo NIE brało udziału w pierwszym rozbiorze Polski w 1772 r.?", o: ["Szwecja", "Prusy", "Austria", "Rosja"], c: 0,
+        e: "W pierwszym rozbiorze uczestniczyły Rosja, Prusy i Austria. W drugim, w 1793 r., tylko Rosja i Prusy." },
+      { q: "Który poseł protestował na sejmie rozbiorowym w 1773 r., kładąc się w drzwiach sali obrad?", o: ["Tadeusz Rejtan", "Hugo Kołłątaj", "Stanisław Małachowski", "Julian Ursyn Niemcewicz"], c: 0,
+        e: "Rejtan próbował nie dopuścić do zatwierdzenia rozbioru. Scenę namalował Jan Matejko." },
+      { q: "Jaką instytucję powołano w 1773 r., uznawaną za pierwsze w Europie ministerstwo oświaty?", o: ["Komisję Edukacji Narodowej", "Collegium Nobilium", "Szkołę Rycerską", "Towarzystwo Przyjaciół Nauk"], c: 0,
+        e: "KEN przejęła majątek po kasacie jezuitów. Szkołę Rycerską założył Stanisław August w 1765 r." },
+      { q: "W jakich latach obradował Sejm Wielki, który uchwalił Konstytucję 3 Maja?", o: ["1788–1792", "1773–1775", "1764–1766", "1791–1795"], c: 0, fix: 1,
+        e: "Sejm Czteroletni obradował od 1788 do 1792 r. Konstytucję uchwalono 3 maja 1791 r." },
+      { q: "Gdzie faktycznie zawiązano konfederację targowicką w 1792 r.?", o: ["W Petersburgu", "W Targowicy", "W Warszawie", "W Moskwie"], c: 0,
+        e: "Akt podpisano w Petersburgu, a w Targowicy tylko go ogłoszono. Konfederaci wezwali na pomoc wojska rosyjskie." },
+      { q: "Które państwa przeprowadziły drugi rozbiór Polski w 1793 r.?", o: ["Rosja i Prusy", "Rosja, Prusy i Austria", "Rosja i Austria", "Prusy i Austria"], c: 0,
+        e: "Austria była zajęta wojną z rewolucyjną Francją. Do trzeciego rozbioru w 1795 r. przystąpiły już wszystkie trzy państwa." },
+      { q: "Który kosynier zdobył armatę w bitwie pod Racławicami w 1794 r.?", o: ["Wojciech Bartosz Głowacki", "Jan Kiliński", "Jakub Jasiński", "Józef Sowiński"], c: 0,
+        e: "Bartosz Głowacki zatkał czapką lont armaty. Jan Kiliński, szewc, dowodził powstaniem w Warszawie." },
+      { q: "Kto dowodził wojskami rosyjskimi podczas rzezi Pragi w 1794 r.?", o: ["Aleksandr Suworow", "Michaił Kutuzow", "Iwan Paskiewicz", "Iwan Diebicz"], c: 0,
+        e: "Suworow zdobył Pragę 4 listopada 1794 r., a jego wojska wymordowały tysiące mieszkańców. Paskiewicz zdobył Warszawę w 1831 r." },
+      { q: "Gdzie Stanisław August Poniatowski abdykował w 1795 r.?", o: ["W Grodnie", "W Warszawie", "W Petersburgu", "W Wilnie"], c: 0,
+        e: "Król abdykował w Grodnie, a zmarł w Petersburgu w 1798 r." },
+      { q: "Jak nazywały się słynne spotkania uczonych i pisarzy u Stanisława Augusta?", o: ["Obiady czwartkowe", "Wieczory piątkowe", "Sobótki królewskie", "Salony wtorkowe"], c: 0,
+        e: "Na obiadach czwartkowych bywali m.in. Ignacy Krasicki i Adam Naruszewicz." },
+      { q: "Który król z dynastii Wazów abdykował w 1668 r. i zmarł we Francji?", o: ["Jan II Kazimierz", "Władysław IV", "Zygmunt III", "Michał Korybut Wiśniowiecki"], c: 0,
+        e: "Jan Kazimierz był ostatnim Wazą na polskim tronie. Wiśniowiecki był pierwszym królem „Piastem” wybranym po nim." },
+      { q: "Który magnat założył w 1594 r. Akademię Zamojską?", o: ["Jan Zamoyski", "Jan Tarnowski", "Mikołaj Radziwiłł Czarny", "Stanisław Lubomirski"], c: 0,
+        e: "Kanclerz i hetman Jan Zamoyski założył też samo miasto Zamość, zaprojektowane przez Bernarda Morando." }
+    ]
+  },
+  {
+    name: "Rozbiory i XIX wiek", q: [
+      { q: "Gdzie po raz pierwszy zaśpiewano „Mazurka Dąbrowskiego” w 1797 r.?", o: ["W Reggio nell'Emilia", "W Mediolanie", "W Paryżu", "W Rzymie"], c: 0,
+        e: "Józef Wybicki napisał pieśń dla Legionów Polskich we Włoszech. Muzeum Hymnu Narodowego działa w Będominie, w jego rodzinnym dworze." },
+      { q: "Na mocy którego traktatu Napoleon utworzył Księstwo Warszawskie w 1807 r.?", o: ["Pokoju w Tylży", "Pokoju w Schönbrunn", "Kongresu wiedeńskiego", "Pokoju w Pressburgu"], c: 0,
+        e: "Traktat w Tylży zawarli Napoleon i car Aleksander I. Pokój w Schönbrunn w 1809 r. powiększył Księstwo o Kraków i Lublin." },
+      { q: "Gdzie zginął książę Józef Poniatowski w 1813 r.?", o: ["W nurtach Elstery pod Lipskiem", "Pod Borodino", "Pod Somosierrą", "W Warszawie"], c: 0,
+        e: "Ranny książę utonął w Elsterze podczas odwrotu po bitwie narodów pod Lipskiem." },
+      { q: "Co utworzono z ziem polskich na kongresie wiedeńskim w 1815 r. obok Królestwa Polskiego?", o: ["Wolne Miasto Kraków", "Księstwo Łowickie", "Wolne Miasto Gdańsk", "Królestwo Galicji"], c: 0,
+        e: "Rzeczpospolita Krakowska istniała do 1846 r. Wolne Miasto Gdańsk utworzono dopiero po I wojnie światowej." },
+      { q: "Kto dowodził spiskowcami ze Szkoły Podchorążych, którzy zaczęli powstanie listopadowe?", o: ["Piotr Wysocki", "Józef Chłopicki", "Ignacy Prądzyński", "Józef Bem"], c: 0,
+        e: "Podporucznik Piotr Wysocki dał sygnał do powstania 29 listopada 1830 r. Chłopicki został potem dyktatorem." },
+      { q: "W której bitwie powstania listopadowego w lutym 1831 r. Polacy zatrzymali marsz Rosjan na Warszawę?", o: ["Pod Olszynką Grochowską", "Pod Ostrołęką", "Pod Stoczkiem", "Pod Iganiami"], c: 0,
+        e: "Pod Olszynką Grochowską walczono o kluczowy lasek przed Pragą. Pod Ostrołęką w maju 1831 r. Polacy ponieśli dotkliwą porażkę." },
+      { q: "Jak nazywało się paryskie stronnictwo emigracyjne księcia Adama Jerzego Czartoryskiego?", o: ["Hotel Lambert", "Towarzystwo Demokratyczne Polskie", "Gromady Ludu Polskiego", "Młoda Polska"], c: 0,
+        e: "Nazwa pochodzi od pałacu na Wyspie Świętego Ludwika, w którym mieszkał książę. TDP było konkurencyjnym ugrupowaniem demokratycznym." },
+      { q: "Kto przewodził rabacji galicyjskiej w 1846 r., w której chłopi mordowali szlachtę?", o: ["Jakub Szela", "Jakub Bojko", "Wincenty Witos", "Michał Drzymała"], c: 0,
+        e: "Rabacja wybuchła w Galicji Zachodniej, równolegle z nieudanym powstaniem krakowskim." },
+      { q: "W którym zaborze w 1848 r. wybuchło powstanie w ramach Wiosny Ludów?", o: ["W pruskim (Wielkopolska)", "W rosyjskim", "W austriackim (Galicja)", "We wszystkich trzech"], c: 0,
+        e: "W Wielkopolsce walczono m.in. pod Miłosławiem. W Galicji też doszło do wystąpień, ale bez powstania zbrojnego tej skali." },
+      { q: "Co zapoczątkowało powstanie styczniowe w 1863 r.?", o: ["Branka, czyli przymusowy pobór do wojska", "Ogłoszenie uwłaszczenia", "Zamknięcie uniwersytetu", "Aresztowanie arcybiskupa"], c: 0,
+        e: "Branka zarządzona przez Aleksandra Wielopolskiego miała wyłapać młodych spiskowców. Powstanie wybuchło 22 stycznia 1863 r." },
+      { q: "Kto był ostatnim dyktatorem powstania styczniowego, straconym na stokach Cytadeli w 1864 r.?", o: ["Romuald Traugutt", "Marian Langiewicz", "Ludwik Mierosławski", "Zygmunt Padlewski"], c: 0,
+        e: "Traugutt kierował powstaniem od października 1863 r. Langiewicz był dyktatorem tylko przez kilka dni wiosną 1863 r." },
+      { q: "W którym roku car ogłosił uwłaszczenie chłopów w Królestwie Polskim?", o: ["1864", "1848", "1861", "1807"], c: 0, fix: 1,
+        e: "Ukaz z 1864 r. dał chłopom ziemię na lepszych warunkach niż w Rosji, by odciągnąć ich od powstania. W Rosji reformę wprowadzono w 1861 r." },
+      { q: "Jak nazywała się polityka Bismarcka wymierzona w Kościół katolicki w Niemczech, mocno uderzająca w Polaków?", o: ["Kulturkampf", "Hakata", "Rugi pruskie", "Germanizacja szkolna"], c: 0,
+        e: "Kulturkampf trwał w latach 70. XIX w. Hakata to późniejsze stowarzyszenie wspierające germanizację, a rugi pruskie to wysiedlenia z 1885 r." },
+      { q: "Czym zasłynął Michał Drzymała?", o: ["Zamieszkał w wozie, bo Prusacy nie pozwalali mu zbudować domu", "Zorganizował strajk szkolny", "Zabił pruskiego landrata", "Wydawał polską gazetę w Berlinie"], c: 0,
+        e: "Pruskie prawo zabraniało budowy nowych domów bez zgody, której Polakom zwykle odmawiano. Wóz Drzymały stał się symbolem oporu." },
+      { q: "W którym mieście w 1901 r. dzieci strajkowały przeciw nauce religii po niemiecku?", o: ["We Wrześni", "W Poznaniu", "W Gnieźnie", "W Bydgoszczy"], c: 0,
+        e: "Strajk dzieci we Wrześni odbił się echem w całej Europie. Rodzice zostali skazani na więzienie." },
+      { q: "Kto napisał „Rotę” („Nie rzucim ziemi, skąd nasz ród”)?", o: ["Maria Konopnicka", "Eliza Orzeszkowa", "Adam Asnyk", "Wincenty Pol"], c: 0,
+        e: "Konopnicka napisała „Rotę” w 1908 r. Muzykę Feliksa Nowowiejskiego wykonano po raz pierwszy w 1910 r. na odsłonięciu pomnika Grunwaldzkiego w Krakowie." },
+      { q: "Które miasto było stolicą Galicji?", o: ["Lwów", "Kraków", "Przemyśl", "Tarnów"], c: 0,
+        e: "We Lwowie obradował Sejm Krajowy i urzędował namiestnik. Kraków był najważniejszym ośrodkiem kultury." },
+      { q: "Jaką akcję przeprowadził Józef Piłsudski w 1908 r. pod Wilnem?", o: ["Napad na pociąg pocztowy pod Bezdanami", "Zamach na generała-gubernatora", "Uwolnienie więźniów z Cytadeli", "Strajk kolejarzy"], c: 0,
+        e: "Bojowcy zdobyli pieniądze z rosyjskiego pociągu na cele organizacji niepodległościowych." },
+      { q: "Skąd 6 sierpnia 1914 r. wyruszyła Pierwsza Kompania Kadrowa?", o: ["Z krakowskich Oleandrów", "Z Warszawy", "Z Zakopanego", "Z Lwowa"], c: 0,
+        e: "Kadrówka przekroczyła granicę zaboru rosyjskiego w Michałowicach i ruszyła na Kielce." },
+      { q: "Co ogłosili cesarze Niemiec i Austro-Węgier w akcie 5 listopada 1916 r.?", o: ["Utworzenie Królestwa Polskiego", "Niepodległość Polski w granicach z 1772 r.", "Powstanie Legionów", "Przyłączenie Galicji do Królestwa"], c: 0,
+        e: "Akt zapowiadał zależne od państw centralnych Królestwo Polskie bez określonych granic. Liczono na polskiego rekruta." },
+      { q: "Gdzie Niemcy więzili Józefa Piłsudskiego od 1917 r. po kryzysie przysięgowym?", o: ["W Magdeburgu", "W Szczypiornie", "W Berlinie", "W Spandau"], c: 0,
+        e: "Piłsudski wrócił z Magdeburga do Warszawy 10 listopada 1918 r. Legionistów, którzy odmówili przysięgi, internowano w Szczypiornie i Beniaminowie." },
+      { q: "Kto kierował Komitetem Narodowym Polskim w Paryżu w czasie I wojny światowej?", o: ["Roman Dmowski", "Ignacy Jan Paderewski", "Józef Haller", "Władysław Grabski"], c: 0,
+        e: "Komitet Dmowskiego był uznawany przez państwa ententy za przedstawicielstwo Polski. Paderewski działał w USA." },
+      { q: "Kto założył pierwszą polską partię socjalistyczną „Proletariat” w 1882 r.?", o: ["Ludwik Waryński", "Bolesław Limanowski", "Róża Luksemburg", "Ignacy Daszyński"], c: 0,
+        e: "Waryński zmarł w twierdzy Szlisselburg. Limanowski był jednym z twórców PPS w 1892 r." },
+      { q: "W którym roku zlikwidowano Rzeczpospolitą Krakowską i włączono Kraków do Austrii?", o: ["1846", "1831", "1864", "1815"], c: 0, fix: 1,
+        e: "Po upadku powstania krakowskiego w 1846 r. Wolne Miasto Kraków włączono do Galicji." },
+      { q: "Który pianista i kompozytor był premierem Polski w 1919 r.?", o: ["Ignacy Jan Paderewski", "Karol Szymanowski", "Mieczysław Karłowicz", "Józef Hofmann"], c: 0,
+        e: "Paderewski był premierem i ministrem spraw zagranicznych. Podpisał w imieniu Polski traktat wersalski." }
+    ]
+  },
+  {
+    name: "Od 1918 do 1989", q: [
+      { q: "Kiedy wybuchło powstanie wielkopolskie?", o: ["27 grudnia 1918 r.", "11 listopada 1918 r.", "2 maja 1921 r.", "16 sierpnia 1919 r."], c: 0, fix: 1,
+        e: "Powstanie wybuchło po przyjeździe Paderewskiego do Poznania. 16 sierpnia 1919 r. zaczęło się pierwsze powstanie śląskie, a 2 maja 1921 r. trzecie." },
+      { q: "Ile było powstań śląskich?", o: ["Trzy", "Dwa", "Cztery", "Pięć"], c: 0, fix: 1,
+        e: "Powstania wybuchły w 1919, 1920 i 1921 r. Trzecie, największe, zaczęło się po plebiscycie." },
+      { q: "Którego dnia przypada rocznica rozstrzygającej fazy Bitwy Warszawskiej („cudu nad Wisłą”)?", o: ["15 sierpnia 1920 r.", "11 listopada 1920 r.", "1 sierpnia 1920 r.", "18 marca 1921 r."], c: 0, fix: 1,
+        e: "15 sierpnia obchodzi się dziś Święto Wojska Polskiego. 18 marca 1921 r. podpisano traktat ryski." },
+      { q: "Jaki traktat zakończył wojnę polsko-bolszewicką i ustalił wschodnią granicę II RP?", o: ["Traktat ryski", "Traktat wersalski", "Traktat w Brześciu", "Układ w Locarno"], c: 0,
+        e: "Traktat podpisano w Rydze w marcu 1921 r. Locarno to układy z 1925 r., które gwarantowały tylko zachodnie granice Niemiec." },
+      { q: "Który minister był „ojcem” portu w Gdyni i Centralnego Okręgu Przemysłowego?", o: ["Eugeniusz Kwiatkowski", "Władysław Grabski", "Józef Beck", "Ignacy Mościcki"], c: 0,
+        e: "Eugeniusz Kwiatkowski był ministrem przemysłu i handlu, a potem skarbu. Władysław Grabski przeprowadził reformę walutową i wprowadził złotego w 1924 r." },
+      { q: "Kto zastrzelił prezydenta Gabriela Narutowicza w 1922 r.?", o: ["Eligiusz Niewiadomski", "Józef Mackiewicz", "Bronisław Pieracki", "Józef Hofmann"], c: 0,
+        e: "Malarz Eligiusz Niewiadomski strzelił do prezydenta w galerii Zachęta. Pieracki był ministrem zamordowanym przez ukraińskich nacjonalistów w 1934 r." },
+      { q: "Który minister reformą z 1924 r. wprowadził złotego w miejsce marki polskiej?", o: ["Władysław Grabski", "Eugeniusz Kwiatkowski", "Stefan Starzyński", "Józef Piłsudski"], c: 0,
+        e: "Reforma Grabskiego zatrzymała hiperinflację i powołała Bank Polski. Starzyński był prezydentem Warszawy w 1939 r." },
+      { q: "Kto dowodził obroną Westerplatte w 1939 r.?", o: ["Mjr Henryk Sucharski", "Gen. Władysław Anders", "Kpt. Franciszek Dąbrowski", "Gen. Juliusz Rómmel"], c: 0,
+        e: "Według wielu historyków faktycznie obroną kierował zastępca Sucharskiego, kpt. Franciszek Dąbrowski. Formalnie dowódcą był Sucharski." },
+      { q: "Która bitwa z września 1939 r. była największą bitwą kampanii wrześniowej?", o: ["Bitwa nad Bzurą", "Obrona Westerplatte", "Bitwa pod Mławą", "Bitwa pod Wizną"], c: 0,
+        e: "Bitwa nad Bzurą, prowadzona przez armie „Poznań” i „Pomorze”, była największym starciem tej kampanii. Wizna to bitwa nazywana „polskimi Termopilami”." },
+      { q: "Kto podjął decyzję o wymordowaniu polskich jeńców, m.in. w Katyniu, w 1940 r.?", o: ["Biuro Polityczne WKP(b) ze Stalinem", "Dowództwo Wehrmachtu", "Rada Komisarzy Ludowych Ukrainy", "Dowództwo Frontu Białoruskiego"], c: 0,
+        e: "Decyzję podjęło 5 marca 1940 r. Biuro Polityczne z Józefem Stalinem, a wykonało NKWD. ZSRR przyznał się do zbrodni dopiero w 1990 r." },
+      { q: "Którzy kryptolodzy jako pierwsi złamali szyfr Enigmy na początku lat 30.?", o: ["Rejewski, Różycki i Zygalski", "Turing, Welchman i Knox", "Banach, Steinhaus i Ulam", "Sierpiński, Kuratowski i Mazurkiewicz"], c: 0,
+        e: "Matematycy z Biura Szyfrów przekazali swoje osiągnięcia Brytyjczykom i Francuzom w lipcu 1939 r. Turing pracował potem w Bletchley Park." },
+      { q: "Który polski dywizjon był najskuteczniejszą jednostką myśliwską w Bitwie o Anglię?", o: ["Dywizjon 303", "Dywizjon 302", "Dywizjon 300", "Dywizjon 315"], c: 0,
+        e: "Dywizjon 303 im. Tadeusza Kościuszki nosił tradycje Eskadry Kościuszkowskiej z wojny 1920 r." },
+      { q: "Który korpus zdobył Monte Cassino w maju 1944 r.?", o: ["2 Korpus Polski gen. Andersa", "1 Dywizja Pancerna gen. Maczka", "1 Armia Wojska Polskiego", "Samodzielna Brygada Strzelców Karpackich gen. Kopańskiego"], c: 0,
+        e: "Na ruinach klasztoru zawieszono polską flagę 18 maja 1944 r. Dywizja Maczka walczyła w Normandii i pod Falaise." },
+      { q: "O której godzinie 1 sierpnia 1944 r. wybuchło powstanie warszawskie („godzina W”)?", o: ["O 17:00", "O 5:00", "O 12:00", "O 20:00"], c: 0, fix: 1,
+        e: "Godzina W to 17:00. Co roku o tej porze w Warszawie wyją syreny, a ludzie zatrzymują się na minutę." },
+      { q: "Kto dowodził Żydowską Organizacją Bojową w powstaniu w getcie warszawskim w 1943 r.?", o: ["Mordechaj Anielewicz", "Marek Edelman", "Icchak Cukierman", "Paweł Frenkel"], c: 0,
+        e: "Anielewicz zginął w bunkrze przy Miłej 18. Marek Edelman był jednym z ostatnich żyjących dowódców powstania." },
+      { q: "Kto dobrowolnie trafił do Auschwitz, by zorganizować tam konspirację i zbierać informacje?", o: ["Witold Pilecki", "Jan Karski", "Maksymilian Kolbe", "Stanisław Jankowski"], c: 0,
+        e: "Rotmistrz Pilecki uciekł z obozu w 1943 r. W 1948 r. komunistyczny sąd skazał go na śmierć. Jan Karski był emisariuszem, który przekazał na Zachód raport o Zagładzie." },
+      { q: "Jak nazywała się konspiracyjna Rada Pomocy Żydom działająca przy Delegaturze Rządu?", o: ["Żegota", "Kedyw", "Wachlarz", "Zawisza"], c: 0,
+        e: "Rada Pomocy Żydom „Żegota” działała od 1942 r. Kedyw to Kierownictwo Dywersji Armii Krajowej." },
+      { q: "Kto wyprowadził z getta warszawskiego około 2500 żydowskich dzieci?", o: ["Irena Sendlerowa", "Zofia Kossak-Szczucka", "Władysława Choms", "Matylda Getter"], c: 0,
+        e: "Irena Sendlerowa kierowała referatem dziecięcym „Żegoty”. Zofia Kossak-Szczucka współtworzyła samą „Żegotę”." },
+      { q: "Kto wrócił do władzy w PRL w październiku 1956 r., budząc nadzieję na „odwilż”?", o: ["Władysław Gomułka", "Edward Gierek", "Bolesław Bierut", "Edward Ochab"], c: 0,
+        e: "Gomułka został I sekretarzem PZPR na VIII Plenum. Bierut zmarł w Moskwie w marcu 1956 r., a po nim krótko rządził Ochab." },
+      { q: "Do zabitych w którym mieście w Grudniu 1970 r. odnosi się „Ballada o Janku Wiśniewskim”?", o: ["W Gdyni", "W Gdańsku", "W Szczecinie", "W Elblągu"], c: 0,
+        e: "Ballada opowiada o 18-letnim Zbyszku Godlewskim, zastrzelonym w Gdyni 17 grudnia 1970 r. Ciało niesiono na drzwiach." },
+      { q: "W którym roku powstał Komitet Obrony Robotników (KOR)?", o: ["1976", "1970", "1980", "1968"], c: 0, fix: 1,
+        e: "KOR powstał po wydarzeniach czerwcowych 1976 r., by pomagać represjonowanym robotnikom z Radomia i Ursusa." },
+      { q: "Zwolnienie której suwnicowej doprowadziło do strajku w Stoczni Gdańskiej w sierpniu 1980 r.?", o: ["Anny Walentynowicz", "Aliny Pienkowskiej", "Henryki Krzywonos", "Joanny Gwiazdy"], c: 0,
+        e: "Anna Walentynowicz została zwolniona dyscyplinarnie na kilka miesięcy przed emeryturą. Henryka Krzywonos zatrzymała tramwaj w Gdańsku." },
+      { q: "W którym roku Lech Wałęsa otrzymał Pokojową Nagrodę Nobla?", o: ["1983", "1981", "1989", "1990"], c: 0, fix: 1,
+        e: "Nagrodę w Oslo odebrała w jego imieniu żona Danuta, bo Wałęsa bał się, że nie zostanie wpuszczony z powrotem do kraju." },
+      { q: "Kto zamordował księdza Jerzego Popiełuszkę w 1984 r.?", o: ["Funkcjonariusze Służby Bezpieczeństwa", "Żołnierze LWP", "Milicjanci z ZOMO", "Nieznani sprawcy, nigdy nie ustaleni"], c: 0,
+        e: "Kapelana „Solidarności” zamordowało trzech oficerów SB z Departamentu IV MSW, m.in. Grzegorz Piotrowski. Skazano ich w procesie toruńskim." },
+      { q: "Które słowa wypowiedział Jan Paweł II na placu Zwycięstwa w Warszawie w 1979 r.?", o: ["„Niech zstąpi Duch Twój i odnowi oblicze ziemi. Tej ziemi!”", "„Nie lękajcie się!”", "„Musicie od siebie wymagać”", "„Wstańcie, chodźmy!”"], c: 0,
+        e: "Słowa z homilii z 2 czerwca 1979 r. odczytywano jako zapowiedź przemian. „Nie lękajcie się!” to słowa z inauguracji pontyfikatu w Rzymie." }
+    ]
+  }
+];
+
+const BANK_POLITYK = [
+  {
+    name: "Do 1989 roku", q: [
+      { q: "Kto w przemówieniu w Sejmie 5 maja 1939 r. mówił, że jedyną bezcenną rzeczą w życiu narodów jest honor?", o: ["Józef Beck", "Edward Rydz-Śmigły", "Ignacy Mościcki", "Felicjan Sławoj Składkowski"], c: 0,
+        e: "Minister spraw zagranicznych Józef Beck odpowiadał tak na żądania Hitlera wobec Gdańska i korytarza." },
+      { q: "Kto we wrześniu 1939 r. mówił przez radio: „Chciałem, by Warszawa była wielka”?", o: ["Stefan Starzyński", "Władysław Sikorski", "Walerian Czuma", "Ignacy Paderewski"], c: 0,
+        e: "Prezydent Warszawy Stefan Starzyński przemawiał przez radio podczas oblężenia miasta. Walerian Czuma dowodził wtedy obroną stolicy." },
+      { q: "Kto w styczniu 1971 r., prosząc stoczniowców o poparcie, zapytał ich „Pomożecie”?", o: ["Edward Gierek", "Władysław Gomułka", "Piotr Jaroszewicz", "Józef Cyrankiewicz"], c: 0,
+        e: "Nowy I sekretarz PZPR Edward Gierek prosił stoczniowców o poparcie po krwawym Grudniu ’70. Odpowiedź „Pomożemy!” stała się symbolem propagandy jego dekady." },
+      { q: "Kto 13 grudnia 1981 r. mówił w telewizji: „Ojczyzna nasza znalazła się nad przepaścią”?", o: ["Wojciech Jaruzelski", "Mieczysław Rakowski", "Czesław Kiszczak", "Stanisław Kania"], c: 0,
+        e: "Tak gen. Wojciech Jaruzelski ogłaszał wprowadzenie stanu wojennego. Czesław Kiszczak był wtedy ministrem spraw wewnętrznych." },
+      { q: "Kto w exposé w 1989 r. zapowiedział, że przeszłość „odkreślamy grubą linią”?", o: ["Tadeusz Mazowiecki", "Leszek Balcerowicz", "Bronisław Geremek", "Jan Olszewski"], c: 0,
+        e: "Tadeusz Mazowiecki, pierwszy niekomunistyczny premier, mówił to we wrześniu 1989 r. Hasło „gruba kreska” było potem przedmiotem sporów przez lata." },
+    ]
+  },
+  {
+    name: "Lata 90. i początek wieku", q: [
+      { q: "Kto w 1989 r. napisał w „Gazecie Wyborczej” artykuł „Wasz prezydent, nasz premier”?", o: ["Adam Michnik", "Jacek Kuroń", "Bronisław Geremek", "Lech Wałęsa"], c: 0,
+        e: "Adam Michnik, wtedy poseł, proponował, by prezydentem był ktoś z PZPR, a premierem ktoś z „Solidarności”. Tak się stało: Jaruzelski i Mazowiecki." },
+      { q: "Czyje to słynne powiedzenie: „Nie chcem, ale muszem”?", o: ["Lecha Wałęsy", "Andrzeja Leppera", "Waldemara Pawlaka", "Józefa Oleksego"], c: 0,
+        e: "To jedno z najbardziej znanych powiedzeń Lecha Wałęsy. Do tego samego repertuaru należy „Jestem za, a nawet przeciw”." },
+      { q: "Kto szedł do wyborów prezydenckich w 1995 r. pod hasłem „Wybierzmy przyszłość”?", o: ["Aleksander Kwaśniewski", "Lech Wałęsa", "Jacek Kuroń", "Waldemar Pawlak"], c: 0,
+        e: "Aleksander Kwaśniewski z tym hasłem wygrał w drugiej turze z Lechem Wałęsą." },
+      { q: "Czyim hasłem było „Balcerowicz musi odejść”?", o: ["Andrzeja Leppera", "Jarosława Kaczyńskiego", "Leszka Millera", "Romana Giertycha"], c: 0,
+        e: "To hasło Andrzeja Leppera i Samoobrony, wymierzone w autora reform gospodarczych z 1990 r." },
+      { q: "Kto w 2002 r., podczas kampanii w Warszawie, rzucił do przechodnia: „Spieprzaj, dziadu!”?", o: ["Lech Kaczyński", "Jarosław Kaczyński", "Marek Balicki", "Andrzej Olechowski"], c: 0,
+        e: "Lech Kaczyński, kandydat na prezydenta Warszawy, odpowiedział tak zaczepiającemu go mężczyźnie na Pradze. Wybory i tak wygrał z Markiem Balickim." },
+    ]
+  },
+  {
+    name: "Nowsze czasy", q: [
+      { q: "Czyje to powiedzenie: „Prawdziwego mężczyznę poznaje się po tym, jak kończy”?", o: ["Leszka Millera", "Józefa Oleksego", "Marka Belki", "Włodzimierza Cimoszewicza"], c: 0,
+        e: "To jedno z najsłynniejszych zdań Leszka Millera, premiera w latach 2001–2004." },
+      { q: "Kto w 2009 r. pokazywał mapę Europy z Polską jako „zieloną wyspą” wzrostu wśród krajów w recesji?", o: ["Donald Tusk", "Jarosław Kaczyński", "Waldemar Pawlak", "Lech Kaczyński"], c: 0,
+        e: "Premier Donald Tusk z ministrem finansów Jackiem Rostowskim. Polska jako jedyny kraj UE nie miała wtedy spadku PKB." },
+      { q: "Kto w kampanii prezydenckiej 2010 r. miał hasło „Zgoda buduje”?", o: ["Bronisław Komorowski", "Jarosław Kaczyński", "Grzegorz Napieralski", "Waldemar Pawlak"], c: 0,
+        e: "Bronisław Komorowski wygrał z tym hasłem. Jarosław Kaczyński szedł pod hasłem „Polska jest najważniejsza”." },
+      { q: "Kto w 2014 r., gdy mróz sparaliżował kolej, rzucił: „Sorry, taki mamy klimat”?", o: ["Elżbieta Bieńkowska", "Ewa Kopacz", "Hanna Gronkiewicz-Waltz", "Elżbieta Rafalska"], c: 0,
+        e: "Wicepremier i ministra infrastruktury Elżbieta Bieńkowska tak skomentowała opóźnienia pociągów po marznącym deszczu w styczniu 2014 r." },
+      { q: "Kto w 2015 r. mówił w wywiadzie o „najgorszym sorcie Polaków”?", o: ["Jarosław Kaczyński", "Antoni Macierewicz", "Zbigniew Ziobro", "Beata Szydło"], c: 0,
+        e: "Jarosław Kaczyński tak określił w grudniu 2015 r. ludzi, którzy według niego źle mówią o Polsce za granicą. Jego przeciwnicy zaczęli potem ironicznie nazywać tak samych siebie." },
+    ]
+  },
+  {
+    name: "Świat", q: [
+      { q: "Kto w pierwszym przemówieniu jako premier w 1940 r. obiecał „krew, znój, łzy i pot”?", o: ["Winston Churchill", "Neville Chamberlain", "Franklin D. Roosevelt", "Charles de Gaulle"], c: 0,
+        e: "Winston Churchill mówił to w Izbie Gmin 13 maja 1940 r., trzy dni po objęciu urzędu po Chamberlainie." },
+      { q: "Kto w 1963 r. w Berlinie Zachodnim powiedział „Ich bin ein Berliner”?", o: ["John F. Kennedy", "Willy Brandt", "Konrad Adenauer", "Richard Nixon"], c: 0,
+        e: "Prezydent USA John F. Kennedy wyrażał tak solidarność z mieszkańcami miasta otoczonego murem. Willy Brandt był wtedy burmistrzem Berlina Zachodniego." },
+      { q: "Kto w 1987 r. pod Bramą Brandenburską wzywał: „Panie Gorbaczow, zburz ten mur!”?", o: ["Ronald Reagan", "George H. W. Bush", "Helmut Kohl", "Margaret Thatcher"], c: 0,
+        e: "Prezydent USA Ronald Reagan mówił to 12 czerwca 1987 r. Mur upadł dwa i pół roku później." },
+      { q: "Kto w 1980 r. ogłosił, że nie zmieni kursu: „The lady's not for turning”?", o: ["Margaret Thatcher", "Indira Gandhi", "Golda Meir", "Benazir Bhutto"], c: 0,
+        e: "Premier Wielkiej Brytanii Margaret Thatcher odpowiadała tak na zjeździe swojej partii tym, którzy chcieli odwrotu od jej reform." },
+      { q: "Kto w 2015 r. mówił o przyjmowaniu uchodźców: „Wir schaffen das” („Damy radę”)?", o: ["Angela Merkel", "Emmanuel Macron", "Jean-Claude Juncker", "Martin Schulz"], c: 0,
+        e: "Kanclerz Niemiec Angela Merkel powiedziała to w sierpniu 2015 r., gdy do Europy przybywały setki tysięcy uchodźców." },
+    ]
+  },
+];
+
+const BANK_SMIESZNE = [
+  {
+    name: "Wałęsizmy", q: [
+      { q: "Kto jest autorem zdania: „Jestem za, a nawet przeciw”?", o: ["Waldemar Pawlak", "Lech Wałęsa", "Józef Oleksy", "Andrzej Lepper"], c: 1,
+        e: "To jeden z najsłynniejszych „wałęsizmów”, czyli powiedzeń Lecha Wałęsy albo mu przypisywanych." },
+      { q: "Komu przypisuje się zdanie: „Dokonałem zwrotu o 360 stopni”?", o: ["Aleksandrowi Kwaśniewskiemu", "Lechowi Kaczyńskiemu", "Lechowi Wałęsie", "Leszkowi Millerowi"], c: 2,
+        e: "Pełny obrót o 360 stopni zostawia w tym samym miejscu, więc zdanie brzmi jak pomyłka. Należy do zestawów „wałęsizmów”." },
+      { q: "Kto narzekał: „Miała być demokracja, a tu każdy wygaduje, co chce!”?", o: ["Lech Wałęsa", "Jan Olszewski", "Józef Oleksy", "Waldemar Pawlak"], c: 0,
+        e: "To kolejny znany wałęsizm, często cytowany jako żartobliwa skarga na wolność słowa." },
+      { q: "Kto żartował: „Szłem czy szedłem, ale doszedłem”?", o: ["Aleksander Kwaśniewski", "Andrzej Lepper", "Waldemar Pawlak", "Lech Wałęsa"], c: 3,
+        e: "Zdanie wraca w zestawieniach wałęsizmów i gra na wątpliwości, czy mówi się „szłem”, czy „szedłem”." },
+      { q: "Kto przerobił toast na: „Zdrowie wasze w gardła nasze!”?", o: ["Lech Wałęsa", "Józef Oleksy", "Jan Maria Rokita", "Leszek Miller"], c: 0,
+        e: "Za to zdanie i za „Nie chcem, ale muszem” Lech Wałęsa wygrał w 1992 r. plebiscyt „Srebrne Usta” radiowej Trójki." },
+      { q: "Kto powiedział: „Dobrze się stało, że źle się stało”?", o: ["Hanna Suchocka", "Waldemar Pawlak", "Jan Olszewski", "Lech Wałęsa"], c: 3,
+        e: "Zdanie zbudowane jak sprzeczność, typowe dla zestawień wałęsizmów." },
+    ]
+  },
+  {
+    name: "Lata 90. i 2000.", q: [
+      { q: "Kto w 1995 r. powiedział: „Kura najpierw jajko zniesie, a dopiero potem gdacze”?", o: ["Józef Oleksy", "Jan Olszewski", "Waldemar Pawlak", "Hanna Suchocka"], c: 2,
+        e: "Waldemar Pawlak, szef PSL, wygrał za te słowa plebiscyt „Srebrne Usta”." },
+      { q: "Kto w 1996 r. zapewniał: „Ja nie jestem draniem, łobuzem, cynikiem i brzydzą mnie tego typu nieuczciwości”?", o: ["Marek Belka", "Grzegorz Kołodko", "Leszek Balcerowicz", "Jerzy Hausner"], c: 1,
+        e: "Grzegorz Kołodko, wtedy wicepremier i minister finansów, wygrał za te słowa plebiscyt „Srebrne Usta”." },
+      { q: "Który minister obrony w rządzie Jerzego Buzka powiedział, że polski lotnik poleci nawet na drzwiach od stodoły?", o: ["Janusz Onyszkiewicz", "Jerzy Szmajdziński", "Radosław Sikorski", "Bronisław Komorowski"], c: 3,
+        e: "Bronisław Komorowski był ministrem obrony w latach 2000–2001. Zdanie stało się popularnym powiedzonkiem." },
+      { q: "Kto w 2003 r. rzucił hasło „Nicea albo śmierć”?", o: ["Donald Tusk", "Jan Rokita", "Bronisław Geremek", "Marek Borowski"], c: 1,
+        e: "Jan Rokita bronił w ten sposób zasad głosowania z traktatu nicejskiego, gdy zaczęły się negocjacje nad konstytucją europejską." },
+      { q: "Kto po wygranych wyborach prezydenckich w 2005 r. zwrócił się do brata: „Panie prezesie, melduję wykonanie zadania!”?", o: ["Jarosław Kaczyński", "Kazimierz Marcinkiewicz", "Lech Kaczyński", "Zbigniew Ziobro"], c: 2,
+        e: "Lech Kaczyński mówił to do Jarosława, szefa PiS, gdy wynik drugiej tury z 23 października 2005 r. był już jasny." },
+      { q: "Który poseł SLD wygrał plebiscyt „Srebrne Usta” za rok 2006 wystąpieniem, które zaczął od słów „Panie Marszałku, Wysoka Izbo, w Hongkongu”?", o: ["Piotr Gadzinowski", "Jerzy Wenderlich", "Wojciech Olejniczak", "Jerzy Szmajdziński"], c: 0,
+        e: "Mówił o antykorupcyjnym urzędzie w Hongkongu i żartował, że posłowie PiS mogą nie wiedzieć, czym jest Hongkong." },
+      { q: "Kto w październiku 2007 r. skomentował nagranie ze swojego wykładu w Kijowie: „Może wypiłem jeden kieliszek wina, a może dziesięć. Mam prawo robić co chcę, jestem wolnym człowiekiem”?", o: ["Leszek Miller", "Aleksander Kwaśniewski", "Józef Oleksy", "Lech Wałęsa"], c: 1,
+        e: "Aleksander Kwaśniewski, wtedy już były prezydent, tłumaczył się z nagrania, na którym chwiał się i miał kłopoty z mówieniem." },
+    ]
+  },
+  {
+    name: "Po 2007 roku", q: [
+      { q: "Kto w Sejmie powiedział premierowi Tuskowi: „Mam wrażenie, i nie tylko ja w Polsce, że często pan stoi w rozkroku”?", o: ["Beata Kempa", "Renata Beger", "Joanna Kluzik-Rostkowska", "Nelli Rokita"], c: 3,
+        e: "Nelli Rokita, posłanka wybrana w 2007 r. z listy PiS, jest laureatką plebiscytu „Srebrne Usta”." },
+      { q: "Kto w 2010 r. wygrał plebiscyt „Srebrne Usta” zdaniem: „No i najważniejsze, że jesteśmy po zielonej stronie mocy”?", o: ["Marek Sawicki", "Waldemar Pawlak", "Janusz Piechociński", "Jarosław Kalinowski"], c: 1,
+        e: "Waldemar Pawlak po raz pierwszy użył tej metafory w Poznaniu, gdy Al Gore dostawał doktorat honoris causa Uniwersytetu im. Adama Mickiewicza." },
+      { q: "Kto w maju 2015 r., w kampanii prezydenckiej, poradził zarabiającemu 2 tys. zł, żeby zmienił pracę i wziął kredyt?", o: ["Andrzej Duda", "Bronisław Komorowski", "Paweł Kukiz", "Ewa Kopacz"], c: 1,
+        e: "Bronisław Komorowski, wtedy prezydent, usłyszał potem, że przy takich zarobkach trudno o kredyt." },
+      { q: "Który minister spraw zagranicznych w styczniu 2016 r. mówił o świecie rowerzystów i wegetarian, opartym na odnawialnych źródłach energii?", o: ["Radosław Sikorski", "Witold Waszczykowski", "Grzegorz Schetyna", "Jacek Czaputowicz"], c: 1,
+        e: "Witold Waszczykowski jest laureatem plebiscytu „Srebrne Usta”. Jego słowa przez długi czas były tematem żartów." },
+      { q: "Który poseł zapytał na posiedzeniu komisji śledczej ds. Amber Gold prezes gdańskiego sądu apelacyjnego, dlaczego nazywają ją „caryca”?", o: ["Stanisław Pięta", "Joachim Brudziński", "Marek Suski", "Krzysztof Jurgiel"], c: 2,
+        e: "Marek Suski, wiceprzewodniczący komisji, zadał to pytanie Annie Skupnej. Fragment przesłuchania obiegł internet." },
+      { q: "Kto w styczniu 2019 r. mówił w telewizji, że dawni ludzie rzucali kamieniami w dinozaura, aż go osłabili?", o: ["Barbara Nowacka", "Joanna Scheuring-Wielgus", "Ewa Kopacz", "Małgorzata Kidawa-Błońska"], c: 2,
+        e: "Ewa Kopacz mówiła to w programie „Fakt Opinie” 31 stycznia 2019 r. Dinozaury wyginęły ok. 66 mln lat temu, na długo przed pojawieniem się człowieka. Za tę wypowiedź dostała „Srebrne Usta”." },
+      { q: "Kto po spotkaniu z Emmanuelem Macronem mówił o „atakach hakerskich, srakerskich”?", o: ["Mateusz Morawiecki", "Andrzej Duda", "Zbigniew Rau", "Mariusz Błaszczak"], c: 0,
+        e: "To przejęzyczenie premiera Mateusza Morawieckiego z konferencji, na której mówiono o rosyjskiej propagandzie i kryzysie na granicy z Białorusią." },
+    ]
+  },
+];
+
+const LEVELS = {
+  chajzer: { label: "Chajzerowie", bank: BANK_CHAJZER },
+  pro: { label: "Ekspert PL", bank: BANK_PRO },
+  urz: { label: "Jaki to urząd?", bank: BANK_URZ },
+  hist: { label: "Historia Polski", bank: BANK_HIST },
+  polityk: { label: "Który polityk to powiedział?", bank: BANK_POLITYK },
+  smieszne: { label: "Śmieszne wypowiedzi", bank: BANK_SMIESZNE },
+};
+
+const load = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } };
+const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } };
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+/* Losowanie pytań i tryb mieszany („Mieszane”, klucz `mix`): pytania z kilku kategorii w jednej grze.
+   Kategorie z mieszanki dostają po równo pytań i przeplatają się (w każdej rundzie w losowej kolejności).
+   Dobór jak tasowanie w Spotify: nie czysto losowy, tylko według wag. Pytanie, którego nikt jeszcze nie widział,
+   ma wagę 1, a ograne (niedawno albo przez kilku graczy) mniejszą, ale nigdy zerową, więc może wrócić, tylko rzadziej.
+   „Ogranie” bierze się z pamięci telefonu (pk_seen_at: qid → kiedy) i z bazy dla nicków w grze (setQHist, wersja z serwerem).
+   Id pytania to `kategoria:skrót treści` (qid), więc nie zmienia się po dopisaniu pytań. */
+const MIX = "mix";
+const realLevels = () => Object.keys(LEVELS).filter((k) => LEVELS[k].bank);
+/* pusta lista = wszystkie kategorie poza specjalnymi (np. „Chajzerowie”), które do mieszanki trzeba dodać ręcznie */
+const mixKeys = (sel) => { const ok = (Array.isArray(sel) ? sel : []).filter((k) => LEVELS[k] && LEVELS[k].bank); return ok.length ? ok : realLevels().filter((k) => !LEVELS[k].special); };
+const levelSize = (k) => LEVELS[k].bank.reduce((s, c) => s + c.q.length, 0);
+function poolSize(level, sel) { return level === MIX ? mixKeys(sel).reduce((s, k) => s + levelSize(k), 0) : levelSize(level); }
+/* Skrót treści pytania (FNV-1a, 32 bity): tylko litery i cyfry, bez wielkości liter. Ten sam liczy tests/validate_questions.js. */
+function qhash(t) {
+  let h = 0x811c9dc5;
+  for (const ch of String(t).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "")) { h ^= ch.codePointAt(0); h = Math.imul(h, 0x01000193) >>> 0; }
+  return h.toString(36);
+}
+const qid = (level, Q) => `${level}:${qhash(Q.q)}`;
+/* Pamięć sprzed stałych id (`kategoria:dział-nr`) przepisuje się na nowe id według obecnej kolejności pytań. */
+function migrateSeen(list) {
+  return list.map((id) => {
+    const m = /^([a-z]+):(\d+)-(\d+)$/.exec(id), cat = m && LEVELS[m[1]] && LEVELS[m[1]].bank && LEVELS[m[1]].bank[+m[2]], Q = cat && cat.q[+m[3]];
+    return Q ? qid(m[1], Q) : id;
+  });
+}
+const DAY = 864e5, TAU_DAYS = 20, MIN_W = 0.02;
+let QHIST = {};
+function setQHist(h) { QHIST = h && typeof h === "object" && !Array.isArray(h) ? h : {}; }
+function loadSeenAt() {
+  const m = load("pk_seen_at", null);
+  if (m && typeof m === "object" && !Array.isArray(m)) return m;
+  const out = {}, t = Date.now() - 7 * DAY;  // stara pamięć (lista bez dat) liczy się jak sprzed tygodnia
+  migrateSeen(load("pk_seen", [])).forEach((id) => { if (typeof id === "string") out[id] = t; });
+  return out;
+}
+function saveSeenAt(m) { const cut = Date.now() - 365 * DAY; for (const k in m) if (!(m[k] > cut)) delete m[k]; save("pk_seen_at", m); }
+/* Ogranie p: wczoraj u jednego gracza ≈ 1, u trzech ≈ 3, sprzed 20 dni ≈ 0,37. Waga e^(−3p), najmniej MIN_W. */
+function qweight(id, seenAt, now) {
+  const local = seenAt[id] ? Math.exp(-Math.max(0, now - seenAt[id]) / DAY / TAU_DAYS) : 0;
+  return Math.max(MIN_W, Math.exp(-3 * Math.max(local, +QHIST[id] || 0)));
+}
+/* losowanie bez zwracania według wag (Efraimidis–Spirakis): klucz u^(1/w), wygrywają największe */
+function weightedPick(items, need, w) {
+  return items.map((x) => ({ x, k: Math.pow(Math.random(), 1 / w(x)) })).sort((a, b) => b.k - a.k).slice(0, need).map((o) => o.x);
+}
+/* dwa pytania z tego samego działu nie idą po sobie, jeśli da się tego uniknąć */
+function spread(list, key) {
+  const a = list.slice();
+  for (let i = 1; i < a.length; i++) if (key(a[i]) === key(a[i - 1])) {
+    const j = a.findIndex((x, k) => k > i && key(x) !== key(a[i - 1]));
+    if (j > 0) [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function pickLevel(level, need, seenAt, now) {
+  const all = [];
+  LEVELS[level].bank.forEach((cat) => cat.q.forEach((Q) => all.push({ id: qid(level, Q), Q, cat: cat.name, lv: level })));
+  return spread(shuffle(weightedPick(all, Math.min(need, all.length), (x) => qweight(x.id, seenAt, now))), (x) => x.cat);
+}
+function buildDeck(level, count, sel) {
+  const seenAt = loadSeenAt(), now = Date.now();
+  let pick;
+  if (level !== MIX) pick = pickLevel(level, count, seenAt, now);
+  else {
+    const keys = mixKeys(sel), need = {};
+    keys.forEach((k) => (need[k] = 0));
+    let left = Math.min(count, keys.reduce((s, k) => s + levelSize(k), 0));
+    while (left > 0) for (const k of shuffle(keys)) if (left > 0 && need[k] < levelSize(k)) { need[k]++; left--; }
+    const lists = keys.map((k) => pickLevel(k, need[k], seenAt, now));
+    pick = [];
+    while (lists.some((l) => l.length)) for (const l of shuffle(lists)) if (l.length) pick.push(l.shift());
+    pick.forEach((x) => (x.cat = LEVELS[x.lv].label));
+  }
+  pick.forEach((x) => (seenAt[x.id] = now)); saveSeenAt(seenAt);
+  return pick.map(({ id, Q, cat }) => {
+    const order = Q.fix ? Q.o.map((_, i) => i) : shuffle(Q.o.map((_, i) => i));
+    return { id, cat, q: Q.q, o: order.map((i) => Q.o[i]), c: order.indexOf(Q.c), e: Q.e };
+  });
+}
+/* Wybór kategorii do mieszanki: chipy pod bębnem, widoczne tylko przy „Mieszane”. Zawsze zostaje co najmniej jedna. */
+function initMix(box, getSel, setSel) {
+  box.innerHTML = `<span class="label" id="lbl-mix">Kategorie w mieszance</span>
+    <div class="chips" role="group" aria-labelledby="lbl-mix">${realLevels().map((k) => `<button type="button" class="chip" data-k="${k}">${esc(LEVELS[k].label)}</button>`).join("")}</div>
+    <p class="hint" id="mixHint"></p>`;
+  box.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-k]"); if (!b) return;
+    const cur = mixKeys(getSel()), k = b.dataset.k;
+    const next = cur.includes(k) ? cur.filter((x) => x !== k) : realLevels().filter((x) => x === k || cur.includes(x));
+    if (next.length) setSel(next);
+  });
+}
+function renderMix(box, level, sel) {
+  box.hidden = level !== MIX;
+  if (box.hidden) return;
+  const on = mixKeys(sel);
+  box.querySelectorAll("[data-k]").forEach((b) => b.setAttribute("aria-pressed", String(on.includes(b.dataset.k))));
+  box.querySelector("#mixHint").textContent = `${on.length} ${on.length === 1 ? "kategoria" : on.length < 5 ? "kategorie" : "kategorii"}, ${poolSize(MIX, on)} pytań w puli. Kliknij, żeby dodać albo usunąć.`;
+}
+/* Liczba pytań: suwak z przyciskami −/+ (na telefonie suwakiem trudno trafić w jedną liczbę).
+   Najwięcej 100 w jednym quizie i nie więcej, niż jest pytań w wybranych kategoriach (countMax). */
+const countMax = (level, sel) => Math.max(1, Math.min(100, poolSize(level, sel)));
+const clampCount = (n, max = 100) => Math.max(1, Math.min(max, Math.round(+n) || 30));
+function showCount(r) { $("#countOut").innerHTML = `${r.value}<small>/${r.max}</small>`; }
+/* ustawia suwak i zwraca liczbę po przycięciu do limitu (do zapisania w ustawieniach) */
+function setCount(n, max = 100) { const r = $("#countRange"); if (!r) return clampCount(n, max); r.max = max; r.value = clampCount(n, max); showCount(r); return +r.value; }
+function initCount(onInput, onDone) {
+  const r = $("#countRange");
+  r.addEventListener("input", () => { showCount(r); onInput(+r.value); });
+  r.addEventListener("change", () => onDone());
+  document.querySelectorAll("#countPick .cstep").forEach((b) => b.addEventListener("click", () => {
+    r.value = clampCount(+r.value + +b.dataset.d, +r.max); showCount(r); onInput(+r.value); onDone();
   }));
-  document.querySelectorAll(".back").forEach((b) => b.addEventListener("click", () => document.querySelectorAll(".round").forEach((r) => (r.hidden = r.id !== b.dataset.go))));
-  addEventListener("pageshow", () => document.querySelectorAll(".ans.picked").forEach((x) => x.classList.remove("picked")));
-})();
+}
+/* Pytanie ×2: jedno losowe na każde 10 pytań (gra na 7 pytań ma jedno). Punkty i kara razy dwa. */
+function withX2(deck, on) {
+  if (on === false) return deck;
+  for (let k = 0; k * 10 < deck.length; k++) { const lo = k * 10, hi = Math.min(deck.length, lo + 10); deck[lo + Math.floor(Math.random() * (hi - lo))].x2 = 1; }
+  return deck;
+}
+const qmul = (q) => (q && q.x2 ? 2 : 1);
+function initX2(get, set) { const c = $("#optX2"); c.checked = get() !== false; c.addEventListener("change", () => set(c.checked)); }
+
+/* ===================== SZYBKI QUIZ =====================
+   10 pytań z mieszanki: Chajzerowie, Ekspert PL, Jaki to urząd?, Historia Polski i obie kategorie „kto to powiedział”.
+   Punkty jak w teleturnieju: +10 za dobrą odpowiedź, −1 za złą albo brak odpowiedzi. Imię pada dopiero na końcu. */
+const QUIZ_KEYS = ["chajzer", "pro", "urz", "hist", "polityk", "smieszne"];
+const QUIZ_N = 10, QUIZ_MS = 20000, PLUS = 10, MINUS = 1, LETTERS = ["A", "B", "C", "D"];
+let deck = [], idx = 0, log = [], uid = null, saved = false, locked = true, t0 = 0, raf = 0;
+
+const pts = () => log.reduce((s, a) => s + (a.ok ? PLUS : -MINUS), 0);
+const okCount = () => log.filter((a) => a.ok).length;
+const num = (n) => (n < 0 ? "−" + Math.abs(n) : String(n));
+
+function startQuiz() {
+  deck = buildDeck(MIX, QUIZ_N, QUIZ_KEYS); idx = 0; log = []; saved = false;
+  uid = window.PK ? PK.uuid() : null;
+  $("#qzEnd").hidden = true; $("#qz").hidden = false;
+  ask();
+}
+function ask() {
+  const Q = deck[idx];
+  locked = false;
+  $("#qzN").textContent = `Pytanie ${idx + 1} z ${deck.length}`;
+  $("#qzPts").textContent = `${num(pts())} pkt`;
+  $("#qzCat").textContent = Q.cat;
+  $("#qzQ").textContent = Q.q;
+  $("#qzAns").innerHTML = Q.o.map((t, k) => `<button type="button" class="ans" data-k="${k}"><span class="in"><b class="key">${LETTERS[k]}</b><span class="at"><strong>${esc(t)}</strong></span></span></button>`).join("");
+  $("#qzFb").hidden = true;
+  $("#qz").classList.remove("done");
+  t0 = performance.now(); cancelAnimationFrame(raf); tick();
+}
+function tick() {
+  const left = Math.max(0, QUIZ_MS - (performance.now() - t0));
+  $("#qzBar").style.width = (left / QUIZ_MS) * 100 + "%";
+  $("#qz").classList.toggle("late", left < 5000);
+  if (left <= 0) { if (!locked) answer(-1); return; }
+  raf = requestAnimationFrame(tick);
+}
+function answer(k) {
+  if (locked) return;
+  locked = true; cancelAnimationFrame(raf);
+  const Q = deck[idx], ok = k === Q.c;
+  log.push({ ok, pick: k });
+  document.querySelectorAll("#qzAns .ans").forEach((b, j) => {
+    b.disabled = true;
+    b.classList.toggle("good", j === Q.c);
+    b.classList.toggle("bad", j === k && !ok);
+    b.classList.toggle("dim", j !== Q.c && j !== k);
+  });
+  $("#qz").classList.add("done");
+  $("#qzPts").textContent = `${num(pts())} pkt`;
+  $("#qzFbT").textContent = ok ? `Dobrze! +${PLUS}` : k < 0 ? `Czas minął, −${MINUS}` : `Pudło, −${MINUS}`;
+  $("#qzFbT").className = "qz-fbt " + (ok ? "ok" : "no");
+  $("#qzFbE").textContent = Q.e || "";
+  $("#qzNext").textContent = idx === deck.length - 1 ? "Zobacz wynik" : "Dalej →";
+  $("#qzFb").hidden = false;
+  $("#qzNext").focus({ preventScroll: true });
+  $("#qzFb").scrollIntoView({ block: "nearest", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+}
+function next() {
+  if (!locked || $("#qzFb").hidden) return;
+  if (idx < deck.length - 1) { idx++; ask(); window.scrollTo({ top: 0, behavior: "auto" }); }
+  else finish();
+}
+function finish() {
+  $("#qz").hidden = true; $("#qzEnd").hidden = false;
+  $("#qeOk").textContent = okCount(); $("#qeScore").textContent = num(pts());
+  $("#qzNote").textContent = ""; $("#qzSave").disabled = false;
+  $("#qzForm").hidden = false;
+  const name = $("#qzName"); name.value = String(load("pkl_name", "") || "").slice(0, 20);
+  if (!(window.PK && PK.ready())) { $("#qzForm").hidden = true; $("#qzNote").textContent = "Lista wyników jest teraz niedostępna, więc ten wynik nie zostanie zapisany."; }
+  window.scrollTo({ top: 0, behavior: "auto" });
+  if (!$("#qzForm").hidden) name.focus({ preventScroll: true });
+}
+function gameRecord(name) {
+  const wrong = log.length - okCount();
+  return { id: uid, mode: "teleturniej", level: "mix", code: null, questions_total: deck.length, questions_played: log.length, penalty: MINUS,
+           players: [{ name, score: pts(), correct: okCount(), wrong }], qids: deck.map((q) => q.id) };
+}
+async function submit(e) {
+  e.preventDefault();
+  if (saved) return;
+  const name = $("#qzName").value.trim().slice(0, 20);
+  if (!name) { $("#qzNote").textContent = "Wpisz imię, żeby zapisać wynik."; $("#qzName").focus(); return; }
+  const btn = $("#qzSave"), note = $("#qzNote"), mine = uid;
+  btn.disabled = true; note.textContent = "Zapisuję wynik…";
+  save("pkl_name", name);
+  const r = await PK.submitGame(gameRecord(name));
+  if (mine !== uid) return;
+  if (r.ok) {
+    saved = true; btn.disabled = true;
+    note.innerHTML = `Zapisane! ${esc(name)}, ${num(pts())} pkt. <a href="wyniki.html?gracz=${encodeURIComponent(name)}">Zobacz swój wynik →</a>`;
+    loadTop();
+  } else {
+    btn.disabled = false;
+    note.textContent = r.why === "rejected" ? `Lista wyników odrzuciła tę grę${r.error && r.error.message ? ` (${r.error.message.replace(/^pk: /, "")})` : ""}.` : "Nie udało się zapisać wyniku. Zapisze się, gdy wróci internet, albo spróbuj jeszcze raz.";
+  }
+}
+
+$("#qzAns").addEventListener("click", (e) => { const b = e.target.closest(".ans[data-k]"); if (b) answer(+b.dataset.k); });
+$("#qzNext").addEventListener("click", next);
+$("#qzForm").addEventListener("submit", submit);
+$("#qzAgain").addEventListener("click", startQuiz);
+addEventListener("keydown", (e) => {
+  if (e.ctrlKey || e.metaKey || e.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test((e.target || {}).tagName || "")) return;
+  const k = "abcd".indexOf(e.key.toLowerCase()), d = "1234".indexOf(e.key);
+  if (!$("#qz").hidden && !locked && (k >= 0 || d >= 0)) answer(k >= 0 ? k : d);
+  else if (e.key === "Enter" && e.target === document.body && !$("#qz").hidden && locked && !$("#qzFb").hidden) next();
+});
+
+/* trwająca gra prowadzącego na tym urządzeniu: pozwól do niej wrócić */
 (() => {
-  // trwająca gra prowadzącego na tym urządzeniu: pozwól do niej wrócić
   try {
     const H = JSON.parse(localStorage.getItem("pkl_host") || "null"), code = JSON.parse(localStorage.getItem("pkw_hcode") || "null");
     if (H && H.deck && H.ph && H.ph !== "lobby" && H.ph !== "final" && code) {
-      const r = document.querySelector("#resume");
+      const r = $("#resume");
       r.innerHTML = `<span>Trwa Twoja gra · kod <b>${String(code).replace(/[^A-Z0-9]/g, "")}</b> · pytanie ${H.i + 1} z ${H.deck.length}</span><a href="live.html?tryb=prowadzacy">Wróć do gry</a>`;
       r.hidden = false;
     }
   } catch (e) { }
 })();
-(async () => {
+
+/* czołówka listy wyników i podpowiedzi nicków */
+async function loadTop() {
   if (!window.PK || !PK.ready()) return;
-  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-  const num = (n) => (n < 0 ? "−" + Math.abs(n) : String(n));
+  const num2 = num;
   const games = (n) => n === 1 ? "gra" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? "gry" : "gier";
   try {
     const rows = (await PK.leaderboard({ days: 30, limit: 5 })).slice(0, 5);
     if (!rows.length) return;
     const max = Math.max(1, ...rows.map((r) => +r.points));
-    document.querySelector("#top").innerHTML = rows.map((r, k) => `<li class="${k === 0 && +r.points > 0 ? "lead" : ""}"><span class="pos">${k + 1}.</span>
+    $("#top").innerHTML = rows.map((r, k) => `<li class="${k === 0 && +r.points > 0 ? "lead" : ""}"><span class="pos">${k + 1}.</span>
       <span class="nm"><a href="wyniki.html?gracz=${encodeURIComponent(r.name)}">${esc(r.name)}</a><span class="stat">${r.games} ${games(+r.games)} · ${r.wins} wygr.</span></span>
-      <span class="p${+r.points < 0 ? " neg" : ""}">${num(+r.points)} <small>pkt</small></span><span class="bar"><i style="width:${(Math.max(0, +r.points) / max) * 100}%"></i></span></li>`).join("");
-    document.querySelector("#topBox").hidden = false;
+      <span class="p${+r.points < 0 ? " neg" : ""}">${num2(+r.points)} <small>pkt</small></span><span class="bar"><i style="width:${(Math.max(0, +r.points) / max) * 100}%"></i></span></li>`).join("");
+    $("#topBox").hidden = false;
   } catch (e) { }
-})();
+}
+loadTop();
+if (window.PK && PK.ready()) PK.nicks().then((l) => { $("#qzNicks").innerHTML = l.slice(0, 40).map((n) => `<option value="${esc(n)}">`).join(""); }).catch(() => { });
+
+startQuiz();
 </script>
 </body>
 </html>

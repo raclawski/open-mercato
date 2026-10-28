@@ -4,41 +4,55 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>TELETURNIEJ</title>
-<meta name="description" content="TELETURNIEJ: gra na telefony. Sam albo ze znajomymi, z przyciskami na telefonach graczy i listą wyników.">
+<meta name="description" content="TELETURNIEJ: szybki quiz na 10 pytań. Zagraj od razu, wpisz imię i zapisz wynik na liście. Albo uruchom własną grę ze znajomymi.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,500..800&family=Archivo:wdth,wght@62..125,500..900&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="site.css">
 <link rel="stylesheet" href="pop.css">
 </head>
-<body class="start">
+<body class="start quiz">
 <main class="app">
   <header class="marquee" aria-labelledby="t-top">
     <div class="marquee-in">
-      <p class="mq-kicker">Gra na telefony</p>
+      <p class="mq-kicker">Szybki quiz · 10 pytań</p>
       <h1 id="t-top">TELETURNIEJ</h1>
-      <p class="mq-meta">/*__QUESTION_COUNT__*/ pytań · /*__LEVEL_COUNT__*/ kategorii</p>
+      <p class="mq-meta">/*__QUESTION_COUNT__*/ pytań · /*__LEVEL_COUNT__*/ kategorii w całej grze</p>
     </div>
   </header>
 
   <p class="cue" id="resume" hidden></p>
 
-  <section class="round" id="q1" aria-labelledby="q1t">
-    <h2 class="qplate" id="q1t"><span class="qn">Pytanie 1</span><span class="qt">Jak dziś gramy?</span></h2>
-    <div class="answers">
-      <a class="ans" href="teleturniej.html?tryb=sam"><span class="in"><b class="key">A</b><span class="at"><strong>Gram sam</strong><small>Ty kontra pytania. Wynik trafia na listę.</small></span></span></a>
-      <button type="button" class="ans" data-go="q2"><span class="in"><b class="key">B</b><span class="at"><strong>Ze znajomymi</strong><small>Na jednym telefonie albo każdy na swoim.</small></span></span></button>
+  <section class="qz" id="qz" aria-labelledby="qzQ">
+    <div class="qz-top">
+      <span class="qz-n" id="qzN">Pytanie 1 z 10</span>
+      <span class="qz-pts" id="qzPts">0 pkt</span>
+    </div>
+    <div class="qz-time" aria-hidden="true"><i id="qzBar"></i></div>
+    <h2 class="qplate"><span class="qn" id="qzCat"></span><span class="qt" id="qzQ"></span></h2>
+    <div class="answers" id="qzAns" role="group" aria-label="Odpowiedzi"></div>
+    <div class="qz-fb" id="qzFb" aria-live="polite" hidden>
+      <p class="qz-fbt" id="qzFbT"></p>
+      <p class="qz-fbe" id="qzFbE"></p>
+      <button type="button" class="qz-next" id="qzNext">Dalej →</button>
     </div>
   </section>
 
-  <section class="round" id="q2" aria-labelledby="q2t" hidden>
-    <h2 class="qplate" id="q2t"><span class="qn">Pytanie 2</span><span class="qt">Ile macie telefonów?</span></h2>
-    <div class="answers">
-      <a class="ans" href="teleturniej.html"><span class="in"><b class="key">A</b><span class="at"><strong>Jeden na wszystkich</strong><small>Prowadzący czyta i zaznacza. Kto trafi, wskazuje następnego.</small></span></span></a>
-      <a class="ans" href="live.html?tryb=prowadzacy"><span class="in"><b class="key">B</b><span class="at"><strong>Każdy swój · zakładam pokój</strong><small>Przyciski na telefonach. Online, „Kto pierwszy” albo offline.</small></span></span></a>
-      <a class="ans" href="live.html?tryb=gracz"><span class="in"><b class="key">C</b><span class="at"><strong>Mam kod gry</strong><small>Dołączam do pokoju znajomego.</small></span></span></a>
+  <section class="qz-end" id="qzEnd" aria-labelledby="qzEndT" hidden>
+    <p class="qz-kick">Koniec quizu</p>
+    <h2 id="qzEndT">Masz <span id="qeOk">0</span>/10</h2>
+    <p class="qz-score"><b id="qeScore">0</b> <small>pkt</small></p>
+    <form class="qz-form" id="qzForm" autocomplete="off">
+      <label for="qzName">Wpisz imię, żeby zapisać wynik</label>
+      <input type="text" id="qzName" maxlength="20" list="qzNicks" placeholder="Twoje imię albo nick" enterkeyhint="done" required>
+      <datalist id="qzNicks"></datalist>
+      <button type="submit" class="btn go" id="qzSave">Zapisz wynik</button>
+    </form>
+    <p class="qz-note" id="qzNote" aria-live="polite"></p>
+    <div class="qz-again">
+      <button type="button" class="btn ghost" id="qzAgain">Zagraj jeszcze raz</button>
+      <a class="btn ghost" href="wyniki.html">Lista wyników</a>
     </div>
-    <button type="button" class="back" data-go="q1">← Wróć do pytania 1</button>
   </section>
 
   <section class="scoreboard" aria-labelledby="t-top5" id="topBox" hidden>
@@ -47,55 +61,164 @@
     <a class="sb-more" href="wyniki.html">Cały ranking →</a>
   </section>
 
-  <nav class="stage-nav"><a href="wyniki.html">Lista wyników</a></nav>
-  <p class="foot">Bez logowania. Wyniki zapisują się pod imieniem wpisanym w grze.</p>
+  <p class="foot">Bez logowania. Wyniki zapisują się pod imieniem wpisanym na końcu.</p>
 </main>
+
+<div class="own-bar"><a class="own-btn" href="gra.html">Uruchom własną grę</a></div>
 
 <script src="vendor/supabase.js"></script>
 <script src="config.js"></script>
 <script src="pk-online.js"></script>
 <script>
-// pytania 1 i 2: wybrana odpowiedź podświetla się jak w teleturnieju, potem przejście
+/*__START_BANKS__*/
+
+const load = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } };
+const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } };
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+/*__MIX_JS__*/
+
+/* ===================== SZYBKI QUIZ =====================
+   10 pytań z mieszanki: Chajzerowie, Ekspert PL, Jaki to urząd?, Historia Polski i obie kategorie „kto to powiedział”.
+   Punkty jak w teleturnieju: +10 za dobrą odpowiedź, −1 za złą albo brak odpowiedzi. Imię pada dopiero na końcu. */
+const QUIZ_KEYS = ["chajzer", "pro", "urz", "hist", "polityk", "smieszne"];
+const QUIZ_N = 10, QUIZ_MS = 20000, PLUS = 10, MINUS = 1, LETTERS = ["A", "B", "C", "D"];
+let deck = [], idx = 0, log = [], uid = null, saved = false, locked = true, t0 = 0, raf = 0;
+
+const pts = () => log.reduce((s, a) => s + (a.ok ? PLUS : -MINUS), 0);
+const okCount = () => log.filter((a) => a.ok).length;
+const num = (n) => (n < 0 ? "−" + Math.abs(n) : String(n));
+
+function startQuiz() {
+  deck = buildDeck(MIX, QUIZ_N, QUIZ_KEYS); idx = 0; log = []; saved = false;
+  uid = window.PK ? PK.uuid() : null;
+  $("#qzEnd").hidden = true; $("#qz").hidden = false;
+  ask();
+}
+function ask() {
+  const Q = deck[idx];
+  locked = false;
+  $("#qzN").textContent = `Pytanie ${idx + 1} z ${deck.length}`;
+  $("#qzPts").textContent = `${num(pts())} pkt`;
+  $("#qzCat").textContent = Q.cat;
+  $("#qzQ").textContent = Q.q;
+  $("#qzAns").innerHTML = Q.o.map((t, k) => `<button type="button" class="ans" data-k="${k}"><span class="in"><b class="key">${LETTERS[k]}</b><span class="at"><strong>${esc(t)}</strong></span></span></button>`).join("");
+  $("#qzFb").hidden = true;
+  $("#qz").classList.remove("done");
+  t0 = performance.now(); cancelAnimationFrame(raf); tick();
+}
+function tick() {
+  const left = Math.max(0, QUIZ_MS - (performance.now() - t0));
+  $("#qzBar").style.width = (left / QUIZ_MS) * 100 + "%";
+  $("#qz").classList.toggle("late", left < 5000);
+  if (left <= 0) { if (!locked) answer(-1); return; }
+  raf = requestAnimationFrame(tick);
+}
+function answer(k) {
+  if (locked) return;
+  locked = true; cancelAnimationFrame(raf);
+  const Q = deck[idx], ok = k === Q.c;
+  log.push({ ok, pick: k });
+  document.querySelectorAll("#qzAns .ans").forEach((b, j) => {
+    b.disabled = true;
+    b.classList.toggle("good", j === Q.c);
+    b.classList.toggle("bad", j === k && !ok);
+    b.classList.toggle("dim", j !== Q.c && j !== k);
+  });
+  $("#qz").classList.add("done");
+  $("#qzPts").textContent = `${num(pts())} pkt`;
+  $("#qzFbT").textContent = ok ? `Dobrze! +${PLUS}` : k < 0 ? `Czas minął, −${MINUS}` : `Pudło, −${MINUS}`;
+  $("#qzFbT").className = "qz-fbt " + (ok ? "ok" : "no");
+  $("#qzFbE").textContent = Q.e || "";
+  $("#qzNext").textContent = idx === deck.length - 1 ? "Zobacz wynik" : "Dalej →";
+  $("#qzFb").hidden = false;
+  $("#qzNext").focus({ preventScroll: true });
+  $("#qzFb").scrollIntoView({ block: "nearest", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+}
+function next() {
+  if (!locked || $("#qzFb").hidden) return;
+  if (idx < deck.length - 1) { idx++; ask(); window.scrollTo({ top: 0, behavior: "auto" }); }
+  else finish();
+}
+function finish() {
+  $("#qz").hidden = true; $("#qzEnd").hidden = false;
+  $("#qeOk").textContent = okCount(); $("#qeScore").textContent = num(pts());
+  $("#qzNote").textContent = ""; $("#qzSave").disabled = false;
+  $("#qzForm").hidden = false;
+  const name = $("#qzName"); name.value = String(load("pkl_name", "") || "").slice(0, 20);
+  if (!(window.PK && PK.ready())) { $("#qzForm").hidden = true; $("#qzNote").textContent = "Lista wyników jest teraz niedostępna, więc ten wynik nie zostanie zapisany."; }
+  window.scrollTo({ top: 0, behavior: "auto" });
+  if (!$("#qzForm").hidden) name.focus({ preventScroll: true });
+}
+function gameRecord(name) {
+  const wrong = log.length - okCount();
+  return { id: uid, mode: "teleturniej", level: "mix", code: null, questions_total: deck.length, questions_played: log.length, penalty: MINUS,
+           players: [{ name, score: pts(), correct: okCount(), wrong }], qids: deck.map((q) => q.id) };
+}
+async function submit(e) {
+  e.preventDefault();
+  if (saved) return;
+  const name = $("#qzName").value.trim().slice(0, 20);
+  if (!name) { $("#qzNote").textContent = "Wpisz imię, żeby zapisać wynik."; $("#qzName").focus(); return; }
+  const btn = $("#qzSave"), note = $("#qzNote"), mine = uid;
+  btn.disabled = true; note.textContent = "Zapisuję wynik…";
+  save("pkl_name", name);
+  const r = await PK.submitGame(gameRecord(name));
+  if (mine !== uid) return;
+  if (r.ok) {
+    saved = true; btn.disabled = true;
+    note.innerHTML = `Zapisane! ${esc(name)}, ${num(pts())} pkt. <a href="wyniki.html?gracz=${encodeURIComponent(name)}">Zobacz swój wynik →</a>`;
+    loadTop();
+  } else {
+    btn.disabled = false;
+    note.textContent = r.why === "rejected" ? `Lista wyników odrzuciła tę grę${r.error && r.error.message ? ` (${r.error.message.replace(/^pk: /, "")})` : ""}.` : "Nie udało się zapisać wyniku. Zapisze się, gdy wróci internet, albo spróbuj jeszcze raz.";
+  }
+}
+
+$("#qzAns").addEventListener("click", (e) => { const b = e.target.closest(".ans[data-k]"); if (b) answer(+b.dataset.k); });
+$("#qzNext").addEventListener("click", next);
+$("#qzForm").addEventListener("submit", submit);
+$("#qzAgain").addEventListener("click", startQuiz);
+addEventListener("keydown", (e) => {
+  if (e.ctrlKey || e.metaKey || e.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test((e.target || {}).tagName || "")) return;
+  const k = "abcd".indexOf(e.key.toLowerCase()), d = "1234".indexOf(e.key);
+  if (!$("#qz").hidden && !locked && (k >= 0 || d >= 0)) answer(k >= 0 ? k : d);
+  else if (e.key === "Enter" && e.target === document.body && !$("#qz").hidden && locked && !$("#qzFb").hidden) next();
+});
+
+/* trwająca gra prowadzącego na tym urządzeniu: pozwól do niej wrócić */
 (() => {
-  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  document.querySelectorAll(".round .ans").forEach((el) => el.addEventListener("click", (e) => {
-    if (el.classList.contains("picked")) { e.preventDefault(); return; }
-    const go = () => {
-      if (el.dataset.go) { document.querySelectorAll(".round").forEach((r) => (r.hidden = r.id !== el.dataset.go)); document.querySelectorAll(".ans.picked").forEach((x) => x.classList.remove("picked")); document.querySelector("#" + el.dataset.go + " .ans").focus({ preventScroll: true }); }
-      else location.assign(el.href);
-    };
-    if (still) return el.dataset.go ? go() : undefined;
-    e.preventDefault(); el.classList.add("picked"); setTimeout(go, 420);
-  }));
-  document.querySelectorAll(".back").forEach((b) => b.addEventListener("click", () => document.querySelectorAll(".round").forEach((r) => (r.hidden = r.id !== b.dataset.go))));
-  addEventListener("pageshow", () => document.querySelectorAll(".ans.picked").forEach((x) => x.classList.remove("picked")));
-})();
-(() => {
-  // trwająca gra prowadzącego na tym urządzeniu: pozwól do niej wrócić
   try {
     const H = JSON.parse(localStorage.getItem("pkl_host") || "null"), code = JSON.parse(localStorage.getItem("pkw_hcode") || "null");
     if (H && H.deck && H.ph && H.ph !== "lobby" && H.ph !== "final" && code) {
-      const r = document.querySelector("#resume");
+      const r = $("#resume");
       r.innerHTML = `<span>Trwa Twoja gra · kod <b>${String(code).replace(/[^A-Z0-9]/g, "")}</b> · pytanie ${H.i + 1} z ${H.deck.length}</span><a href="live.html?tryb=prowadzacy">Wróć do gry</a>`;
       r.hidden = false;
     }
   } catch (e) { }
 })();
-(async () => {
+
+/* czołówka listy wyników i podpowiedzi nicków */
+async function loadTop() {
   if (!window.PK || !PK.ready()) return;
-  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-  const num = (n) => (n < 0 ? "−" + Math.abs(n) : String(n));
+  const num2 = num;
   const games = (n) => n === 1 ? "gra" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? "gry" : "gier";
   try {
     const rows = (await PK.leaderboard({ days: 30, limit: 5 })).slice(0, 5);
     if (!rows.length) return;
     const max = Math.max(1, ...rows.map((r) => +r.points));
-    document.querySelector("#top").innerHTML = rows.map((r, k) => `<li class="${k === 0 && +r.points > 0 ? "lead" : ""}"><span class="pos">${k + 1}.</span>
+    $("#top").innerHTML = rows.map((r, k) => `<li class="${k === 0 && +r.points > 0 ? "lead" : ""}"><span class="pos">${k + 1}.</span>
       <span class="nm"><a href="wyniki.html?gracz=${encodeURIComponent(r.name)}">${esc(r.name)}</a><span class="stat">${r.games} ${games(+r.games)} · ${r.wins} wygr.</span></span>
-      <span class="p${+r.points < 0 ? " neg" : ""}">${num(+r.points)} <small>pkt</small></span><span class="bar"><i style="width:${(Math.max(0, +r.points) / max) * 100}%"></i></span></li>`).join("");
-    document.querySelector("#topBox").hidden = false;
+      <span class="p${+r.points < 0 ? " neg" : ""}">${num2(+r.points)} <small>pkt</small></span><span class="bar"><i style="width:${(Math.max(0, +r.points) / max) * 100}%"></i></span></li>`).join("");
+    $("#topBox").hidden = false;
   } catch (e) { }
-})();
+}
+loadTop();
+if (window.PK && PK.ready()) PK.nicks().then((l) => { $("#qzNicks").innerHTML = l.slice(0, 40).map((n) => `<option value="${esc(n)}">`).join(""); }).catch(() => { });
+
+startQuiz();
 </script>
 </body>
 </html>
