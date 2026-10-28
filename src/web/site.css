@@ -223,3 +223,32 @@ select { width: 100%; background: var(--paper); border: 1px solid var(--rule-str
   .qz:not([hidden]) .ans:nth-child(3) { animation-delay: .1s; }
   .qz:not([hidden]) .ans:nth-child(4) { animation-delay: .15s; }
 }
+
+/* animacja po odpowiedzi w szybkim quizie */
+.qz-pop { position: fixed; left: 50%; top: 36%; z-index: 40; max-width: calc(100vw - 32px); padding: 14px 24px; text-align: center; pointer-events: none; opacity: 0; transform: translate(-50%, -50%); border: var(--line); border-radius: 22px; box-shadow: 6px 6px 0 #111; font-family: var(--f-display); font-weight: 800; }
+.qz-pop b { display: block; font-size: clamp(1.3rem, 6vw, 1.7rem); line-height: 1.15; }
+.qz-pop span { display: block; white-space: nowrap; font-size: clamp(1.8rem, 8.5vw, 2.4rem); line-height: 1.1; letter-spacing: -.02em; }
+.qz-pop.ok { background: #A7F3C0; color: #0B3D22; }
+.qz-pop.bad { background: #FFB4B4; color: #6B0F1A; }
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes qz-pop {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(.5) rotate(-5deg); }
+    16% { opacity: 1; transform: translate(-50%, -50%) scale(1.1) rotate(1.5deg); }
+    28% { transform: translate(-50%, -50%) scale(1) rotate(0); }
+    72% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -68%) scale(1); }
+  }
+  .qz-pop.show { animation: qz-pop 1.5s ease-out both; }
+  .qz-pop.bad.show { animation-name: qz-pop-bad; }
+  @keyframes qz-pop-bad {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(.6); }
+    14% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+    24% { transform: translate(-53%, -50%); } 34% { transform: translate(-47%, -50%); } 44% { transform: translate(-52%, -50%); } 54% { transform: translate(-50%, -50%); }
+    78% { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(.95); }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  @keyframes qz-fade { 0%, 90% { opacity: 1; } 100% { opacity: 0; } }
+  .qz-pop.show { animation: qz-fade 1.4s linear both; }
+}
