@@ -386,6 +386,8 @@ body.ans-other #s-player .sheet { filter: grayscale(1); opacity: .82; }
     </div>
     <div class="sheet-body">
       <h2 id="t-hsetup" style="font-size:1.6rem;font-stretch:80%;font-weight:850">Poczekalnia</h2>
+      <section class="sec" aria-labelledby="h-pl">
+      <h2 class="sec-h" id="h-pl"><span class="sec-n">1</span>Gracze</h2>
       <div class="field">
         <span class="label">Gracze przy przyciskach</span>
         <div class="roster" id="hsRoster"></div>
@@ -402,6 +404,9 @@ body.ans-other #s-player .sheet { filter: grayscale(1); opacity: .82; }
         <label for="adminName">Twoje imię w grze (admin pokoju też gra)</label>
         <input type="text" id="adminName" maxlength="20" autocomplete="off" placeholder="np. Adam">
       </div>
+      </section>
+      <section class="sec" aria-labelledby="h-cat">
+      <h2 class="sec-h" id="h-cat"><span class="sec-n">2</span>Kategorie</h2>
       <div class="field">
         <span class="label" id="lbl-level">Kategoria pytań</span>
         <div class="seg catmode" role="group" aria-label="Rodzaj gry" id="catMode">
@@ -431,6 +436,9 @@ body.ans-other #s-player .sheet { filter: grayscale(1); opacity: .82; }
         <p class="hint" id="levelHint"></p>
         <div class="mixpick" id="mixPick" hidden></div>
       </div>
+      </section>
+      <section class="sec" aria-labelledby="h-q">
+      <h2 class="sec-h" id="h-q"><span class="sec-n">3</span>Pytania</h2>
       <div class="field">
         <span class="label" id="lbl-count">Liczba pytań</span>
         <div class="countpick" id="countPick">
@@ -456,6 +464,7 @@ body.ans-other #s-player .sheet { filter: grayscale(1); opacity: .82; }
         </div>
       </div>
       <label class="opt"><input type="checkbox" id="optX2"><span><b>Pytanie ×2</b> · jedno losowe na każde 10 pytań, za podwójne punkty (kara też ×2)</span></label>
+      </section>
       <button type="button" class="btn go" id="btnHStart">Start gry</button>
       <button type="button" class="link-btn" id="btnBack2">← Zmień rolę</button>
     </div>

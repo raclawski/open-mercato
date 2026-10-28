@@ -252,13 +252,26 @@ async def main(dburl):
         await tv.wait_for_selector('#screen-start:not([hidden])')
         shared = await tv.evaluate('() => document.querySelector("#levelSeg [data-v=chajzer]").getAttribute("aria-pressed") === "true" && document.querySelector("#countRange").value === "20"')
         check(shared and not resume, 'wybór trybu: jeden telefon, na wejściu kategoria „Chajzerowie”, liczba pytań przeniesiona z Live')
-        orig = await tv.input_value('#players')
-        await tv.fill('#players', 'Ola')
+        async def players_of(pg): return await pg.eval_on_selector_all('#plist .pt', 'els => els.map((e) => e.textContent)')
+        async def set_players(pg, names):  # lista graczy: dopisz brakujących w polu, zbędnych usuń „×”
+            for n in names:
+                if n not in await players_of(pg): await pg.fill('#pnew', n); await pg.press('#pnew', 'Enter')
+            while True:
+                have = await players_of(pg); extra = [i for i, n in enumerate(have) if n not in names]
+                if not extra: break
+                await pg.click(f'#plist .px >> nth={extra[0]}')
+        orig = await players_of(tv)
+        await set_players(tv, ['Ola'])
         await until(tv, '() => !document.querySelector("#nickChips").hidden && document.querySelector("#nickChips [data-n=Asia]")')
         await tv.click('#nickChips [data-n="Asia"]')
-        chips_ok = await tv.input_value('#players') == 'Ola, Asia' and not await tv.locator('#nickChips [data-n="Asia"]').count()
-        check(chips_ok and await tv.locator('#nickChips [data-n="Tomek"]').count() == 1, 'rejestr nicków: gracze z listy wyników jako podpowiedzi', await tv.input_value('#players'))
-        await tv.fill('#players', orig)
+        now = await players_of(tv)
+        chips_ok = now == ['Ola', 'Asia'] and not await tv.locator('#nickChips [data-n="Asia"]').count()
+        check(chips_ok and await tv.locator('#nickChips [data-n="Tomek"]').count() == 1, 'rejestr nicków: gracze z listy wyników jako podpowiedzi', now)
+        await tv.fill('#pnew', 'asia'); await tv.press('#pnew', 'Enter')
+        check(await players_of(tv) == ['Ola', 'Asia'] and 'już jest' in await tv.inner_text('#pHint'), 'lista graczy: ten sam gracz nie dopisze się dwa razy')
+        await set_players(tv, orig)
+        back = await players_of(tv)
+        check(sorted(back) == sorted(orig) and len(orig) > 1, 'lista graczy: dopisywanie imion i usuwanie przyciskiem „×”', back)
         seen_rows = psql(dburl, '-Atc', "select count(*) from public.pk_seen_q where name_key = 'asia'").strip()
         await until(tv, '() => Object.keys(QHIST).length > 0')
         hq = await tv.evaluate('() => { const ids = Object.keys(QHIST); return [ids.length, ids.every((k) => /^[a-z]+:[0-9a-z]+$/.test(k)), Math.max(...Object.values(QHIST))]; }')
@@ -276,7 +289,7 @@ async def main(dburl):
         await sp.evaluate('() => localStorage.setItem("pkl_name", JSON.stringify("Solista"))')
         await sp.click('a.ans[href="teleturniej.html?tryb=sam"]')
         await sp.wait_for_selector('#screen-start:not([hidden])')
-        solo = [await sp.input_value('#players'), await sp.is_hidden('#starterChips'), (await sp.inner_text('#lblPlayers')).strip()]
+        solo = [await sp.input_value('#soloNick'), await sp.is_hidden('#starterField'), (await sp.inner_text('#soloBox label')).strip()]
         await sp.fill('#countRange', '3'); await sp.uncheck('#optX2'); await sp.click('#btnStart')
         for i in range(3):
             await sp.click('#options .row >> nth=0')

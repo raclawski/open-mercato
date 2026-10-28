@@ -224,6 +224,8 @@ details.review summary { cursor: pointer; font-weight: 600; }
         <li><b class="neg" id="ruleMinus">−1</b><span>Za złą odpowiedź albo koniec czasu. Pytanie przechodzi wtedy do następnej osoby w kolejce.</span></li>
       </ul>
 
+      <section class="sec" aria-labelledby="h-cat">
+      <h2 class="sec-h" id="h-cat"><span class="sec-n">1</span>Kategorie</h2>
       <div class="field">
         <span class="label" id="lbl-level">Kategoria pytań</span>
         <div class="seg catmode" role="group" aria-label="Rodzaj gry" id="catMode">
@@ -253,18 +255,26 @@ details.review summary { cursor: pointer; font-weight: 600; }
         <p class="hint" id="levelHint"></p>
         <div class="mixpick" id="mixPick" hidden></div>
       </div>
+      </section>
 
-      <div class="field">
-        <label for="players">Gracze</label>
-        <input type="text" id="players" value="Adam, Zając, Asia, Tomek, Julia" autocomplete="off">
-        <p class="hint">Imiona oddzielone przecinkami, w kolejności siedzenia.</p>
+      <section class="sec" aria-labelledby="h-pl">
+      <h2 class="sec-h" id="h-pl"><span class="sec-n">2</span>Gracze</h2>
+      <div class="field" id="playersMulti">
+        <ol class="plist" id="plist" aria-label="Lista graczy"></ol>
+        <form class="padd" id="padd" autocomplete="off">
+          <input type="text" id="pnew" maxlength="20" placeholder="Wpisz imię gracza" enterkeyhint="done" aria-label="Imię nowego gracza">
+          <button type="submit" class="padd-btn">+ Dodaj</button>
+        </form>
+        <p class="hint" id="pHint">Wpisz imię i kliknij „Dodaj” albo Enter. Kolejność na liście to kolejność siedzenia.</p>
       </div>
-
-      <div class="field">
+      <div class="field" id="starterField">
         <span class="label" id="lbl-starter">Kto zaczyna?</span>
         <div class="chips" role="group" aria-labelledby="lbl-starter" id="starterChips"></div>
       </div>
+      </section>
 
+      <section class="sec" aria-labelledby="h-q">
+      <h2 class="sec-h" id="h-q"><span class="sec-n">3</span>Pytania</h2>
       <div class="field">
         <span class="label" id="lbl-count">Liczba pytań</span>
         <div class="countpick" id="countPick">
@@ -296,6 +306,7 @@ details.review summary { cursor: pointer; font-weight: 600; }
       </div>
 
       <label class="opt"><input type="checkbox" id="optX2"><span><b>Pytanie ×2</b> · jedno losowe na każde 10 pytań, za podwójne punkty (kara też ×2)</span></label>
+      </section>
 
       <button type="button" class="btn" id="btnStart">Zaczynamy</button>
     </div>
@@ -418,14 +429,20 @@ function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<
 const num = (n) => (n < 0 ? "−" + Math.abs(n) : String(n));
 const pts = (n) => num(n) + " pkt";
 const XSVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5.4 C9.2 9.6 14 14.4 19 19.1"/><path d="M18.8 5.1 C14.3 9.6 9.9 14.2 5.2 19.2"/></svg>';
-function parsePlayers(s) {
-  const a = String(s || "").split(",").map((x) => x.trim()).filter(Boolean).slice(0, 12);
-  return a.length ? [...new Set(a)] : DEFAULT_PLAYERS.slice();
+const MAX_PLAYERS = 12;
+/* imię: bez nadmiarowych spacji, do 20 znaków */
+const cleanPlayer = (x) => String(x == null ? "" : x).trim().replace(/\s+/g, " ").slice(0, 20);
+/* lista graczy: bez pustych i powtórzeń (wielkość liter nie ma znaczenia), 1–12 osób; pusta lista wraca do domyślnej */
+function cleanPlayers(list) {
+  const seen = new Set(), out = [];
+  (Array.isArray(list) ? list : []).forEach((x) => { const n = cleanPlayer(x), k = n.toLowerCase(); if (n && !seen.has(k) && out.length < MAX_PLAYERS) { seen.add(k); out.push(n); } });
+  return out.length ? out : DEFAULT_PLAYERS.slice();
 }
 
 /* ===================== USTAWIENIA ===================== */
 let settings = Object.assign({ level: "pro", players: DEFAULT_PLAYERS.slice(), starter: 0, count: 30, time: 15, minus: 1 }, load("pk_tv2", {}));
 if (![1, 5, 10].includes(settings.minus)) settings.minus = 1;
+settings.players = cleanPlayers(settings.players);
 if (!LEVELS[settings.level]) settings.level = "pro";
 /* wejście do ustawień: zawsze zaznaczona kategoria specjalna (dziś „Chajzerowie”), o ile jest */
 { const sp = Object.keys(LEVELS).find((k) => LEVELS[k].special); if (sp) settings.level = sp; }
@@ -439,7 +456,8 @@ function renderStarter() {
   $("#starterChips").innerHTML = `<button type="button" class="chip" data-s="-1" aria-pressed="${settings.starter === -1}">Losowo</button>` +
     ps.map((n, i) => `<button type="button" class="chip" data-s="${i}" aria-pressed="${settings.starter === i}">${esc(n)}</button>`).join("");
 }
-function renderStart() {
+/* Odświeża ekran ustawień w miejscu, bez przewijania na górę (klik w chip, przełącznik albo suwak nie może zrzucać strony). */
+function refreshStart() {
   setSeg("levelSeg", settings.level); syncCatMode(settings.level);
   settings.count = setCount(settings.count, countMax(settings.level, settings.mix));
   setSeg("timeSeg", settings.time);
@@ -450,28 +468,63 @@ function renderStart() {
   le.textContent = "Poziom: " + LEVELS[settings.level].label.toLowerCase();
   le.classList.toggle("hot", settings.level === "pro" || settings.level === "pop");
   $("#topicEyebrow").textContent = settings.level === "pop" ? "Teleturniej · Popkultura" : "Teleturniej · Polityka";
-  $("#players").value = settings.players.join(", ");
+  renderPlayers();
   $("#rulePlus").textContent = "+" + PLUS;
   $("#ruleMinus").textContent = "−" + settings.minus;
   renderStarter();
   $("#foot").textContent = `Pula na tym poziomie: ${poolSize(settings.level, settings.mix)} pytań. Każda gra najpierw losuje pytania, których jeszcze nie było.`;
-  show("start");
 }
+/* Wejście do ustawień z innego ekranu: odświeża i pokazuje od góry. */
+function renderStart() { refreshStart(); show("start"); }
+/* Lista graczy: każde imię to osobny wiersz z „×”, kolejne dopisuje się w polu pod listą. */
+let playersHook = () => {};  // wersja z serwisu podpina tu podpowiedzi nicków i historię pytań
+function renderPlayers() {
+  const ps = settings.players, full = ps.length >= MAX_PLAYERS;
+  $("#plist").innerHTML = ps.map((n, i) => `<li class="pl"><span class="pn">${i + 1}</span><span class="pt">${esc(n)}</span>` +
+    (ps.length > 1 ? `<button type="button" class="px" data-i="${i}" aria-label="Usuń gracza ${esc(n)}">×</button>` : "") + `</li>`).join("");
+  $("#padd").hidden = full;
+  const h = $("#pHint"); h.classList.remove("err");
+  h.textContent = full ? `Maksimum ${MAX_PLAYERS} graczy. Usuń kogoś, żeby dopisać następnego.` : "Wpisz imię i kliknij „Dodaj” albo Enter. Kolejność na liście to kolejność siedzenia.";
+}
+function playersChanged() { saveSettings(); renderPlayers(); renderStarter(); playersHook(); }
+function addPlayer(raw) {
+  const n = cleanPlayer(raw);
+  if (!n) return false;
+  if (settings.players.length >= MAX_PLAYERS) return false;
+  if (settings.players.some((p) => p.toLowerCase() === n.toLowerCase())) {
+    const h = $("#pHint"); h.textContent = `„${n}” już jest na liście.`; h.classList.add("err"); return false;
+  }
+  settings.players.push(n); playersChanged(); return true;
+}
+function removePlayer(i) {
+  if (settings.players.length < 2 || i < 0 || i >= settings.players.length) return;
+  settings.players.splice(i, 1);
+  if (settings.starter === i) settings.starter = 0; else if (settings.starter > i) settings.starter--;
+  playersChanged();
+}
+/* imię wpisane, ale niedodane przyciskiem, też liczy się przy starcie gry */
+function commitPendingPlayer() { const inp = $("#pnew"); if (inp.value.trim() && addPlayer(inp.value)) inp.value = ""; }
 /*__DRUM_JS__*/
 /*__MIX_JS__*/
 function bindSeg(id, key, num) {
   $("#" + id).addEventListener("click", (e) => {
     const b = e.target.closest("button"); if (!b) return;
-    settings[key] = num ? +b.dataset.v : b.dataset.v; saveSettings(); renderStart();
+    settings[key] = num ? +b.dataset.v : b.dataset.v; saveSettings(); refreshStart();
     const nb = document.querySelector(`#${id} [data-v="${b.dataset.v}"]`); if (nb) nb.focus();
   });
 }
-bindSeg("levelSeg", "level", false); initDrum($("#levelSeg"), (v) => (LEVELS[v].special ? "♥ " : "") + poolSize(v) + " pyt."); initCatMode((v) => { settings.level = v; saveSettings(); renderStart(); });
-initMix($("#mixPick"), () => settings.mix, (sel) => { settings.mix = sel; saveSettings(); renderStart(); });
-initCount((n) => { settings.count = n; saveSettings(); }, renderStart); initX2(() => settings.x2, (v) => { settings.x2 = v; saveSettings(); });
+bindSeg("levelSeg", "level", false); initDrum($("#levelSeg"), (v) => (LEVELS[v].special ? "♥ " : "") + poolSize(v) + " pyt."); initCatMode((v) => { settings.level = v; saveSettings(); refreshStart(); });
+initMix($("#mixPick"), () => settings.mix, (sel) => { settings.mix = sel; saveSettings(); refreshStart(); });
+initCount((n) => { settings.count = n; saveSettings(); }, refreshStart); initX2(() => settings.x2, (v) => { settings.x2 = v; saveSettings(); });
 bindSeg("timeSeg", "time", true);
 bindSeg("minusSeg", "minus", true);
-$("#players").addEventListener("input", (e) => { settings.players = parsePlayers(e.target.value); saveSettings(); renderStarter(); });
+$("#padd").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const inp = $("#pnew");
+  if (addPlayer(inp.value)) inp.value = "";
+  inp.focus({ preventScroll: true });
+});
+$("#plist").addEventListener("click", (e) => { const b = e.target.closest(".px"); if (b) removePlayer(+b.dataset.i); });
 $("#starterChips").addEventListener("click", (e) => {
   const b = e.target.closest("[data-s]"); if (!b) return;
   settings.starter = +b.dataset.s; saveSettings(); renderStarter();
@@ -689,7 +742,7 @@ $("#btnCopy").addEventListener("click", () => {
 $("#btnAgain").addEventListener("click", () => { newGame(); renderQ(); });
 $("#btnSettings").addEventListener("click", () => { S = null; renderStart(); });
 $("#btnStart").addEventListener("click", () => {
-  settings.players = parsePlayers($("#players").value); saveSettings();
+  commitPendingPlayer(); saveSettings();
   newGame(); renderQ();
 });
 

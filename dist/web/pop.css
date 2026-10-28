@@ -186,3 +186,25 @@ select { font: inherit; font-weight: 600; color: #111; background: #fff; border:
 .drum button.special[aria-pressed="true"] .dbox { background: #E8337A; }
 .mixpick .chip[data-k="chajzer"] { background: #FFE3EE; border-color: #B0124F; }
 .mixpick .chip[data-k="chajzer"][aria-pressed="true"] { background: #E8337A; color: #fff; }
+/* ekran ustawień: sekcje z nagłówkami (Kategorie, Gracze, Pytania) */
+.sec { display: grid; gap: 14px; min-width: 0; }
+.sec-h { --sec: var(--pop-a); display: flex; align-items: center; gap: 10px; margin: 0; padding: 8px 14px; background: #111; color: #fff; border-radius: 14px; box-shadow: 4px 4px 0 var(--sec); font-family: var(--f-display); font-weight: 800; font-size: 1.3rem; letter-spacing: -.01em; }
+#h-pl { --sec: var(--pop-b); }
+#h-q { --sec: var(--pop-c); }
+.sec-n { flex: none; display: grid; place-items: center; width: 1.8rem; height: 1.8rem; border-radius: 50%; background: #FFD84D; color: #111; font-size: 1rem; }
+/* lista graczy: jedno imię w wierszu z „×”, pole do dopisania kolejnego pod spodem */
+.plist { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.pl { display: grid; grid-template-columns: 2rem minmax(0, 1fr) auto; align-items: center; gap: 10px; min-height: 54px; padding: 6px 8px 6px 10px; background: #fff; border: var(--line); border-radius: 14px; box-shadow: var(--sh-sm); }
+.pn { display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%; background: #FFD84D; border: 2.5px solid #111; font-weight: 800; font-size: .9rem; }
+.pt { font-weight: 800; font-size: 1.1rem; overflow-wrap: anywhere; }
+.px { width: 2.6rem; height: 2.6rem; padding: 0; border: 2.5px solid #111; border-radius: 50%; background: #FFD1D1; color: #111; font-size: 1.6rem; font-weight: 800; line-height: 1; cursor: pointer; }
+.px:hover { background: var(--pop-a); color: #fff; }
+.px:active { transform: scale(.92); }
+.padd { display: flex; gap: 8px; }
+.padd[hidden], .nickchips[hidden], #soloBox[hidden], #playersMulti[hidden], #starterField[hidden] { display: none !important; }
+.padd input { flex: 1; min-width: 0; font-size: 1rem; }
+.padd-btn { flex: none; min-height: 48px; padding: 0 16px; border: var(--line); border-radius: 12px; background: var(--pop-c); color: #fff; font-family: var(--f-body); font-weight: 800; font-size: 1rem; white-space: nowrap; box-shadow: var(--sh-sm); cursor: pointer; }
+.padd-btn:active { transform: translate(3px, 3px); box-shadow: none; }
+.hint.err { color: var(--stamp); font-weight: 700; }
+/* szybsza reakcja na dotyk: bez opóźnienia na podwójne stuknięcie */
+button, .chip, .seg button, .cstep { touch-action: manipulation; }

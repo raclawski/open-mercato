@@ -20,27 +20,34 @@ def make_tv_web(doc):
             '<p class="copy-note" id="copyNote" aria-live="polite"></p>\n'
             '      <p class="copy-note" id="rankNote" aria-live="polite"></p>\n'
             '      <a class="btn ghost" href="wyniki.html">Lista wyników</a>')
-    # rejestr nicków: gracze z listy wyników jako chipy do dopisania
-    s = rep(s, '<p class="hint">Imiona oddzielone przecinkami, w kolejności siedzenia.</p>',
-            '<p class="hint">Imiona oddzielone przecinkami, w kolejności siedzenia.</p>\n'
+    # rejestr nicków: gracze z listy wyników jako chipy do dopisania; tryb „sam” ma zamiast listy jedno pole z nickiem
+    s = rep(s, '<p class="hint" id="pHint">Wpisz imię i kliknij „Dodaj” albo Enter. Kolejność na liście to kolejność siedzenia.</p>',
+            '<p class="hint" id="pHint">Wpisz imię i kliknij „Dodaj” albo Enter. Kolejność na liście to kolejność siedzenia.</p>\n'
             '        <div class="chips nickchips" id="nickChips" aria-label="Gracze z listy wyników" hidden></div>')
-    s = rep(s, '$("#players").addEventListener("input", (e) => { settings.players = parsePlayers(e.target.value); saveSettings(); renderStarter(); });',
-            '''$("#players").addEventListener("input", (e) => { settings.players = parsePlayers(e.target.value); saveSettings(); renderStarter(); renderNickChips(); });
+    s = rep(s, '<div class="field" id="starterField">',
+            '''<div class="field" id="soloBox" hidden>
+        <label for="soloNick">Twój nick</label>
+        <input type="text" id="soloNick" maxlength="20" autocomplete="off" placeholder="Wpisz swój nick" enterkeyhint="done">
+        <p class="hint">Pod tym imieniem wynik trafi na listę wyników.</p>
+      </div>
+      <div class="field" id="starterField">''')
+    s = rep(s, '$("#plist").addEventListener("click", (e) => { const b = e.target.closest(".px"); if (b) removePlayer(+b.dataset.i); });',
+            '''$("#plist").addEventListener("click", (e) => { const b = e.target.closest(".px"); if (b) removePlayer(+b.dataset.i); });
 let knownNicks = [];
 function renderNickChips() {
   const have = new Set(settings.players.map((n) => n.toLowerCase())), box = $("#nickChips");
   const list = knownNicks.filter((n) => !have.has(n.toLowerCase())).slice(0, 12);
-  box.hidden = !list.length;
+  box.hidden = !list.length || settings.players.length >= MAX_PLAYERS;
   box.innerHTML = list.map((n) => `<button type="button" class="chip" data-n="${esc(n)}">+ ${esc(n)}</button>`).join("");
 }
 $("#nickChips").addEventListener("click", (e) => {
-  const b = e.target.closest("button[data-n]"); if (!b) return;
-  const inp = $("#players"); inp.value = settings.players.concat(b.dataset.n).join(", ");
-  inp.dispatchEvent(new Event("input"));
+  const b = e.target.closest("button[data-n]"); if (b) addPlayer(b.dataset.n);
 });
 if (SOLO) {
-  $("#lblPlayers").textContent = "Twój nick"; $("#playersHint").textContent = "Pod tym imieniem wynik trafi na listę wyników.";
-  $("#players").maxLength = 20; $("#starterChips").closest(".field").hidden = true;
+  $("#playersMulti").hidden = true; $("#starterField").hidden = true; $("#soloBox").hidden = false;
+  $("#h-pl").innerHTML = '<span class="sec-n">2</span>Gracz';
+  const sn = $("#soloNick"); sn.value = settings.players[0];
+  sn.addEventListener("input", () => { settings.players = [cleanPlayer(sn.value) || "Gracz"]; saveSettings(); prefetchHist(); });
   $("#topicEyebrow").textContent = "Tryb: gram sam";
 }
 if (window.PK && PK.ready()) PK.nicks().then((l) => { knownNicks = SOLO ? [] : l; renderNickChips(); });
@@ -53,8 +60,9 @@ function prefetchHist() {
   histKey = key; clearTimeout(histT);
   histT = setTimeout(() => PK.history(settings.players).then((h) => { if (histKey === key) setQHist(h); }), 400);
 }
-$("#players").addEventListener("input", prefetchHist); prefetchHist();''')
-    s = rep(s, '.foot {', '''.nickchips { margin-top: 8px; }
+playersHook = () => { renderNickChips(); prefetchHist(); };
+prefetchHist();''')
+    s = rep(s, '.foot {', '''.nickchips { margin-top: 2px; }
 .nickchips .chip { min-height: 36px; padding: 5px 12px; font-weight: 500; font-size: .85rem; }
 .foot {''')
     # jedna gra: tryb wybiera się na stronie startowej; ustawienia wspólne z Live (pk_common)
@@ -72,9 +80,6 @@ const saveSettings = () => {
   if (SOLO) save("pkl_name", settings.players[0]);
   save("pk_common", { level: settings.level, count: settings.count, minus: settings.minus, mix: settings.mix, x2: settings.x2 });
 };''')
-    s = rep(s, '<label for="players">Gracze</label>', '<label for="players" id="lblPlayers">Gracze</label>')
-    s = rep(s, '<p class="hint">Imiona oddzielone przecinkami, w kolejności siedzenia.</p>', '<p class="hint" id="playersHint">Imiona oddzielone przecinkami, w kolejności siedzenia.</p>')
-    s = rep(s, '<span class="label" id="lbl-starter">Kto zaczyna?</span>', '<span class="label" id="lbl-starter">Kto zaczyna?</span>')
     s = rep(s, '<p class="foot" id="foot"></p>',
             '<p class="sitenav"><a href="index.html">Strona główna</a><a href="wyniki.html">Lista wyników</a></p>\n  <p class="foot" id="foot"></p>')
     s = rep(s, '.foot {', '''.sitenav { display: flex; justify-content: center; gap: 18px; margin: 0; font-family: var(--f-mono); font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; }
