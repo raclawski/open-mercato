@@ -323,8 +323,12 @@ async def main(dburl):
         check(len(cats) == 10 and set(cats) == {'Chajzerowie', 'Ekspert PL', 'Jaki to urząd?', 'Historia Polski', 'Który polityk to powiedział?', 'Śmieszne wypowiedzi'},
               'szybki quiz: 10 pytań z mieszanki sześciu kategorii (obie „kto to powiedział”)', sorted(set(cats)))
         check(await home.is_visible('.own-btn') and (await home.get_attribute('.own-btn', 'href')) == 'gra.html', 'dolny przycisk „Uruchom własną grę” prowadzi do wyboru trybu')
+        right = await home.evaluate('() => deck[0].c')
+        await home.click('#qzFifty')
+        gone = await home.eval_on_selector_all('#qzAns .ans', 'els => els.map((e, i) => e.classList.contains("out") && e.disabled ? i : -1).filter((i) => i >= 0)')
+        check(len(gone) == 2 and right not in gone and await home.is_disabled('#qzFifty'), 'szybki quiz: koło 50:50 usuwa dwie błędne odpowiedzi, raz w quizie', gone)
         for i in range(10):
-            await home.click('#qzAns .ans >> nth=0'); await home.click('#qzNext')
+            await home.click('#qzAns .ans:not([disabled]) >> nth=0'); await home.click('#qzNext')
         await home.wait_for_selector('#qzEnd:not([hidden])')
         check(await home.is_visible('.own-btn') and await home.is_visible('#qzName'), 'koniec quizu: pole imienia, dolny przycisk nadal widoczny')
         await home.fill('#qzName', 'Quizowicz'); await home.click('#qzSave')

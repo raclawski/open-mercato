@@ -26,6 +26,7 @@
   <section class="qz" id="qz" aria-labelledby="qzQ">
     <div class="qz-top">
       <span class="qz-n" id="qzN">Pytanie 1 z 10</span>
+      <button type="button" class="qz-fifty" id="qzFifty" aria-label="Koło ratunkowe 50:50: usuwa dwie błędne odpowiedzi, raz w quizie">50:50</button>
       <span class="qz-pts" id="qzPts">0 pkt</span>
     </div>
     <div class="qz-time" aria-hidden="true"><i id="qzBar"></i></div>
@@ -905,7 +906,7 @@ function initX2(get, set) { const c = $("#optX2"); c.checked = get() !== false; 
    Punkty jak w teleturnieju: +10 za dobrą odpowiedź, −1 za złą albo brak odpowiedzi. Imię pada dopiero na końcu. */
 const QUIZ_KEYS = ["chajzer", "pro", "urz", "hist", "polityk", "smieszne"];
 const QUIZ_N = 10, QUIZ_MS = 20000, PLUS = 10, MINUS = 1, LETTERS = ["A", "B", "C", "D"];
-let deck = [], idx = 0, log = [], uid = null, saved = false, locked = true, t0 = 0, raf = 0;
+let deck = [], idx = 0, log = [], uid = null, saved = false, locked = true, t0 = 0, raf = 0, fiftyUsed = false, outSet = new Set();
 
 const pts = () => log.reduce((s, a) => s + (a.ok ? PLUS : -MINUS), 0);
 const okCount = () => log.filter((a) => a.ok).length;
@@ -920,14 +921,14 @@ function pop(ok, timeout) {
 }
 
 function startQuiz() {
-  deck = buildDeck(MIX, QUIZ_N, QUIZ_KEYS); idx = 0; log = []; saved = false;
+  deck = buildDeck(MIX, QUIZ_N, QUIZ_KEYS); idx = 0; log = []; saved = false; fiftyUsed = false;
   uid = window.PK ? PK.uuid() : null;
   $("#qzEnd").hidden = true; $("#qz").hidden = false;
   ask();
 }
 function ask() {
   const Q = deck[idx];
-  locked = false;
+  locked = false; outSet = new Set();
   $("#qzN").textContent = `Pytanie ${idx + 1} z ${deck.length}`;
   $("#qzPts").textContent = `${num(pts())} pkt`;
   $("#qzCat").textContent = Q.cat;
@@ -935,7 +936,21 @@ function ask() {
   $("#qzAns").innerHTML = Q.o.map((t, k) => `<button type="button" class="ans" data-k="${k}"><span class="in"><b class="key">${LETTERS[k]}</b><span class="at"><strong>${esc(t)}</strong></span></span></button>`).join("");
   $("#qzFb").hidden = true;
   $("#qz").classList.remove("done");
+  renderFifty();
   t0 = performance.now(); cancelAnimationFrame(raf); tick();
+}
+/* Koło 50:50: raz w całym quizie usuwa dwie błędne odpowiedzi z bieżącego pytania. Punkty bez zmian. */
+function renderFifty() {
+  const b = $("#qzFifty");
+  b.disabled = locked || fiftyUsed; b.classList.toggle("used", fiftyUsed);
+}
+function useFifty() {
+  if (locked || fiftyUsed) return;
+  const Q = deck[idx];
+  outSet = new Set(shuffle(Q.o.map((_, i) => i).filter((i) => i !== Q.c)).slice(0, 2));
+  fiftyUsed = true;
+  document.querySelectorAll("#qzAns .ans").forEach((b, j) => { const out = outSet.has(j); b.classList.toggle("out", out); if (out) b.disabled = true; });
+  renderFifty();
 }
 function tick() {
   const left = Math.max(0, QUIZ_MS - (performance.now() - t0));
@@ -945,8 +960,8 @@ function tick() {
   raf = requestAnimationFrame(tick);
 }
 function answer(k) {
-  if (locked) return;
-  locked = true; cancelAnimationFrame(raf);
+  if (locked || outSet.has(k)) return;
+  locked = true; cancelAnimationFrame(raf); renderFifty();
   const Q = deck[idx], ok = k === Q.c;
   log.push({ ok, pick: k });
   document.querySelectorAll("#qzAns .ans").forEach((b, j) => {
@@ -1008,12 +1023,14 @@ async function submit(e) {
 
 $("#qzAns").addEventListener("click", (e) => { const b = e.target.closest(".ans[data-k]"); if (b) answer(+b.dataset.k); });
 $("#qzNext").addEventListener("click", next);
+$("#qzFifty").addEventListener("click", useFifty);
 $("#qzForm").addEventListener("submit", submit);
 $("#qzAgain").addEventListener("click", startQuiz);
 addEventListener("keydown", (e) => {
   if (e.ctrlKey || e.metaKey || e.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test((e.target || {}).tagName || "")) return;
   const k = "abcd".indexOf(e.key.toLowerCase()), d = "1234".indexOf(e.key);
   if (!$("#qz").hidden && !locked && (k >= 0 || d >= 0)) answer(k >= 0 ? k : d);
+  else if (!$("#qz").hidden && (e.key === "f" || e.key === "F" || e.key === "5")) useFifty();
   else if (e.key === "Enter" && e.target === document.body && !$("#qz").hidden && locked && !$("#qzFb").hidden) next();
 });
 

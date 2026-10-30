@@ -467,6 +467,16 @@ select { font: inherit; font-weight: 600; color: #111; background: #fff; border:
 .hint.err { color: var(--stamp); font-weight: 700; }
 /* szybsza reakcja na dotyk: bez opóźnienia na podwójne stuknięcie */
 button, .chip, .seg button, .cstep { touch-action: manipulation; }
+/* koło ratunkowe 50:50 */
+.ffrow { display: flex; align-items: center; gap: 12px; }
+.ffbtn { flex: none; min-width: 5.2rem; min-height: 44px; padding: 0 16px; border: var(--line); border-radius: 99px; background: var(--pop-hot); color: #111; font-family: var(--f-display); font-weight: 800; font-size: 1.15rem; letter-spacing: .02em; box-shadow: var(--sh-sm); cursor: pointer; }
+.ffbtn:active:not(:disabled) { transform: translate(3px, 3px); box-shadow: none; }
+.ffbtn:disabled { cursor: default; }
+.ffbtn.used { background: #fff; color: #888; border-color: #888; box-shadow: none; text-decoration: line-through; }
+.ffnote { font-size: .85rem; font-weight: 600; color: var(--muted); }
+.row.ff-out { filter: grayscale(.9) opacity(.35); }
+.row.ff-out .txt { text-decoration: line-through; }
+.ffrow[hidden] { display: none !important; }
 </style>
 </head>
 <body>
@@ -573,6 +583,7 @@ button, .chip, .seg button, .cstep { touch-action: manipulation; }
       </div>
 
       <label class="opt"><input type="checkbox" id="optX2"><span><b>Pytanie ×2</b> · jedno losowe na każde 10 pytań, za podwójne punkty (kara też ×2)</span></label>
+      <label class="opt"><input type="checkbox" id="optFifty"><span><b>Koło 50:50</b> · każdy gracz może raz w grze usunąć dwie błędne odpowiedzi</span></label>
       </section>
 
       <button type="button" class="btn" id="btnStart">Zaczynamy</button>
@@ -601,6 +612,7 @@ button, .chip, .seg button, .cstep { touch-action: manipulation; }
           <div class="timer-num" id="timerNum">20</div>
         </div>
         <p class="x2banner" id="x2Q" hidden>Pytanie za podwójne punkty!</p>
+        <div class="ffrow" id="ffRow" hidden><button type="button" class="ffbtn" id="btnFifty" aria-describedby="ffNote">50:50</button><span class="ffnote" id="ffNote" aria-live="polite"></span></div>
         <h2 class="qtext" id="qText"></h2>
         <div class="ballot" id="options"></div>
         <div class="late" id="late" hidden>
@@ -3368,6 +3380,7 @@ function bindSeg(id, key, num) {
 bindSeg("levelSeg", "level", false); initDrum($("#levelSeg"), (v) => (LEVELS[v].special ? "♥ " : "") + poolSize(v) + " pyt."); initCatMode((v) => { settings.level = v; saveSettings(); refreshStart(); });
 initMix($("#mixPick"), () => settings.mix, (sel) => { settings.mix = sel; saveSettings(); refreshStart(); });
 initCount((n) => { settings.count = n; saveSettings(); }, refreshStart); initX2(() => settings.x2, (v) => { settings.x2 = v; saveSettings(); });
+{ const c = $("#optFifty"); c.checked = settings.fifty !== false; c.addEventListener("change", () => { settings.fifty = c.checked; saveSettings(); }); }
 bindSeg("timeSeg", "time", true);
 bindSeg("minusSeg", "minus", true);
 $("#padd").addEventListener("submit", (e) => {
@@ -3388,7 +3401,7 @@ let S = null, timerId = null, tEnd = 0;
 function newGame() {
   const players = settings.players.slice();
   const starter = settings.starter === -1 ? Math.floor(Math.random() * players.length) : Math.min(settings.starter, players.length - 1);
-  S = { level: settings.level, players, minus: settings.minus, time: settings.time, deck: withX2(buildDeck(settings.level, clampCount(settings.count, countMax(settings.level, settings.mix)), settings.mix), settings.x2), i: 0, cur: starter, next: null, phase: "q", log: [], left: settings.time * 1000 };
+  S = { level: settings.level, players, minus: settings.minus, time: settings.time, deck: withX2(buildDeck(settings.level, clampCount(settings.count, countMax(settings.level, settings.mix)), settings.mix), settings.x2), i: 0, cur: starter, next: null, phase: "q", log: [], left: settings.time * 1000, ff: settings.fifty === false ? null : players.map(() => 0) };
 }
 function scores() {
   const t = S.players.map(() => 0);
@@ -3429,10 +3442,32 @@ function renderQ(resume) {
   $("#nextpick").hidden = true;
   $("#btnNext").hidden = true;
   resetQuit();
+  applyFifty(); renderFifty();
   if (S.phase === "reveal") { renderReveal(true); return; }
   if (S.late) { startTimer(0); return; }
   startTimer(resume ? S.left : S.time * 1000);
 }
+/* Koło 50:50: każdy gracz raz w grze usuwa dwie błędne odpowiedzi z bieżącego pytania (Q.hid = ich numery, S.ff[gracz] = użyte). Punkty bez zmian. */
+function applyFifty() {
+  const hid = cur().hid || [];
+  document.querySelectorAll("#options .row").forEach((row, i) => { const out = hid.includes(i); row.classList.toggle("ff-out", out); if (out) row.disabled = true; });
+}
+function renderFifty() {
+  const row = $("#ffRow"); row.hidden = !S.ff;
+  if (!S.ff) return;
+  const used = !!S.ff[S.cur], Q = cur(), name = S.players[S.cur];
+  $("#btnFifty").disabled = S.phase !== "q" || used;
+  $("#btnFifty").classList.toggle("used", used);
+  $("#ffNote").textContent = Q.hid ? `${name}: dwie błędne odpowiedzi usunięte` : used ? `${name}: koło już wykorzystane` : `Koło ratunkowe dla: ${name}`;
+}
+function useFifty() {
+  if (!S || !S.ff || S.phase !== "q" || S.ff[S.cur] || cur().hid) return;
+  const Q = cur();
+  Q.hid = shuffle(Q.o.map((_, i) => i).filter((i) => i !== Q.c)).slice(0, 2);
+  S.ff[S.cur] = 1;
+  applyFifty(); renderFifty();
+}
+$("#btnFifty").addEventListener("click", useFifty);
 function startTimer(ms) {
   stopTimer();
   const t = $("#timer");
@@ -3463,12 +3498,13 @@ function timeUp() {
 $("#btnNoAnswer").addEventListener("click", () => answer(-1));
 function answer(i) {
   if (!S || S.phase !== "q") return;
+  if ((cur().hid || []).includes(i)) return;  // usunięte kołem 50:50
   stopTimer();
   S.late = false;
   $("#late").hidden = true;
   const ok = i === cur().c;
   S.log[S.i] = { p: S.cur, pick: i, ok };
-  S.phase = "reveal";
+  S.phase = "reveal"; renderFifty();
   S.next = S.players.length === 1 ? 0 : ok ? null : (S.cur + 1) % S.players.length;  // sam gracz: zawsze on
   renderReveal(false);
 }
@@ -3604,6 +3640,7 @@ document.addEventListener("keydown", (e) => {
     const k = e.key.toUpperCase();
     let i = ["1", "2", "3", "4"].indexOf(k); if (i < 0) i = LETTERS.indexOf(k);
     if (i >= 0) { e.preventDefault(); answer(i); }
+    else if (k === "F" || k === "5") { e.preventDefault(); useFifty(); }
   }
 });
 

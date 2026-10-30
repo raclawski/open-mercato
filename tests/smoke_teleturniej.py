@@ -111,6 +111,24 @@ async def main():
         good = x2 == [1, 1, 1] and ban == [True, '+20', '−10'] and gain == 20 and not errs
         print(('✓' if good else '✗'), 'pytanie ×2: jedno na 10, baner, +20/−10', x2, ban, gain, errs)
         fail += not good
+        # koło 50:50: raz na gracza, usuwa dwie błędne odpowiedzi, poprawna zostaje; następny gracz ma własne koło; opcję można wyłączyć
+        await pg.evaluate('localStorage.clear()'); await pg.goto(URL); await pg.wait_for_timeout(200)
+        await pg.click('#levelSeg [data-v="std"]'); await pg.uncheck('#optX2'); await pg.click('#btnStart')
+        right = await pg.evaluate('() => S.deck[S.i].c')
+        await pg.click('#btnFifty')
+        gone = await pg.evaluate('() => [...document.querySelectorAll("#options .row")].map((r, i) => r.classList.contains("ff-out") && r.disabled ? i : -1).filter((i) => i >= 0)')
+        used = await pg.is_disabled('#btnFifty')
+        await pg.click(f'#options .row[data-i="{[i for i in range(4) if i != right and i not in gone][0]}"]')  # zła odpowiedź: pytanie przechodzi dalej
+        await pg.click('#btnNext')
+        p2 = await pg.evaluate('() => [S.players[S.cur], !document.querySelector("#btnFifty").disabled, S.ff.slice(0, 3)]')
+        good = len(gone) == 2 and right not in gone and used and p2[1] and p2[2][0] == 1 and p2[2][1] == 0
+        print(('✓' if good else '✗'), 'koło 50:50: dwie błędne odpowiedzi znikają, raz na gracza', gone, right, p2)
+        fail += not good
+        await pg.evaluate('localStorage.clear()'); await pg.goto(URL); await pg.wait_for_timeout(200)
+        await pg.uncheck('#optFifty'); await pg.uncheck('#optX2'); await pg.click('#btnStart')
+        good = await pg.is_hidden('#ffRow')
+        print(('✓' if good else '✗'), 'koło 50:50: opcję można wyłączyć w ustawieniach')
+        fail += not good
         # koniec czasu: odpowiedzi zostają do zaznaczenia, „Brak odpowiedzi” daje karę, nic nie dzieje się samo
         await pg.evaluate('localStorage.clear()'); await pg.clock.install(); await pg.goto(URL); await pg.wait_for_timeout(200)
         await pg.click('#timeSeg [data-v="10"]'); await pg.click('#minusSeg [data-v="5"]'); await pg.uncheck('#optX2'); await pg.click('#btnStart')

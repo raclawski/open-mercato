@@ -188,7 +188,7 @@ select { width: 100%; background: var(--paper); border: 1px solid var(--rule-str
 .qz .ans .in { min-height: 62px; padding: 10px 14px; }
 .qz .ans strong { font-size: 1.05rem; font-weight: 700; line-height: 1.25; }
 .qz .ans:disabled { color: #fff; cursor: default; }
-.qz .ans.dim { opacity: .42; filter: saturate(.5); }
+.qz .ans.dim { filter: saturate(.5) opacity(.45); }
 .qz .ans.good { outline: 4px solid #111; outline-offset: 2px; }
 .qz .ans.good .key { background: #A7F3C0; }
 .qz .ans.good .at::after { content: "✓ dobra odpowiedź"; font-size: .8rem; font-weight: 800; }
@@ -252,3 +252,11 @@ select { width: 100%; background: var(--paper); border: 1px solid var(--rule-str
   @keyframes qz-fade { 0%, 90% { opacity: 1; } 100% { opacity: 0; } }
   .qz-pop.show { animation: qz-fade 1.4s linear both; }
 }
+/* koło 50:50 w szybkim quizie */
+.qz-fifty { padding: 3px 14px; border: 2.5px solid #111; border-radius: 99px; background: var(--pop-hot); color: #111; box-shadow: 2px 2px 0 #111; font: inherit; font-weight: 800; letter-spacing: .04em; cursor: pointer; touch-action: manipulation; }
+.qz-fifty:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: none; }
+.qz-fifty:disabled { cursor: default; }
+.qz-fifty.used { background: #fff; color: #888; border-color: #888; box-shadow: none; text-decoration: line-through; }
+.qz .ans.out { filter: grayscale(.9) opacity(.35); }
+.qz .ans.out strong { text-decoration: line-through; }
+.qz-fifty:disabled:not(.used) { opacity: .45; }

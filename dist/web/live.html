@@ -562,6 +562,16 @@ select { font: inherit; font-weight: 600; color: #111; background: #fff; border:
 .hint.err { color: var(--stamp); font-weight: 700; }
 /* szybsza reakcja na dotyk: bez opóźnienia na podwójne stuknięcie */
 button, .chip, .seg button, .cstep { touch-action: manipulation; }
+/* koło ratunkowe 50:50 */
+.ffrow { display: flex; align-items: center; gap: 12px; }
+.ffbtn { flex: none; min-width: 5.2rem; min-height: 44px; padding: 0 16px; border: var(--line); border-radius: 99px; background: var(--pop-hot); color: #111; font-family: var(--f-display); font-weight: 800; font-size: 1.15rem; letter-spacing: .02em; box-shadow: var(--sh-sm); cursor: pointer; }
+.ffbtn:active:not(:disabled) { transform: translate(3px, 3px); box-shadow: none; }
+.ffbtn:disabled { cursor: default; }
+.ffbtn.used { background: #fff; color: #888; border-color: #888; box-shadow: none; text-decoration: line-through; }
+.ffnote { font-size: .85rem; font-weight: 600; color: var(--muted); }
+.row.ff-out { filter: grayscale(.9) opacity(.35); }
+.row.ff-out .txt { text-decoration: line-through; }
+.ffrow[hidden] { display: none !important; }
 </style>
 </head>
 <body>
