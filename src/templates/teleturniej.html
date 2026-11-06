@@ -250,6 +250,8 @@ details.review summary { cursor: pointer; font-weight: 600; }
             <button type="button" data-v="lit" class="hotbtn">Literatura polska</button>
             <button type="button" data-v="polityk" class="hotbtn">Który polityk to powiedział?</button>
             <button type="button" data-v="smieszne" class="hotbtn">Śmieszne wypowiedzi</button>
+            <button type="button" data-v="ustawy" class="hotbtn">Niszowe ustawy</button>
+            <button type="button" data-v="muzyka" class="hotbtn">Wiedza o muzyce</button>
           </div>
         </div>
         <p class="hint" id="levelHint"></p>
@@ -415,6 +417,8 @@ const LEVELS = {
   lit: { label: "Literatura polska", bank: BANK_LIT, hint: "Od Kochanowskiego do noblistów i Nagrody Nike." },
   polityk: { label: "Który polityk to powiedział?", bank: BANK_POLITYK, hint: "Słynne słowa polskich i światowych polityków. Kto je wypowiedział?" },
   smieszne: { label: "Śmieszne wypowiedzi", bank: BANK_SMIESZNE, hint: "Zabawne i słynne wypowiedzi polskich polityków. Kto je wypowiedział?" },
+  ustawy: { label: "Niszowe ustawy", bank: BANK_USTAWY, hint: "Bardzo trudne: szczegóły mało znanych ustaw, m.in. ustawy Kamilka i ustawy o przeciwdziałaniu narkomanii. Daty, artykuły, pojęcia." },
+  muzyka: { label: "Wiedza o muzyce", bank: BANK_MUZYKA, hint: "Teoria i instrumenty, muzyka poważna, rock, pop i jazz." },
 };
 const DEFAULT_PLAYERS = ["Adam", "Zając", "Asia", "Tomek", "Julia"];
 const PLUS = 10;
